@@ -343,44 +343,175 @@ async function exportBackup(){
 }
 
 async function importBackup(event){
- const file=event.target.files&&event.target.files[0];
+ const input=event.target;
+ const file=input.files&&input.files[0];
  if(!file)return;
+
+ let stage='파일 읽기';
  try{
-  const raw=await file.text();
-  const data=JSON.parse(raw);
-  if(!data||data.app!=='문희농원 작업일지'||!Array.isArray(data.entries)){
-   throw new Error('invalid backup');
-  }
-  const ok=confirm(`백업에 작업 ${data.entries.length}건이 있습니다.\n현재 데이터에 추가로 불러올까요?\n\n같은 작업은 중복될 수 있습니다.`);
-  if(!ok){event.target.value='';return}
   setLoading(true);
-  const current=await getAllEntries();
-  const known=new Set(current.map(x=>x.recordUid||('LEGACY-'+(x.deviceId||'OLD')+'-'+x.id)));
-  let added=0,skipped=0;
-  for(const item of data.entries){
-   const uid=item.recordUid||('LEGACY-'+(item.deviceId||data.deviceId||'IMPORT')+'-'+item.id);
-   if(known.has(uid)){skipped++;continue}
-   const copy={...item,id:Date.now()+added,recordUid:uid,deviceId:item.deviceId||data.deviceId||'IMPORT'};
-   await putEntry(copy);known.add(uid);added++;
+
+  const raw=await file.text();
+  stage='파일 내용 확인';
+
+  let data;
+  try{
+   data=JSON.parse(raw.replace(/^\uFEFF/,'').trim());
+  }catch(parseErr){
+   throw new Error('JSON_PARSE');
   }
-  if(Array.isArray(data.favorites)){
-   const current=getFavorites();
-   const merged=[...current];
+
+  // 이전·현재 백업 형식을 모두 허용합니다.
+  const entries=Array.isArray(data)
+   ? data
+   : Array.isArray(data?.entries)
+    ? data.entries
+    : Array.isArray(data?.data)
+     ? data.data
+     : null;
+
+  if(!entries){
+   throw new Error('NO_ENTRIES');
+  }
+
+  const appName=typeof data?.app==='string'?data.app:'';
+  if(appName&&appName!=='문희농원 작업일지'){
+   throw new Error('WRONG_APP');
+  }
+
+  const ok=confirm(
+   `백업에 작업 ${entries.length}건이 있습니다.\n`+
+   `현재 데이터와 안전하게 합칠까요?\n\n`+
+   `같은 작업은 자동으로 제외됩니다.`
+  );
+  if(!ok)return;
+
+  stage='기존 데이터 확인';
+  const current=await getAllEntries();
+  const knownUids=new Set(
+   current.map(x=>x.recordUid||('LEGACY-'+(x.deviceId||'OLD')+'-'+x.id))
+  );
+  const usedIds=new Set(current.map(x=>Number(x.id)));
+
+  let added=0,skipped=0,failed=0;
+  const failureReasons=[];
+
+  const nextUniqueId=()=>{
+   let id=Date.now();
+   while(usedIds.has(id))id++;
+   usedIds.add(id);
+   return id;
+  };
+
+  stage='작업 기록 합치기';
+  for(let index=0;index<entries.length;index++){
+   const item=entries[index];
+
+   if(!item||typeof item!=='object'){
+    failed++;
+    failureReasons.push(`${index+1}번째 기록: 내용이 비어 있음`);
+    continue;
+   }
+
+   const sourceId=item.id??('ROW-'+index);
+   const sourceDevice=item.deviceId||data?.deviceId||'IMPORT';
+   const uid=item.recordUid||('LEGACY-'+sourceDevice+'-'+sourceId);
+
+   if(knownUids.has(uid)){
+    skipped++;
+    continue;
+   }
+
+   const copy={
+    ...item,
+    id:nextUniqueId(),
+    recordUid:String(uid),
+    deviceId:String(sourceDevice),
+    workDate:String(item.workDate||''),
+    field:String(item.field||''),
+    crop:String(item.crop||''),
+    work:String(item.work||''),
+    worker:String(item.worker||''),
+    amount:String(item.amount||''),
+    memo:String(item.memo||''),
+    photos:Array.isArray(item.photos)?item.photos.filter(x=>typeof x==='string'):[],
+    createdAt:item.createdAt||new Date().toISOString(),
+    updatedAt:item.updatedAt||item.createdAt||new Date().toISOString()
+   };
+
+   // 필수 날짜가 없는 손상 기록은 저장하지 않습니다.
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(copy.workDate)){
+    failed++;
+    failureReasons.push(`${index+1}번째 기록: 작업 날짜 오류`);
+    continue;
+   }
+
+   try{
+    await putEntry(copy);
+    knownUids.add(uid);
+    added++;
+   }catch(saveErr){
+    console.error('개별 기록 저장 실패',index,item,saveErr);
+    failed++;
+    const name=saveErr?.name||'저장 오류';
+    failureReasons.push(`${index+1}번째 기록: ${name}`);
+   }
+  }
+
+  stage='즐겨찾기 합치기';
+  if(Array.isArray(data?.favorites)){
+   const currentFavorites=getFavorites();
+   const merged=[...currentFavorites];
    for(const fav of data.favorites){
-    if(!merged.some(x=>x.signature===fav.signature))merged.push(fav);
+    if(!fav||typeof fav!=='object')continue;
+    const duplicate=merged.some(x=>
+     (fav.signature&&x.signature===fav.signature)||
+     (!fav.signature&&
+      x.field===fav.field&&x.crop===fav.crop&&x.work===fav.work&&x.worker===fav.worker)
+    );
+    if(!duplicate)merged.push(fav);
    }
    saveFavorites(merged);
   }
-  event.target.value='';
-  await renderHome();
-  await renderJournal();
-  await renderRecentWorks();
-  showToast(`새 작업 ${added}건 추가 · 중복 ${skipped}건 제외`);
+
+  stage='화면 새로고침';
+  // 화면 일부에서 오류가 나도 저장된 데이터는 성공으로 처리합니다.
+  const refreshes=[renderHome(),renderJournal(),renderRecentWorks()];
+  const refreshResults=await Promise.allSettled(refreshes);
+  refreshResults.forEach(r=>{
+   if(r.status==='rejected')console.warn('합치기 후 화면 갱신 오류',r.reason);
+  });
+
+  let message=`새 작업 ${added}건 추가 · 중복 ${skipped}건 제외`;
+  if(failed)message+=` · 실패 ${failed}건`;
+  showToast(message);
+
+  if(failed){
+   alert(
+    `${message}\n\n`+
+    `일부 기록은 저장하지 못했습니다.\n`+
+    failureReasons.slice(0,5).join('\n')+
+    (failureReasons.length>5?`\n외 ${failureReasons.length-5}건`:'')
+   );
+  }
  }catch(err){
-  console.error(err);
-  alert('올바른 문희농원 백업 파일이 아닙니다.');
-  event.target.value='';
+  console.error('백업 합치기 실패 단계:',stage,err);
+
+  let reason='알 수 없는 오류';
+  if(err?.message==='JSON_PARSE')reason='파일 내용이 JSON 형식이 아닙니다.';
+  else if(err?.message==='NO_ENTRIES')reason='작업 기록(entries)을 찾지 못했습니다.';
+  else if(err?.message==='WRONG_APP')reason='다른 앱에서 만든 백업파일입니다.';
+  else if(err?.name==='QuotaExceededError')reason='휴대폰 저장공간이 부족하거나 사진 용량이 너무 큽니다.';
+  else if(err?.name)reason=err.name;
+
+  alert(
+   `데이터 합치기 중 문제가 발생했습니다.\n\n`+
+   `단계: ${stage}\n`+
+   `원인: ${reason}\n\n`+
+   `원본 백업파일과 기존 데이터는 삭제되지 않았습니다.`
+  );
  }finally{
+  input.value='';
   setLoading(false);
  }
 }
