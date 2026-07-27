@@ -388,12 +388,15 @@ async function importBackup(event){
 
   stage='기존 데이터 확인';
   const current=await getAllEntries();
-  const knownUids=new Set(
-   current.map(x=>x.recordUid||('LEGACY-'+(x.deviceId||'OLD')+'-'+x.id))
-  );
+  const uidToExisting=new Map();
+  current.forEach(x=>{
+   const uid=String(x.recordUid||('LEGACY-'+(x.deviceId||'OLD')+'-'+x.id));
+   uidToExisting.set(uid,x);
+  });
+  const knownUids=new Set(uidToExisting.keys());
   const usedIds=new Set(current.map(x=>Number(x.id)));
 
-  let added=0,skipped=0,failed=0;
+  let added=0,repaired=0,skipped=0,failed=0;
   const failureReasons=[];
 
   const nextUniqueId=()=>{
@@ -417,14 +420,11 @@ async function importBackup(event){
    const sourceDevice=item.deviceId||data?.deviceId||'IMPORT';
    const uid=item.recordUid||('LEGACY-'+sourceDevice+'-'+sourceId);
 
-   if(knownUids.has(uid)){
-    skipped++;
-    continue;
-   }
+   const existingDuplicate=uidToExisting.get(String(uid));
 
    const copy={
     ...item,
-    id:nextUniqueId(),
+    id:existingDuplicate?Number(existingDuplicate.id):nextUniqueId(),
     recordUid:String(uid),
     deviceId:String(sourceDevice),
     workDate:String(item.workDate||''),
@@ -452,8 +452,28 @@ async function importBackup(event){
     if(!saved||saved.recordUid!==copy.recordUid){
      throw new Error('SAVE_VERIFY_FAILED');
     }
-    knownUids.add(uid);
-    added++;
+    knownUids.add(String(uid));
+    uidToExisting.set(String(uid),saved);
+
+    if(existingDuplicate){
+     // 예전 합치기에서 껍데기 기록만 남았거나 사진이 빠진 경우,
+     // 백업파일의 원본 내용과 사진으로 같은 기록을 복구합니다.
+     const beforePhotos=Array.isArray(existingDuplicate.photos)?existingDuplicate.photos.length:0;
+     const afterPhotos=Array.isArray(saved.photos)?saved.photos.length:0;
+     const changed=
+      String(existingDuplicate.workDate||'')!==String(saved.workDate||'')||
+      String(existingDuplicate.field||'')!==String(saved.field||'')||
+      String(existingDuplicate.crop||'')!==String(saved.crop||'')||
+      String(existingDuplicate.work||'')!==String(saved.work||'')||
+      String(existingDuplicate.worker||'')!==String(saved.worker||'')||
+      String(existingDuplicate.memo||'')!==String(saved.memo||'')||
+      beforePhotos!==afterPhotos;
+
+     if(changed)repaired++;
+     else skipped++;
+    }else{
+     added++;
+    }
    }catch(saveErr){
     console.error('개별 기록 저장 실패',index,item,saveErr);
     failed++;
@@ -489,13 +509,11 @@ async function importBackup(event){
    return savedUidSet.has(String(uid));
   });
 
-  if(added>0){
-   const firstImported=confirmedImported.find(item=>/^\d{4}-\d{2}-\d{2}$/.test(String(item.workDate||'')));
-   if(firstImported){
-    selectedCalendarDate=String(firstImported.workDate);
-    const [y,m]=selectedCalendarDate.split('-').map(Number);
-    calendarMonth=new Date(y,m-1,1);
-   }
+  const firstImported=confirmedImported.find(item=>/^\d{4}-\d{2}-\d{2}$/.test(String(item.workDate||'')));
+  if(firstImported){
+   selectedCalendarDate=String(firstImported.workDate);
+   const [y,m]=selectedCalendarDate.split('-').map(Number);
+   calendarMonth=new Date(y,m-1,1);
   }
 
   stage='화면 새로고침';
@@ -515,7 +533,7 @@ async function importBackup(event){
    if(r.status==='rejected')console.warn('합치기 후 화면 갱신 오류',r.reason);
   });
 
-  let message=`새 작업 ${added}건 저장 확인 · 중복 ${skipped}건 제외`;
+  let message=`새 작업 ${added}건 · 기존 자료 복구 ${repaired}건 · 동일 자료 ${skipped}건`;
   if(failed)message+=` · 실패 ${failed}건`;
   showToast(message);
 
