@@ -38,10 +38,25 @@ function choose(type,item,btn,wrap){[...wrap.children].forEach(x=>x.classList.re
 function selectChoice(id,value){[...document.getElementById(id).children].forEach(b=>b.classList.toggle('selected',b.textContent===value))}
 function setCrop(v){document.getElementById('crop').value=v}
 
-function showScreen(id){
- document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');
+function showScreen(id,options={}){
+ const target=document.getElementById(id);
+ if(!target)return;
+ const current=document.querySelector('.screen.active')?.id||'home';
+ const shouldRecord=options.record!==false;
+
+ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+ target.classList.add('active');
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));
- if(id==='journal')renderJournal();if(id==='search')runSearch();if(id==='stats')renderStats();if(id==='register')renderRecentWorks();window.scrollTo({top:0,behavior:'smooth'})
+
+ if(shouldRecord&&current!==id){
+  history.pushState({screen:id},'',location.href);
+ }
+
+ if(id==='journal')renderJournal();
+ if(id==='search')runSearch();
+ if(id==='stats')renderStats();
+ if(id==='register')renderRecentWorks();
+ window.scrollTo({top:0,behavior:options.smooth===false?'auto':'smooth'});
 }
 function openNewEntry(){resetForm();showScreen('register');renderRecentWorks()}
 function resetForm(){
@@ -331,7 +346,39 @@ async function renderStats(){
  renderBars('fieldStats',countBy(list,'field'));renderBars('cropStats',countBy(list,'crop'));renderBars('workStats',countBy(list,'work'));renderBars('workerStats',countBy(list,'worker'))
 }
 
+function closeOpenOverlay(){
+ const photoModal=document.getElementById('photoModal');
+ if(photoModal&&photoModal.classList.contains('open')){
+  photoModal.classList.remove('open');
+  return true;
+ }
+ const statsGallery=document.getElementById('statsGallery');
+ if(statsGallery&&statsGallery.classList.contains('open')){
+  closeStatsGallery();
+  return true;
+ }
+ const galleryReview=document.getElementById('galleryReview');
+ if(galleryReview&&galleryReview.classList.contains('open')){
+  cancelGallerySelection();
+  return true;
+ }
+ return false;
+}
+
+function setupBackNavigation(){
+ history.replaceState({screen:'home'},'',location.href);
+ window.addEventListener('popstate',event=>{
+  if(closeOpenOverlay()){
+   history.pushState({screen:document.querySelector('.screen.active')?.id||'home'},'',location.href);
+   return;
+  }
+  const screen=event.state&&event.state.screen?event.state.screen:'home';
+  showScreen(screen,{record:false,smooth:false});
+ });
+}
+
 async function init(){
+ setupBackNavigation();
  makeChoices('fieldChoices',fields,'field');makeChoices('workChoices',works,'work');makeChoices('workerChoices',workers,'worker');fillSelect('searchField',fields,'필지');fillSelect('searchWork',works,'작업');fillSelect('searchWorker',workers,'작업자');
  document.getElementById('statsMonth').value=monthString(new Date());resetForm();
  try{await openDB();await migrateOldData()}catch(e){alert('기기 내부 데이터베이스를 열지 못했습니다. 일반 브라우저에서 다시 열어 주세요.')}
@@ -341,7 +388,7 @@ init();
 async function buildBackupPayload(){
  const entries=await getAllEntries();
  return {
-  app:'문희농원 작업일지',version:'2.8',exportedAt:new Date().toISOString(),deviceId:getDeviceId(),
+  app:'문희농원 작업일지',version:'2.9',exportedAt:new Date().toISOString(),deviceId:getDeviceId(),
   entries:entries.map(x=>({...x,recordUid:x.recordUid||('LEGACY-'+(x.deviceId||getDeviceId())+'-'+x.id),deviceId:x.deviceId||getDeviceId()})),
   favorites:getFavorites()
  };
