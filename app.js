@@ -3,7 +3,7 @@
 const fields=['중앙밭','계곡옆밭','과실수밭','오미자밭','수국밭','하우스밭','장독밭'];
 const works=['파종','심기·정식','관수','비료','농약 방제','제초','예초','전정','수확','선별','포장','출하','장비 정비','기타'];
 const workers=['아버지','어머니','본인','함께 작업'];
-let selectedField='',selectedWork='',selectedWorker='',pendingPhotos=[],galleryTempPhotos=[],lastSavedEntry=null;
+let selectedField='',selectedWork='',selectedWorker='',pendingPhotos=[],galleryTempPhotos=[],lastSavedEntry=null,statsGalleryPhotos=[];
 let calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 let selectedCalendarDate=localDateString(new Date());
 const DEVICE_ID_KEY='munhuiDeviceId';
@@ -254,11 +254,80 @@ async function runSearch(){
 }
 function clearSearch(){['searchFrom','searchTo','searchCrop','searchKeyword'].forEach(id=>document.getElementById(id).value='');['searchField','searchWork','searchWorker'].forEach(id=>document.getElementById(id).value='');runSearch()}
 
+
+async function openStatsGallery(){
+ const month=document.getElementById('statsMonth').value||monthString(new Date());
+ const all=await getAllEntries();
+ const monthEntries=all.filter(x=>String(x.workDate||'').startsWith(month));
+ statsGalleryPhotos=[];
+ monthEntries.forEach(entry=>{
+  (Array.isArray(entry.photos)?entry.photos:[]).forEach((src,index)=>{
+   if(src)statsGalleryPhotos.push({
+    src,
+    entryId:Number(entry.id),
+    photoIndex:index,
+    workDate:entry.workDate||'',
+    field:entry.field||'',
+    crop:entry.crop||''
+   });
+  });
+ });
+
+ const [year,monthNumber]=month.split('-').map(Number);
+ document.getElementById('statsGalleryTitle').textContent=`${year}년 ${monthNumber}월 저장 사진`;
+ document.getElementById('statsGalleryCount').textContent=`총 ${statsGalleryPhotos.length}장`;
+
+ const grid=document.getElementById('statsGalleryGrid');
+ if(!statsGalleryPhotos.length){
+  grid.innerHTML='<div class="empty stats-gallery-empty">이 달에 저장된 사진이 없습니다.</div>';
+ }else{
+  grid.innerHTML=statsGalleryPhotos.map((photo,index)=>`
+   <button type="button" class="stats-gallery-item" onclick="openStatsPhoto(${index})">
+    <img src="${esc(photo.src)}" alt="${esc(photo.workDate)} ${esc(photo.field)} 작업 사진">
+    <span>${esc(photo.workDate.slice(5))}<br>${esc(photo.field)} · ${esc(photo.crop)}</span>
+   </button>`).join('');
+ }
+ document.getElementById('statsGallery').classList.add('open');
+ document.body.style.overflow='hidden';
+}
+
+function closeStatsGallery(){
+ document.getElementById('statsGallery').classList.remove('open');
+ document.body.style.overflow='';
+}
+
+function openStatsPhoto(index){
+ const photo=statsGalleryPhotos[index];
+ if(!photo||!photo.src){alert('사진 데이터를 찾지 못했습니다.');return}
+ document.getElementById('largePhoto').src=photo.src;
+ document.getElementById('photoModal').classList.add('open');
+}
+
+async function openWorkedDaysCalendar(){
+ const month=document.getElementById('statsMonth').value||monthString(new Date());
+ const all=await getAllEntries();
+ const monthEntries=all
+  .filter(x=>String(x.workDate||'').startsWith(month))
+  .sort((a,b)=>String(a.workDate).localeCompare(String(b.workDate)));
+
+ const [year,monthNumber]=month.split('-').map(Number);
+ calendarMonth=new Date(year,monthNumber-1,1);
+ selectedCalendarDate=monthEntries.length?monthEntries[0].workDate:`${month}-01`;
+ showScreen('journal');
+}
+
 function countBy(list,key){const c={};list.forEach(x=>{const v=x[key]||'미입력';c[v]=(c[v]||0)+1});return c}
 function renderBars(id,obj){const el=document.getElementById(id),arr=Object.entries(obj).sort((a,b)=>b[1]-a[1]),max=Math.max(1,...arr.map(x=>x[1]));el.innerHTML=arr.length?arr.map(([k,v])=>`<div class="stat-row"><div class="stat-label"><span>${esc(k)}</span><strong>${v}건</strong></div><div class="bar-bg"><div class="bar" style="width:${v/max*100}%"></div></div></div>`).join(''):'<div class="empty">이 달에는 기록이 없습니다.</div>'}
 async function renderStats(){
  const month=document.getElementById('statsMonth').value||monthString(new Date());document.getElementById('statsMonth').value=month;const all=await getAllEntries(),list=all.filter(x=>x.workDate.startsWith(month)),days=new Set(list.map(x=>x.workDate)).size,photos=list.reduce((n,x)=>n+(x.photos||[]).length,0);
- document.getElementById('statSummary').innerHTML=`<div class="stat-box"><strong>${list.length}</strong><span>전체 작업</span></div><div class="stat-box"><strong>${days}</strong><span>작업한 날</span></div><div class="stat-box"><strong>${photos}</strong><span>저장 사진</span></div>`;
+ document.getElementById('statSummary').innerHTML=`
+  <div class="stat-box"><strong>${list.length}</strong><span>전체 작업</span></div>
+  <button type="button" class="stat-box stat-link" onclick="openWorkedDaysCalendar()" aria-label="작업한 날을 달력에서 보기">
+   <strong>${days}</strong><span>작업한 날</span><small>달력에서 보기</small>
+  </button>
+  <button type="button" class="stat-box stat-link" onclick="openStatsGallery()" aria-label="저장 사진을 갤러리로 보기">
+   <strong>${photos}</strong><span>저장 사진</span><small>사진 모아보기</small>
+  </button>`;
  renderBars('fieldStats',countBy(list,'field'));renderBars('cropStats',countBy(list,'crop'));renderBars('workStats',countBy(list,'work'));renderBars('workerStats',countBy(list,'worker'))
 }
 
@@ -272,7 +341,7 @@ init();
 async function buildBackupPayload(){
  const entries=await getAllEntries();
  return {
-  app:'문희농원 작업일지',version:'2.7',exportedAt:new Date().toISOString(),deviceId:getDeviceId(),
+  app:'문희농원 작업일지',version:'2.8',exportedAt:new Date().toISOString(),deviceId:getDeviceId(),
   entries:entries.map(x=>({...x,recordUid:x.recordUid||('LEGACY-'+(x.deviceId||getDeviceId())+'-'+x.id),deviceId:x.deviceId||getDeviceId()})),
   favorites:getFavorites()
  };

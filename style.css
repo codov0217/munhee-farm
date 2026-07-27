@@ -81,3 +81,22 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(560px,
 .install-banner.show{display:flex}.install-banner .text{flex:1;font-size:14px;line-height:1.45}.install-banner button{border:0;border-radius:12px;background:var(--green);color:#fff;padding:10px 13px;font-weight:850}
 .update-banner{display:none;position:fixed;left:50%;top:76px;transform:translateX(-50%);width:min(520px,calc(100% - 24px));z-index:90;background:#1c2c23;color:#fff;padding:12px;border-radius:15px;box-shadow:0 8px 28px rgba(0,0,0,.2)}
 .update-banner.show{display:flex;align-items:center;gap:10px}.update-banner span{flex:1;font-size:14px}.update-banner button{border:0;border-radius:10px;padding:9px 12px;font-weight:800}
+
+
+.stat-box.stat-link{width:100%;font:inherit;cursor:pointer;position:relative;transition:transform .12s ease,box-shadow .12s ease}
+.stat-box.stat-link:active{transform:scale(.97)}
+.stat-box.stat-link small{display:block;margin-top:5px;color:var(--green);font-size:11px;font-weight:800}
+.stat-box.stat-link::after{content:"›";position:absolute;right:9px;top:8px;color:var(--green);font-size:19px;font-weight:900}
+
+.stats-gallery{position:fixed;inset:0;background:#f7f9f7;z-index:95;display:none;flex-direction:column}
+.stats-gallery.open{display:flex}
+.stats-gallery-head{display:grid;grid-template-columns:65px 1fr 65px;align-items:center;padding:12px 14px;background:white;border-bottom:1px solid var(--line)}
+.stats-gallery-head button{border:0;background:transparent;color:var(--green);font-weight:850;padding:10px 2px;text-align:left}
+.stats-gallery-head h3{margin:0;text-align:center;font-size:19px}
+.stats-gallery-head small{display:block;text-align:center;color:var(--muted);margin-top:2px}
+.stats-gallery-body{padding:12px;overflow:auto;flex:1}
+.stats-gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stats-gallery-item{border:0;padding:0;background:white;border-radius:13px;overflow:hidden;text-align:left;box-shadow:0 2px 10px rgba(20,45,30,.08)}
+.stats-gallery-item img{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:#e9eeea}
+.stats-gallery-item span{display:block;padding:7px 6px;font-size:11px;line-height:1.35;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stats-gallery-empty{grid-column:1/-1}
