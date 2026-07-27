@@ -475,8 +475,17 @@ async function importBackup(event){
   }
 
   stage='화면 새로고침';
-  // 화면 일부에서 오류가 나도 저장된 데이터는 성공으로 처리합니다.
-  const refreshes=[renderHome(),renderJournal(),renderRecentWorks()];
+  // 이 앱에는 renderHome 함수가 없으므로 실제 존재하는 화면만 갱신합니다.
+  // 갱신 함수 오류는 데이터 합치기 성공 여부에 영향을 주지 않습니다.
+  const refreshes=[];
+  if(typeof renderJournal==='function')refreshes.push(Promise.resolve().then(()=>renderJournal()));
+  if(typeof renderRecentWorks==='function')refreshes.push(Promise.resolve().then(()=>renderRecentWorks()));
+  if(typeof runSearch==='function'&&document.getElementById('search')?.classList.contains('active')){
+   refreshes.push(Promise.resolve().then(()=>runSearch()));
+  }
+  if(typeof renderStats==='function'&&document.getElementById('stats')?.classList.contains('active')){
+   refreshes.push(Promise.resolve().then(()=>renderStats()));
+  }
   const refreshResults=await Promise.allSettled(refreshes);
   refreshResults.forEach(r=>{
    if(r.status==='rejected')console.warn('합치기 후 화면 갱신 오류',r.reason);
