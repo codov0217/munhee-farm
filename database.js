@@ -18,10 +18,7 @@ function putEntry(x){
   const objectStore=tx.objectStore('entries');
   let requestError=null;
   const req=objectStore.put(x);
-
-  req.onerror=()=>{
-   requestError=req.error||new Error('기록 저장 요청 실패');
-  };
+  req.onerror=()=>{requestError=req.error||new Error('기록 저장 요청 실패')};
   tx.oncomplete=()=>resolve(x);
   tx.onerror=()=>reject(tx.error||requestError||new Error('기록 저장 트랜잭션 오류'));
   tx.onabort=()=>reject(tx.error||requestError||new Error('기록 저장이 취소되었습니다'));

@@ -221,8 +221,17 @@ async function editEntry(id){
 async function removeEntry(id){if(!confirm('이 작업기록을 삭제할까요?'))return;await deleteEntryDB(id);showToast('삭제되었습니다');await renderJournal();if(document.getElementById('search').classList.contains('active'))runSearch();if(document.getElementById('stats').classList.contains('active'))renderStats()}
 
 function entryCard(x){
- const photos=(x.photos||[]).map(p=>`<div class="photo-box" onclick="openPhoto('${p}')"><img src="${p}" alt="작업 사진"></div>`).join('');
+ const photos=(Array.isArray(x.photos)?x.photos:[]).map((p,i)=>
+  `<button type="button" class="photo-box" onclick="openEntryPhoto(${Number(x.id)},${i})"><img src="${esc(p)}" alt="작업 사진 ${i+1}"></button>`
+ ).join('');
  return `<article class="entry"><div class="entry-top"><strong>${esc(x.field)} · ${esc(x.crop)}</strong><time>${esc(x.workDate)}</time></div><div class="meta">작업: ${esc(x.work)}<br>작업자: ${esc(x.worker)}${x.amount?`<br>작업량: ${esc(x.amount)}`:''}${x.memo?`<br>메모: ${esc(x.memo)}`:''}</div>${photos?`<div class="entry-photos">${photos}</div>`:''}<div class="entry-actions"><button class="btn small secondary" onclick="editEntry(${x.id})">수정</button><button class="btn small danger" onclick="removeEntry(${x.id})">삭제</button></div></article>`
+}
+async function openEntryPhoto(id,index){
+ const entry=await getEntry(id);
+ const src=entry&&Array.isArray(entry.photos)?entry.photos[index]:'';
+ if(!src){alert('사진 데이터를 찾지 못했습니다.');return}
+ document.getElementById('largePhoto').src=src;
+ document.getElementById('photoModal').classList.add('open');
 }
 function openPhoto(src){document.getElementById('largePhoto').src=src;document.getElementById('photoModal').classList.add('open')}
 function closePhotoModal(e){if(e&&e.target!==document.getElementById('photoModal'))return;document.getElementById('photoModal').classList.remove('open')}
@@ -263,7 +272,7 @@ init();
 async function buildBackupPayload(){
  const entries=await getAllEntries();
  return {
-  app:'문희농원 작업일지',version:'2.6',exportedAt:new Date().toISOString(),deviceId:getDeviceId(),
+  app:'문희농원 작업일지',version:'2.7',exportedAt:new Date().toISOString(),deviceId:getDeviceId(),
   entries:entries.map(x=>({...x,recordUid:x.recordUid||('LEGACY-'+(x.deviceId||getDeviceId())+'-'+x.id),deviceId:x.deviceId||getDeviceId()})),
   favorites:getFavorites()
  };
@@ -342,227 +351,166 @@ async function exportBackup(){
  }
 }
 
+function normalizeBackupPhoto(value){
+ if(typeof value!=='string')return '';
+ const photo=value.trim();
+ if(!photo)return '';
+ if(/^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=\s]+$/i.test(photo))return photo.replace(/\s+/g,'');
+ return '';
+}
+function normalizeBackupEntry(item,index,data){
+ if(!item||typeof item!=='object')throw new Error(`${index+1}번째 기록의 내용이 없습니다.`);
+ const sourceId=item.id??(`ROW-${index}`);
+ const sourceDevice=String(item.deviceId||data?.deviceId||'IMPORT');
+ const uid=String(item.recordUid||(`LEGACY-${sourceDevice}-${sourceId}`));
+ const photos=(Array.isArray(item.photos)?item.photos:[]).map(normalizeBackupPhoto).filter(Boolean).slice(0,3);
+ const entry={
+  ...item,
+  recordUid:uid,
+  deviceId:sourceDevice,
+  workDate:String(item.workDate||''),
+  field:String(item.field||''),
+  crop:String(item.crop||''),
+  work:String(item.work||''),
+  worker:String(item.worker||''),
+  amount:String(item.amount||''),
+  memo:String(item.memo||''),
+  photos,
+  createdAt:item.createdAt||new Date().toISOString(),
+  updatedAt:item.updatedAt||item.createdAt||new Date().toISOString()
+ };
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(entry.workDate))throw new Error(`${index+1}번째 기록의 작업 날짜가 잘못되었습니다.`);
+ return entry;
+}
+function sameEntryContent(a,b){
+ const keys=['workDate','field','crop','work','worker','amount','memo'];
+ if(!keys.every(k=>String(a?.[k]||'')===String(b?.[k]||'')))return false;
+ const ap=Array.isArray(a?.photos)?a.photos:[];
+ const bp=Array.isArray(b?.photos)?b.photos:[];
+ return ap.length===bp.length&&ap.every((v,i)=>v===bp[i]);
+}
+function verifySavedEntry(saved,expected){
+ if(!saved)return false;
+ if(String(saved.recordUid)!==String(expected.recordUid))return false;
+ if(!sameEntryContent(saved,expected))return false;
+ return true;
+}
 async function importBackup(event){
  const input=event.target;
  const file=input.files&&input.files[0];
  if(!file)return;
-
  let stage='파일 읽기';
  try{
   setLoading(true);
-
   const raw=await file.text();
   stage='파일 내용 확인';
-
   let data;
-  try{
-   data=JSON.parse(raw.replace(/^\uFEFF/,'').trim());
-  }catch(parseErr){
-   throw new Error('JSON_PARSE');
-  }
+  try{data=JSON.parse(raw.replace(/^\uFEFF/,'').trim())}catch(_){throw new Error('JSON_PARSE')}
+  const entries=Array.isArray(data)?data:(Array.isArray(data?.entries)?data.entries:(Array.isArray(data?.data)?data.data:null));
+  if(!entries)throw new Error('NO_ENTRIES');
+  if(typeof data?.app==='string'&&data.app&&data.app!=='문희농원 작업일지')throw new Error('WRONG_APP');
 
-  // 이전·현재 백업 형식을 모두 허용합니다.
-  const entries=Array.isArray(data)
-   ? data
-   : Array.isArray(data?.entries)
-    ? data.entries
-    : Array.isArray(data?.data)
-     ? data.data
-     : null;
-
-  if(!entries){
-   throw new Error('NO_ENTRIES');
-  }
-
-  const appName=typeof data?.app==='string'?data.app:'';
-  if(appName&&appName!=='문희농원 작업일지'){
-   throw new Error('WRONG_APP');
-  }
+  const normalized=[];
+  const invalid=[];
+  entries.forEach((item,index)=>{
+   try{normalized.push(normalizeBackupEntry(item,index,data))}
+   catch(err){invalid.push(err.message)}
+  });
+  const sourcePhotoCount=normalized.reduce((n,x)=>n+x.photos.length,0);
+  if(!normalized.length)throw new Error(invalid[0]||'NO_VALID_ENTRIES');
 
   const ok=confirm(
-   `백업에 작업 ${entries.length}건이 있습니다.\n`+
-   `현재 데이터와 안전하게 합칠까요?\n\n`+
-   `같은 작업은 자동으로 제외됩니다.`
+   `백업 작업 ${normalized.length}건 · 사진 ${sourcePhotoCount}장이 확인되었습니다.\n`+
+   `현재 데이터에 합칠까요?\n\n`+
+   `같은 기록도 내용이나 사진이 빠져 있으면 원본으로 복구합니다.`
   );
   if(!ok)return;
 
   stage='기존 데이터 확인';
   const current=await getAllEntries();
-  const uidToExisting=new Map();
-  current.forEach(x=>{
-   const uid=String(x.recordUid||('LEGACY-'+(x.deviceId||'OLD')+'-'+x.id));
-   uidToExisting.set(uid,x);
-  });
-  const knownUids=new Set(uidToExisting.keys());
-  const usedIds=new Set(current.map(x=>Number(x.id)));
+  const byUid=new Map(current.map(x=>[String(x.recordUid||(`LEGACY-${x.deviceId||'OLD'}-${x.id}`)),x]));
+  const usedIds=new Set(current.map(x=>Number(x.id)).filter(Number.isFinite));
+  const nextUniqueId=()=>{let id=Date.now();while(usedIds.has(id))id++;usedIds.add(id);return id};
 
-  let added=0,repaired=0,skipped=0,failed=0;
-  const failureReasons=[];
+  let added=0,repaired=0,identical=0,failed=0;
+  let savedPhotoCount=0;
+  const failures=[];
+  const importedIds=[];
 
-  const nextUniqueId=()=>{
-   let id=Date.now();
-   while(usedIds.has(id))id++;
-   usedIds.add(id);
-   return id;
-  };
-
-  stage='작업 기록 합치기';
-  for(let index=0;index<entries.length;index++){
-   const item=entries[index];
-
-   if(!item||typeof item!=='object'){
-    failed++;
-    failureReasons.push(`${index+1}번째 기록: 내용이 비어 있음`);
-    continue;
-   }
-
-   const sourceId=item.id??('ROW-'+index);
-   const sourceDevice=item.deviceId||data?.deviceId||'IMPORT';
-   const uid=item.recordUid||('LEGACY-'+sourceDevice+'-'+sourceId);
-
-   const existingDuplicate=uidToExisting.get(String(uid));
-
-   const copy={
-    ...item,
-    id:existingDuplicate?Number(existingDuplicate.id):nextUniqueId(),
-    recordUid:String(uid),
-    deviceId:String(sourceDevice),
-    workDate:String(item.workDate||''),
-    field:String(item.field||''),
-    crop:String(item.crop||''),
-    work:String(item.work||''),
-    worker:String(item.worker||''),
-    amount:String(item.amount||''),
-    memo:String(item.memo||''),
-    photos:Array.isArray(item.photos)?item.photos.filter(x=>typeof x==='string'):[],
-    createdAt:item.createdAt||new Date().toISOString(),
-    updatedAt:item.updatedAt||item.createdAt||new Date().toISOString()
-   };
-
-   // 필수 날짜가 없는 손상 기록은 저장하지 않습니다.
-   if(!/^\d{4}-\d{2}-\d{2}$/.test(copy.workDate)){
-    failed++;
-    failureReasons.push(`${index+1}번째 기록: 작업 날짜 오류`);
-    continue;
-   }
-
+  stage='작업과 사진 저장';
+  for(const incoming of normalized){
+   const existing=byUid.get(incoming.recordUid);
+   const copy={...incoming,id:existing?Number(existing.id):nextUniqueId()};
    try{
+    if(existing&&sameEntryContent(existing,copy)){
+     identical++;
+     importedIds.push(Number(existing.id));
+     savedPhotoCount+=(Array.isArray(existing.photos)?existing.photos.length:0);
+     continue;
+    }
     await putEntry(copy);
     const saved=await getEntry(copy.id);
-    if(!saved||saved.recordUid!==copy.recordUid){
-     throw new Error('SAVE_VERIFY_FAILED');
-    }
-    knownUids.add(String(uid));
-    uidToExisting.set(String(uid),saved);
-
-    if(existingDuplicate){
-     // 예전 합치기에서 껍데기 기록만 남았거나 사진이 빠진 경우,
-     // 백업파일의 원본 내용과 사진으로 같은 기록을 복구합니다.
-     const beforePhotos=Array.isArray(existingDuplicate.photos)?existingDuplicate.photos.length:0;
-     const afterPhotos=Array.isArray(saved.photos)?saved.photos.length:0;
-     const changed=
-      String(existingDuplicate.workDate||'')!==String(saved.workDate||'')||
-      String(existingDuplicate.field||'')!==String(saved.field||'')||
-      String(existingDuplicate.crop||'')!==String(saved.crop||'')||
-      String(existingDuplicate.work||'')!==String(saved.work||'')||
-      String(existingDuplicate.worker||'')!==String(saved.worker||'')||
-      String(existingDuplicate.memo||'')!==String(saved.memo||'')||
-      beforePhotos!==afterPhotos;
-
-     if(changed)repaired++;
-     else skipped++;
-    }else{
-     added++;
-    }
-   }catch(saveErr){
-    console.error('개별 기록 저장 실패',index,item,saveErr);
+    if(!verifySavedEntry(saved,copy))throw new Error('저장 후 검증 실패');
+    byUid.set(copy.recordUid,saved);
+    importedIds.push(Number(saved.id));
+    savedPhotoCount+=(Array.isArray(saved.photos)?saved.photos.length:0);
+    if(existing)repaired++;else added++;
+   }catch(err){
     failed++;
-    const name=saveErr?.message==='SAVE_VERIFY_FAILED'?'저장 확인 실패':(saveErr?.name||saveErr?.message||'저장 오류');
-    failureReasons.push(`${index+1}번째 기록: ${name}`);
+    failures.push(`${copy.workDate} ${copy.field||''} ${copy.crop||''}: ${err.message||err}`);
    }
   }
 
   stage='즐겨찾기 합치기';
   if(Array.isArray(data?.favorites)){
-   const currentFavorites=getFavorites();
-   const merged=[...currentFavorites];
+   const merged=[...getFavorites()];
    for(const fav of data.favorites){
     if(!fav||typeof fav!=='object')continue;
-    const duplicate=merged.some(x=>
-     (fav.signature&&x.signature===fav.signature)||
-     (!fav.signature&&
-      x.field===fav.field&&x.crop===fav.crop&&x.work===fav.work&&x.worker===fav.worker)
-    );
-    if(!duplicate)merged.push(fav);
+    if(!merged.some(x=>(fav.signature&&x.signature===fav.signature)))merged.push(fav);
    }
    saveFavorites(merged);
   }
 
-  stage='저장 결과 확인';
-  const afterMerge=await getAllEntries();
-  const savedUidSet=new Set(afterMerge.map(x=>x.recordUid||('LEGACY-'+(x.deviceId||'OLD')+'-'+x.id)));
-  const confirmedImported=entries.filter((item,index)=>{
-   if(!item||typeof item!=='object')return false;
-   const sourceId=item.id??('ROW-'+index);
-   const sourceDevice=item.deviceId||data?.deviceId||'IMPORT';
-   const uid=item.recordUid||('LEGACY-'+sourceDevice+'-'+sourceId);
-   return savedUidSet.has(String(uid));
-  });
-
-  const firstImported=confirmedImported.find(item=>/^\d{4}-\d{2}-\d{2}$/.test(String(item.workDate||'')));
-  if(firstImported){
-   selectedCalendarDate=String(firstImported.workDate);
-   const [y,m]=selectedCalendarDate.split('-').map(Number);
+  stage='최종 저장 확인';
+  const finalEntries=await getAllEntries();
+  const imported=finalEntries.filter(x=>importedIds.includes(Number(x.id)));
+  const finalPhotoCount=imported.reduce((n,x)=>n+(Array.isArray(x.photos)?x.photos.length:0),0);
+  const first=imported.sort((a,b)=>String(a.workDate).localeCompare(String(b.workDate)))[0];
+  if(first){
+   selectedCalendarDate=first.workDate;
+   const [y,m]=first.workDate.split('-').map(Number);
    calendarMonth=new Date(y,m-1,1);
   }
 
-  stage='화면 새로고침';
-  // 이 앱에는 renderHome 함수가 없으므로 실제 존재하는 화면만 갱신합니다.
-  // 갱신 함수 오류는 데이터 합치기 성공 여부에 영향을 주지 않습니다.
-  const refreshes=[];
-  if(typeof renderJournal==='function')refreshes.push(Promise.resolve().then(()=>renderJournal()));
-  if(typeof renderRecentWorks==='function')refreshes.push(Promise.resolve().then(()=>renderRecentWorks()));
-  if(typeof runSearch==='function'&&document.getElementById('search')?.classList.contains('active')){
-   refreshes.push(Promise.resolve().then(()=>runSearch()));
+  await renderRecentWorks();
+  if(first){
+   showScreen('journal');
+   await renderJournal();
   }
-  if(typeof renderStats==='function'&&document.getElementById('stats')?.classList.contains('active')){
-   refreshes.push(Promise.resolve().then(()=>renderStats()));
-  }
-  const refreshResults=await Promise.allSettled(refreshes);
-  refreshResults.forEach(r=>{
-   if(r.status==='rejected')console.warn('합치기 후 화면 갱신 오류',r.reason);
-  });
+  if(document.getElementById('search')?.classList.contains('active'))await runSearch();
+  if(document.getElementById('stats')?.classList.contains('active'))await renderStats();
 
-  let message=`새 작업 ${added}건 · 기존 자료 복구 ${repaired}건 · 동일 자료 ${skipped}건`;
-  if(failed)message+=` · 실패 ${failed}건`;
-  showToast(message);
-
-  if(failed){
-   alert(
-    `${message}\n\n`+
-    `일부 기록은 저장하지 못했습니다.\n`+
-    failureReasons.slice(0,5).join('\n')+
-    (failureReasons.length>5?`\n외 ${failureReasons.length-5}건`:'')
-   );
+  const result=
+   `합치기 완료\n\n`+
+   `새 작업: ${added}건\n`+
+   `기존 기록 복구: ${repaired}건\n`+
+   `완전히 같은 기록: ${identical}건\n`+
+   `저장 확인된 사진: ${finalPhotoCount}장`+
+   (failed?`\n저장 실패: ${failed}건`:'')+
+   (first?`\n\n${first.workDate}의 기록 화면을 열었습니다.`:'');
+  alert(result);
+  showToast(`작업 ${added+repaired}건 반영 · 사진 ${finalPhotoCount}장 확인`);
+  if(failed)alert(`저장하지 못한 기록이 있습니다.\n\n${failures.slice(0,5).join('\n')}`);
+  if(sourcePhotoCount!==savedPhotoCount&&failed===0){
+   console.warn('백업 사진 수와 확인 사진 수 차이', {sourcePhotoCount,savedPhotoCount,finalPhotoCount});
   }
  }catch(err){
   console.error('백업 합치기 실패 단계:',stage,err);
-
-  let reason='알 수 없는 오류';
-  if(err?.message==='JSON_PARSE')reason='파일 내용이 JSON 형식이 아닙니다.';
-  else if(err?.message==='NO_ENTRIES')reason='작업 기록(entries)을 찾지 못했습니다.';
-  else if(err?.message==='WRONG_APP')reason='다른 앱에서 만든 백업파일입니다.';
-  else if(err?.name==='QuotaExceededError')reason='휴대폰 저장공간이 부족하거나 사진 용량이 너무 큽니다.';
-  else if(err?.name)reason=err.name;
-
-  alert(
-   `데이터 합치기 중 문제가 발생했습니다.\n\n`+
-   `단계: ${stage}\n`+
-   `원인: ${reason}\n\n`+
-   `원본 백업파일과 기존 데이터는 삭제되지 않았습니다.`
-  );
+  const messages={JSON_PARSE:'파일 내용이 JSON 형식이 아닙니다.',NO_ENTRIES:'백업파일에서 작업 목록을 찾지 못했습니다.',WRONG_APP:'문희농원 작업일지 백업파일이 아닙니다.'};
+  alert(`데이터 합치기에 실패했습니다.\n\n단계: ${stage}\n이유: ${messages[err.message]||err.message||'알 수 없는 오류'}`);
  }finally{
   input.value='';
   setLoading(false);
  }
 }
+
