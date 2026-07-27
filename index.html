@@ -18,7 +18,7 @@
 <body>
 <div id="updateBanner" class="update-banner"><span><strong>새 버전이 있습니다</strong><br>버튼을 누르면 바로 적용됩니다.</span><button id="updateButton" onclick="applyUpdate()">지금 업데이트</button></div>
 <div class="app">
-<header><div class="brand"><div class="logo">🌳</div><div><h1>문희농원 작업일지</h1><div class="sub">버전 3.0 · 종료 확인 배너</div></div></div></header>
+<header><div class="brand"><div class="logo">🌳</div><div><h1>문희농원 작업일지</h1><div class="sub">버전 3.2 · 추가 항목 X 삭제</div></div></div></header>
 <div id="installBanner" class="install-banner"><div class="text"><strong>휴대폰에 설치하기</strong><br>홈 화면에서 일반 앱처럼 사용할 수 있습니다.</div><button id="installButton">설치</button></div>
 <main>
 <section id="home" class="screen active">
@@ -59,11 +59,22 @@
     <div id="recentWorks" class="recent-list"></div>
   </div>
   <input id="editId" type="hidden">
+  <div class="card voice-card">
+    <div class="voice-title">
+      <div>
+        <label>🎤 음성으로 작업 입력</label>
+        <div class="hint">예: “밤나무밭 참깨 파종 아버지 두 시간”</div>
+      </div>
+      <button id="voiceButton" type="button" class="voice-button" onclick="toggleVoiceInput()">🎤 말하기</button>
+    </div>
+    <div id="voiceStatus" class="voice-status">버튼을 누른 뒤 작업 내용을 말씀하세요.</div>
+    <div id="voiceResult" class="voice-result"></div>
+  </div>
   <div class="card"><label for="workDate">1. 작업 날짜</label><input id="workDate" class="field" type="date"></div>
-  <div class="card"><label>2. 필지 선택</label><div id="fieldChoices" class="choice-grid"></div></div>
+  <div class="card"><div class="choice-heading"><label>2. 필지 선택</label><button type="button" class="add-choice" onclick="promptAddCategory('field')">＋ 새 필지</button></div><div id="fieldChoices" class="choice-grid"></div></div>
   <div class="card"><label for="crop">3. 작물 이름</label><input id="crop" class="field" placeholder="예: 개미취, 오미자, 사과"><div class="chips"><button class="chip" onclick="setCrop('개미취')">개미취</button><button class="chip" onclick="setCrop('오미자')">오미자</button><button class="chip" onclick="setCrop('수국')">수국</button><button class="chip" onclick="setCrop('사과')">사과</button></div></div>
-  <div class="card"><label>4. 작업 종류</label><div id="workChoices" class="choice-grid"></div></div>
-  <div class="card"><label>5. 작업자</label><div id="workerChoices" class="choice-grid"></div></div>
+  <div class="card"><div class="choice-heading"><label>4. 작업 종류</label><button type="button" class="add-choice" onclick="promptAddCategory('work')">＋ 새 작업</button></div><div id="workChoices" class="choice-grid"></div></div>
+  <div class="card"><div class="choice-heading"><label>5. 작업자</label><button type="button" class="add-choice" onclick="promptAddCategory('worker')">＋ 새 작업자</button></div><div id="workerChoices" class="choice-grid"></div></div>
   <div class="card"><label for="amount">6. 작업량</label><input id="amount" class="field" placeholder="예: 3시간, 2동, 20kg"></div>
   <div class="card">
     <label>7. 사진</label>
@@ -79,6 +90,11 @@
     <div id="photoPreview" class="photo-preview"></div>
   </div>
   <div class="card"><label for="memo">8. 메모</label><textarea id="memo" class="field" rows="3" placeholder="작업 내용을 입력하세요"></textarea></div>
+  <details class="card custom-manager">
+    <summary>⚙️ 직접 추가한 항목 관리</summary>
+    <div class="hint">직접 추가하거나 음성으로 새로 인식한 필지·작업·작업자를 삭제할 수 있습니다.</div>
+    <div id="customCategoryManager"></div>
+  </details>
   <div class="actions"><button class="btn secondary" onclick="showScreen('home')">취소</button><button class="btn primary" onclick="saveEntry()">저장하기</button></div>
 </section>
 

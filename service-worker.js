@@ -1,4 +1,4 @@
-const CACHE_NAME='munhui-farm-pwa-v3.0-exit-confirm';
+const CACHE_NAME='munhui-farm-pwa-v3.2-inline-delete';
 const APP_SHELL=[
  './',
  './index.html',
