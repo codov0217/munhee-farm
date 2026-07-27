@@ -365,14 +365,86 @@ function closeOpenOverlay(){
  return false;
 }
 
+let exitBannerOpen=false;
+let allowAppExit=false;
+
+function showExitBanner(){
+ const banner=document.getElementById('exitBanner');
+ if(!banner||exitBannerOpen)return;
+ exitBannerOpen=true;
+ banner.classList.add('open');
+ document.body.classList.add('exit-banner-open');
+}
+
+function hideExitBanner(){
+ const banner=document.getElementById('exitBanner');
+ if(!banner)return;
+ exitBannerOpen=false;
+ banner.classList.remove('open');
+ document.body.classList.remove('exit-banner-open');
+}
+
+function cancelAppExit(){
+ hideExitBanner();
+}
+
+function confirmAppExit(){
+ hideExitBanner();
+ allowAppExit=true;
+
+ // 안드로이드 WebView 앱에 종료용 연결 기능이 있는 경우 우선 사용합니다.
+ const bridges=[
+  window.AndroidExit,
+  window.AndroidApp,
+  window.Android
+ ];
+ for(const bridge of bridges){
+  if(bridge&&typeof bridge.exitApp==='function'){
+   bridge.exitApp();
+   return;
+  }
+  if(bridge&&typeof bridge.closeApp==='function'){
+   bridge.closeApp();
+   return;
+  }
+ }
+
+ // 설치형 웹앱(PWA)에서는 브라우저 기록 밖으로 이동해 앱 화면을 종료합니다.
+ history.go(-2);
+ setTimeout(()=>{
+  try{window.close()}catch(_){}
+ },250);
+}
+
 function setupBackNavigation(){
- history.replaceState({screen:'home'},'',location.href);
+ // 첫 화면 앞에 종료 확인용 경계 기록을 하나 둡니다.
+ history.replaceState({screen:'home',root:true},'',location.href);
+ history.pushState({screen:'home',guard:true},'',location.href);
+
  window.addEventListener('popstate',event=>{
+  if(allowAppExit)return;
+
+  if(exitBannerOpen){
+   history.pushState({screen:'home',guard:true},'',location.href);
+   return;
+  }
+
   if(closeOpenOverlay()){
    history.pushState({screen:document.querySelector('.screen.active')?.id||'home'},'',location.href);
    return;
   }
-  const screen=event.state&&event.state.screen?event.state.screen:'home';
+
+  const state=event.state||{};
+  const currentScreen=document.querySelector('.screen.active')?.id||'home';
+
+  // 홈 화면의 마지막 뒤로가기에서는 앱을 바로 닫지 않고 종료 배너를 표시합니다.
+  if(state.root===true&&currentScreen==='home'){
+   history.pushState({screen:'home',guard:true},'',location.href);
+   showExitBanner();
+   return;
+  }
+
+  const screen=state.screen||'home';
   showScreen(screen,{record:false,smooth:false});
  });
 }
@@ -388,7 +460,7 @@ init();
 async function buildBackupPayload(){
  const entries=await getAllEntries();
  return {
-  app:'문희농원 작업일지',version:'2.9',exportedAt:new Date().toISOString(),deviceId:getDeviceId(),
+  app:'문희농원 작업일지',version:'3.0',exportedAt:new Date().toISOString(),deviceId:getDeviceId(),
   entries:entries.map(x=>({...x,recordUid:x.recordUid||('LEGACY-'+(x.deviceId||getDeviceId())+'-'+x.id),deviceId:x.deviceId||getDeviceId()})),
   favorites:getFavorites()
  };

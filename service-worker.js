@@ -1,4 +1,4 @@
-const CACHE_NAME='munhui-farm-pwa-v2.9-back-navigation';
+const CACHE_NAME='munhui-farm-pwa-v3.0-exit-confirm';
 const APP_SHELL=[
  './',
  './index.html',

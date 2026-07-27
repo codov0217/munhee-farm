@@ -18,7 +18,7 @@
 <body>
 <div id="updateBanner" class="update-banner"><span><strong>새 버전이 있습니다</strong><br>버튼을 누르면 바로 적용됩니다.</span><button id="updateButton" onclick="applyUpdate()">지금 업데이트</button></div>
 <div class="app">
-<header><div class="brand"><div class="logo">🌳</div><div><h1>문희농원 작업일지</h1><div class="sub">버전 2.9 · 뒤로가기 이전 화면 지원</div></div></div></header>
+<header><div class="brand"><div class="logo">🌳</div><div><h1>문희농원 작업일지</h1><div class="sub">버전 3.0 · 종료 확인 배너</div></div></div></header>
 <div id="installBanner" class="install-banner"><div class="text"><strong>휴대폰에 설치하기</strong><br>홈 화면에서 일반 앱처럼 사용할 수 있습니다.</div><button id="installButton">설치</button></div>
 <main>
 <section id="home" class="screen active">
@@ -142,6 +142,19 @@
   <div class="gallery-review-body">
     <div id="galleryReviewNote" class="gallery-review-note"></div>
     <div id="galleryReviewGrid" class="gallery-review-grid"></div>
+  </div>
+</div>
+<div id="exitBanner" class="exit-banner" role="dialog" aria-modal="true" aria-labelledby="exitBannerTitle">
+  <div class="exit-banner-card">
+    <div class="exit-banner-icon">🌳</div>
+    <div class="exit-banner-text">
+      <strong id="exitBannerTitle">앱을 종료하시겠습니까?</strong>
+      <span>저장하지 않은 내용이 있다면 먼저 저장해 주세요.</span>
+    </div>
+    <div class="exit-banner-actions">
+      <button type="button" class="exit-cancel" onclick="cancelAppExit()">취소</button>
+      <button type="button" class="exit-confirm" onclick="confirmAppExit()">종료</button>
+    </div>
   </div>
 </div>
 <div id="toast" class="toast"></div><div id="loading" class="loading">처리 중입니다…</div>
