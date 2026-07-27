@@ -448,12 +448,16 @@ async function importBackup(event){
 
    try{
     await putEntry(copy);
+    const saved=await getEntry(copy.id);
+    if(!saved||saved.recordUid!==copy.recordUid){
+     throw new Error('SAVE_VERIFY_FAILED');
+    }
     knownUids.add(uid);
     added++;
    }catch(saveErr){
     console.error('개별 기록 저장 실패',index,item,saveErr);
     failed++;
-    const name=saveErr?.name||'저장 오류';
+    const name=saveErr?.message==='SAVE_VERIFY_FAILED'?'저장 확인 실패':(saveErr?.name||saveErr?.message||'저장 오류');
     failureReasons.push(`${index+1}번째 기록: ${name}`);
    }
   }
@@ -474,6 +478,26 @@ async function importBackup(event){
    saveFavorites(merged);
   }
 
+  stage='저장 결과 확인';
+  const afterMerge=await getAllEntries();
+  const savedUidSet=new Set(afterMerge.map(x=>x.recordUid||('LEGACY-'+(x.deviceId||'OLD')+'-'+x.id)));
+  const confirmedImported=entries.filter((item,index)=>{
+   if(!item||typeof item!=='object')return false;
+   const sourceId=item.id??('ROW-'+index);
+   const sourceDevice=item.deviceId||data?.deviceId||'IMPORT';
+   const uid=item.recordUid||('LEGACY-'+sourceDevice+'-'+sourceId);
+   return savedUidSet.has(String(uid));
+  });
+
+  if(added>0){
+   const firstImported=confirmedImported.find(item=>/^\d{4}-\d{2}-\d{2}$/.test(String(item.workDate||'')));
+   if(firstImported){
+    selectedCalendarDate=String(firstImported.workDate);
+    const [y,m]=selectedCalendarDate.split('-').map(Number);
+    calendarMonth=new Date(y,m-1,1);
+   }
+  }
+
   stage='화면 새로고침';
   // 이 앱에는 renderHome 함수가 없으므로 실제 존재하는 화면만 갱신합니다.
   // 갱신 함수 오류는 데이터 합치기 성공 여부에 영향을 주지 않습니다.
@@ -491,7 +515,7 @@ async function importBackup(event){
    if(r.status==='rejected')console.warn('합치기 후 화면 갱신 오류',r.reason);
   });
 
-  let message=`새 작업 ${added}건 추가 · 중복 ${skipped}건 제외`;
+  let message=`새 작업 ${added}건 저장 확인 · 중복 ${skipped}건 제외`;
   if(failed)message+=` · 실패 ${failed}건`;
   showToast(message);
 

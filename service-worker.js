@@ -1,4 +1,4 @@
-const CACHE_NAME='munhui-farm-pwa-v1.2.2';
+const CACHE_NAME='munhui-farm-pwa-v1.2.3';
 const APP_SHELL=[
  './',
  './index.html',
