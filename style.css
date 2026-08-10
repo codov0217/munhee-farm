@@ -79,7 +79,7 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(560px,
 
 #manual{margin:-15px;padding:18px 12px 28px;background:#ded8ca;min-height:calc(100vh - 142px)}
 .manual-book{position:relative;max-width:500px;margin:0 auto;perspective:1400px;font-family:"Noto Serif KR","Batang",serif}
-.manual-page{position:relative;display:none;flex-direction:column;width:100%;min-height:clamp(610px,139vw,710px);overflow:hidden;background:
+.manual-page{position:relative;display:none;flex-direction:column;width:100%;min-height:clamp(610px,139vw,710px);overflow:hidden;touch-action:pan-y;background:
  radial-gradient(circle at 18% 12%,rgba(92,70,40,.025) 0 1px,transparent 1.5px),
  linear-gradient(90deg,rgba(91,68,39,.035),transparent 5%,transparent 95%,rgba(91,68,39,.035)),#fffdf8;
  background-size:9px 9px,100% 100%,100% 100%;border:1px solid #cfc6b5;border-radius:3px;padding:46px 40px 38px;box-shadow:0 18px 35px rgba(52,42,28,.22),0 2px 5px rgba(52,42,28,.13);transform-origin:left center}
