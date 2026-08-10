@@ -1,132 +1,9 @@
-'use strict';
-
-const DEFAULT_FIELDS=['중앙밭','계곡옆밭','과실수밭','오미자밭','수국밭','하우스밭','장독밭'];
-const DEFAULT_WORKS=['파종','심기·정식','관수','비료','농약 방제','제초','예초','전정','수확','선별','포장','출하','장비 정비','기타'];
-const DEFAULT_WORKERS=['아버지','어머니','본인','함께 작업'];
-const CUSTOM_CATEGORY_KEY='munhuiCustomCategoriesV1';
-let customCategories=loadCustomCategories();
-let fields=mergeUnique(DEFAULT_FIELDS,customCategories.fields);
-let works=mergeUnique(DEFAULT_WORKS,customCategories.works);
-let workers=mergeUnique(DEFAULT_WORKERS,customCategories.workers);
-let speechRecognition=null;
-let voiceListening=false;
-let selectedField='',selectedWork='',selectedWorker='',pendingPhotos=[],galleryTempPhotos=[],lastSavedEntry=null,statsGalleryPhotos=[];
+const fields=['중앙밭','계곡옆밭','과실수밭','오미자밭','수국밭','하우스밭','장독밭'];
+const works=['파종','심기·정식','관수','비료','농약 방제','제초','예초','전정','수확','선별','포장','출하','장비 정비','기타'];
+const workers=['아버지','어머니','본인','함께 작업'];
+let selectedField='',selectedWork='',selectedWorker='',pendingPhotos=[],galleryTempPhotos=[],lastSavedEntry=null;
 let calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
 let selectedCalendarDate=localDateString(new Date());
-const DEVICE_ID_KEY='munhuiDeviceId';
-function getDeviceId(){
- let id=localStorage.getItem(DEVICE_ID_KEY);
- if(!id){id='DEV-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);localStorage.setItem(DEVICE_ID_KEY,id)}
- return id;
-}
-function makeRecordUid(){return getDeviceId()+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)}
-
-
-
-function mergeUnique(base,extra){
- return [...new Set([...(base||[]),...(extra||[])].map(v=>String(v||'').trim()).filter(Boolean))];
-}
-function loadCustomCategories(){
- try{
-  const data=JSON.parse(localStorage.getItem(CUSTOM_CATEGORY_KEY)||'{}');
-  return {
-   fields:Array.isArray(data.fields)?data.fields:[],
-   works:Array.isArray(data.works)?data.works:[],
-   workers:Array.isArray(data.workers)?data.workers:[]
-  };
- }catch(_){
-  return {fields:[],works:[],workers:[]};
- }
-}
-function saveCustomCategories(){
- localStorage.setItem(CUSTOM_CATEGORY_KEY,JSON.stringify(customCategories));
- fields=mergeUnique(DEFAULT_FIELDS,customCategories.fields);
- works=mergeUnique(DEFAULT_WORKS,customCategories.works);
- workers=mergeUnique(DEFAULT_WORKERS,customCategories.workers);
-}
-function categoryConfig(type){
- return {
-  field:{list:'fields',label:'필지',choices:'fieldChoices',selected:'selectedField'},
-  work:{list:'works',label:'작업 종류',choices:'workChoices',selected:'selectedWork'},
-  worker:{list:'workers',label:'작업자',choices:'workerChoices',selected:'selectedWorker'}
- }[type];
-}
-function refreshCategoryUI(){
- makeChoices('fieldChoices',fields,'field');
- makeChoices('workChoices',works,'work');
- makeChoices('workerChoices',workers,'worker');
- fillSelect('searchField',fields,'필지');
- fillSelect('searchWork',works,'작업');
- fillSelect('searchWorker',workers,'작업자');
- if(selectedField)selectChoice('fieldChoices',selectedField);
- if(selectedWork)selectChoice('workChoices',selectedWork);
- if(selectedWorker)selectChoice('workerChoices',selectedWorker);
- renderCustomCategoryManager();
-}
-function addCustomCategory(type,value,selectAfter=true){
- const cfg=categoryConfig(type);
- value=String(value||'').trim().replace(/\s+/g,' ');
- if(!cfg||!value)return false;
- const key=cfg.list;
- const current=key==='fields'?fields:key==='works'?works:workers;
- if(!current.includes(value)){
-  customCategories[key]=mergeUnique(customCategories[key],[value]);
-  saveCustomCategories();
-  refreshCategoryUI();
-  showToast(`${cfg.label}에 '${value}'을(를) 추가했습니다`);
- }
- if(selectAfter){
-  if(type==='field')selectedField=value;
-  if(type==='work')selectedWork=value;
-  if(type==='worker')selectedWorker=value;
-  selectChoice(cfg.choices,value);
- }
- return true;
-}
-function promptAddCategory(type){
- const cfg=categoryConfig(type);
- if(!cfg)return;
- const value=prompt(`새 ${cfg.label} 이름을 입력하세요.`);
- if(value===null)return;
- if(!String(value).trim()){alert('이름을 입력해 주세요.');return}
- addCustomCategory(type,value,true);
-}
-function removeCustomCategory(type,value){
- const cfg=categoryConfig(type);
- if(!cfg||!confirm(`'${value}'을(를) 선택 목록에서 삭제할까요?\n이미 저장된 작업 기록은 그대로 유지됩니다.`))return;
- customCategories[cfg.list]=(customCategories[cfg.list]||[]).filter(x=>x!==value);
- saveCustomCategories();
- if(type==='field'&&selectedField===value)selectedField='';
- if(type==='work'&&selectedWork===value)selectedWork='';
- if(type==='worker'&&selectedWorker===value)selectedWorker='';
- refreshCategoryUI();
- showToast('목록에서 삭제했습니다');
-}
-function renderCustomCategoryManager(){
- const wrap=document.getElementById('customCategoryManager');
- if(!wrap)return;
- const sections=[
-  ['field','필지',customCategories.fields],
-  ['work','작업 종류',customCategories.works],
-  ['worker','작업자',customCategories.workers]
- ];
- wrap.innerHTML=sections.map(([type,label,items])=>`
-  <div class="custom-section">
-   <strong>${label}</strong>
-   <div class="custom-tags">
-    ${items.length?items.map(item=>`<button type="button" onclick='removeCustomCategory(${JSON.stringify(type)},${JSON.stringify(item)})'>${esc(item)} <span>×</span></button>`).join(''):'<small>추가한 항목 없음</small>'}
-   </div>
-  </div>`).join('');
-}
-
-function localDateString(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function monthString(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
-function esc(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',1800)}
-function setLoading(on){document.getElementById('loading').classList.toggle('show',on)}
-
-
-
 async function migrateOldData(){
  const old=JSON.parse(localStorage.getItem('munhuiEntries')||'[]'); if(!old.length)return;
  const existing=await getAllEntries(); if(existing.length)return;
@@ -134,274 +11,24 @@ async function migrateOldData(){
  showToast('기존 작업기록을 가져왔습니다');
 }
 
-function isCustomCategory(type,item){
- const cfg=categoryConfig(type);
- return !!(cfg&&(customCategories[cfg.list]||[]).includes(item));
-}
 function makeChoices(id,items,type){
- const wrap=document.getElementById(id);
- wrap.innerHTML='';
- items.forEach(item=>{
-  const b=document.createElement('button');
-  b.type='button';
-  b.className='choice';
-  b.dataset.value=item;
-
-  const label=document.createElement('span');
-  label.className='choice-label';
-  label.textContent=item;
-  b.appendChild(label);
-
-  if(isCustomCategory(type,item)){
-   b.classList.add('choice-custom');
-   const del=document.createElement('span');
-   del.className='choice-delete';
-   del.setAttribute('role','button');
-   del.setAttribute('aria-label',`${item} 삭제`);
-   del.setAttribute('title','목록에서 삭제');
-   del.tabIndex=0;
-   del.textContent='×';
-   const remove=e=>{
-    e.preventDefault();
-    e.stopPropagation();
-    removeCustomCategory(type,item);
-   };
-   del.onclick=remove;
-   del.onkeydown=e=>{
-    if(e.key==='Enter'||e.key===' '){remove(e)}
-   };
-   b.appendChild(del);
-  }
-
-  b.onclick=()=>choose(type,item,b,wrap);
-  wrap.appendChild(b);
- })
+ const wrap=document.getElementById(id);wrap.innerHTML='';
+ items.forEach(item=>{const b=document.createElement('button');b.type='button';b.className='choice';b.textContent=item;b.onclick=()=>choose(type,item,b,wrap);wrap.appendChild(b)})
 }
-function choose(type,item,btn,wrap){
- [...wrap.querySelectorAll('.choice')].forEach(x=>x.classList.remove('selected'));
- btn.classList.add('selected');
- if(type==='field')selectedField=item;
- if(type==='work')selectedWork=item;
- if(type==='worker')selectedWorker=item;
-}
-function selectChoice(id,value){
- const wrap=document.getElementById(id);
- if(!wrap)return;
- [...wrap.querySelectorAll('.choice')].forEach(b=>b.classList.toggle('selected',b.dataset.value===value));
-}
+function choose(type,item,btn,wrap){[...wrap.children].forEach(x=>x.classList.remove('selected'));btn.classList.add('selected');if(type==='field')selectedField=item;if(type==='work')selectedWork=item;if(type==='worker')selectedWorker=item}
+function selectChoice(id,value){[...document.getElementById(id).children].forEach(b=>b.classList.toggle('selected',b.textContent===value))}
 function setCrop(v){document.getElementById('crop').value=v}
 
-
-function setVoiceStatus(message,state=''){
- const status=document.getElementById('voiceStatus');
- const button=document.getElementById('voiceButton');
- if(status){status.textContent=message;status.className=`voice-status ${state}`.trim()}
- if(button){
-  button.classList.toggle('listening',state==='listening');
-  button.textContent=state==='listening'?'■ 듣는 중':'🎤 말하기';
- }
-}
-function toggleVoiceInput(){
- if(voiceListening&&speechRecognition){
-  speechRecognition.stop();
-  return;
- }
- startVoiceInput();
-}
-function startVoiceInput(){
- const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!Recognition){
-  alert('이 휴대폰 브라우저에서는 음성 입력을 지원하지 않습니다.\n안드로이드 크롬에서 앱을 열어 사용해 주세요.');
-  return;
- }
- try{
-  speechRecognition=new Recognition();
-  speechRecognition.lang='ko-KR';
-  speechRecognition.interimResults=true;
-  speechRecognition.continuous=false;
-  speechRecognition.maxAlternatives=1;
-  let finalText='';
-  speechRecognition.onstart=()=>{
-   voiceListening=true;
-   setVoiceStatus('듣고 있습니다. 작업 내용을 말씀하세요…','listening');
-  };
-  speechRecognition.onresult=event=>{
-   let interim='';
-   for(let i=event.resultIndex;i<event.results.length;i++){
-    const text=event.results[i][0].transcript;
-    if(event.results[i].isFinal)finalText+=text;
-    else interim+=text;
-   }
-   const shown=(finalText||interim).trim();
-   if(shown)setVoiceStatus(`인식 중: ${shown}`,'listening');
-  };
-  speechRecognition.onerror=event=>{
-   const messages={
-    'not-allowed':'마이크 권한이 필요합니다. 휴대폰 설정에서 마이크를 허용해 주세요.',
-    'no-speech':'말소리가 들리지 않았습니다. 다시 눌러 말씀해 주세요.',
-    'audio-capture':'마이크를 사용할 수 없습니다.',
-    'network':'음성 인식 연결에 실패했습니다. 인터넷 연결을 확인해 주세요.'
-   };
-   setVoiceStatus(messages[event.error]||'음성 인식 중 문제가 발생했습니다.','error');
-  };
-  speechRecognition.onend=()=>{
-   voiceListening=false;
-   if(finalText.trim()){
-    applyVoiceCommand(finalText.trim());
-   }else{
-    const status=document.getElementById('voiceStatus');
-    if(status&&!status.classList.contains('error'))setVoiceStatus('인식된 내용이 없습니다. 다시 말씀해 주세요.');
-   }
-  };
-  speechRecognition.start();
- }catch(err){
-  voiceListening=false;
-  setVoiceStatus('마이크를 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.','error');
- }
-}
-function findLongestIncluded(text,list){
- return [...list].sort((a,b)=>b.length-a.length).find(item=>text.includes(item))||'';
-}
-function cleanVoiceToken(value){
- return String(value||'')
-  .replace(/^(오늘|어제|내일)\s*/,'')
-  .replace(/\s*(에서|에는|에서의|작업|했어|했습니다|했어요|함|진행)$/g,'')
-  .trim();
-}
-function parseVoiceCommand(transcript){
- const text=transcript.replace(/[,.!?]/g,' ').replace(/\s+/g,' ').trim();
- let field=findLongestIncluded(text,fields);
- if(!field){
-  const matches=[...text.matchAll(/([가-힣A-Za-z0-9·_-]{1,20}밭)/g)].map(m=>m[1]);
-  field=matches[0]||'';
- }
- let worker=findLongestIncluded(text,workers);
- if(!worker&&/(같이|함께|둘이|두 명|두명|세 명|세명|가족)/.test(text))worker='함께 작업';
- if(!worker&&/(아빠|아버님)/.test(text))worker='아버지';
- if(!worker&&/(엄마|어머님)/.test(text))worker='어머니';
- if(!worker&&/(내가|저 혼자|혼자)/.test(text))worker='본인';
-
- const workAliases=[
-  ['농약 방제',/(농약|방제|소독)/],
-  ['심기·정식',/(정식|모종 심|묘목 심|옮겨 심)/],
-  ['장비 정비',/(장비 정비|기계 정비|수리)/],
-  ['파종',/(파종|씨앗|씨 뿌)/],
-  ['관수',/(관수|물 주|물주기)/],
-  ['비료',/(비료|거름)/],
-  ['제초',/(제초|풀 뽑|잡초)/],
-  ['예초',/(예초|예초기|풀 베)/],
-  ['전정',/(전정|가지치기|가지 치기)/],
-  ['수확',/(수확|따기|열매 따)/],
-  ['선별',/(선별|고르기)/],
-  ['포장',/(포장)/],
-  ['출하',/(출하|배송|납품)/]
- ];
- let work=findLongestIncluded(text,works.filter(x=>x!=='기타'));
- if(!work){
-  const alias=workAliases.find(([,pattern])=>pattern.test(text));
-  if(alias)work=alias[0];
- }
-
- let amount='';
- const amountMatch=text.match(/(\d+(?:\.\d+)?)\s*(시간|분|일|동|평|개|상자|박스|포대|kg|킬로|톤)/i);
- if(amountMatch)amount=`${amountMatch[1]}${amountMatch[2].toLowerCase()==='kg'?'kg':amountMatch[2]}`;
-
- let date='';
- if(text.includes('어제')){
-  const d=new Date();d.setDate(d.getDate()-1);date=localDateString(d);
- }else if(text.includes('내일')){
-  const d=new Date();d.setDate(d.getDate()+1);date=localDateString(d);
- }else if(text.includes('오늘'))date=localDateString(new Date());
-
- // 필지 뒤부터 작업명 앞까지를 작물 후보로 사용
- let crop='';
- if(field){
-  const after=text.slice(text.indexOf(field)+field.length).trim();
-  const stopWords=[work,worker,amount,'오늘','어제','내일'].filter(Boolean);
-  let cropPart=after;
-  stopWords.forEach(word=>{
-   const idx=cropPart.indexOf(word);
-   if(idx>=0)cropPart=cropPart.slice(0,idx);
-  });
-  crop=cleanVoiceToken(cropPart.split(/\s+/).slice(0,2).join(' '));
- }
- crop=crop.replace(/(을|를|에|에서)$/,'');
-
- return {transcript:text,field,worker,work,amount,date,crop};
-}
-function applyVoiceCommand(transcript){
- const result=parseVoiceCommand(transcript);
- const added=[];
-
- if(result.field){
-  if(!fields.includes(result.field)){addCustomCategory('field',result.field,false);added.push(`새 필지: ${result.field}`)}
-  selectedField=result.field;
-  selectChoice('fieldChoices',result.field);
- }
- if(result.work){
-  if(!works.includes(result.work)){addCustomCategory('work',result.work,false);added.push(`새 작업: ${result.work}`)}
-  selectedWork=result.work;
-  selectChoice('workChoices',result.work);
- }
- if(result.worker){
-  if(!workers.includes(result.worker)){addCustomCategory('worker',result.worker,false);added.push(`새 작업자: ${result.worker}`)}
-  selectedWorker=result.worker;
-  selectChoice('workerChoices',result.worker);
- }
- if(result.crop)document.getElementById('crop').value=result.crop;
- if(result.amount)document.getElementById('amount').value=result.amount;
- if(result.date)document.getElementById('workDate').value=result.date;
-
- const memo=document.getElementById('memo');
- const voiceMemo=`[음성 입력] ${result.transcript}`;
- if(!memo.value.includes(voiceMemo))memo.value=(memo.value?`${memo.value}\n`:'')+voiceMemo;
-
- const recognized=[
-  result.field&&`필지: ${result.field}`,
-  result.crop&&`작물: ${result.crop}`,
-  result.work&&`작업: ${result.work}`,
-  result.worker&&`작업자: ${result.worker}`,
-  result.amount&&`작업량: ${result.amount}`
- ].filter(Boolean);
-
- const resultBox=document.getElementById('voiceResult');
- if(resultBox){
-  resultBox.innerHTML=`
-   <strong>인식 완료</strong>
-   <p>${esc(result.transcript)}</p>
-   <div class="voice-tags">${recognized.map(x=>`<span>${esc(x)}</span>`).join('')}</div>
-   ${added.length?`<small>${added.map(esc).join(' · ')} 항목을 목록에 저장했습니다.</small>`:''}
-   ${!result.field||!result.work?'<small class="voice-warning">찾지 못한 항목은 메모에 원문 그대로 기록했습니다. 필요한 항목은 직접 선택하거나 새로 추가해 주세요.</small>':''}`;
- }
- setVoiceStatus('음성 내용을 입력란에 반영했습니다. 확인 후 저장해 주세요.','done');
- showToast('음성 입력을 반영했습니다');
-}
-
-function showScreen(id,options={}){
- const target=document.getElementById(id);
- if(!target)return;
- const current=document.querySelector('.screen.active')?.id||'home';
- const shouldRecord=options.record!==false;
-
- document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
- target.classList.add('active');
+function showScreen(id){
+ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));
-
- if(shouldRecord&&current!==id){
-  history.pushState({screen:id},'',location.href);
- }
-
- if(id==='journal')renderJournal();
- if(id==='search')runSearch();
- if(id==='stats')renderStats();
- if(id==='register')renderRecentWorks();
- window.scrollTo({top:0,behavior:options.smooth===false?'auto':'smooth'});
+ if(id==='journal')renderJournal();if(id==='search')runSearch();if(id==='stats')renderStats();if(id==='register')renderRecentWorks();if(id==='manual')updateManualControls();window.scrollTo({top:0,behavior:'smooth'})
 }
 function openNewEntry(){resetForm();showScreen('register');renderRecentWorks()}
 function resetForm(){
  document.getElementById('editId').value='';document.getElementById('formTitle').textContent='작업 등록';document.getElementById('workDate').value=localDateString(new Date());
  document.getElementById('crop').value='';document.getElementById('amount').value='';document.getElementById('memo').value='';
- selectedField=selectedWork=selectedWorker='';pendingPhotos=[];document.querySelectorAll('.choice').forEach(x=>x.classList.remove('selected'));renderPhotoPreview();const note=document.getElementById('photoSavedNote');if(note)note.classList.remove('show');const cp=document.getElementById('copyPanel');if(cp)cp.classList.remove('show');const vr=document.getElementById('voiceResult');if(vr)vr.innerHTML='';setVoiceStatus('버튼을 누른 뒤 작업 내용을 말씀하세요.')
+ selectedField=selectedWork=selectedWorker='';pendingPhotos=[];document.querySelectorAll('.choice').forEach(x=>x.classList.remove('selected'));renderPhotoPreview();const note=document.getElementById('photoSavedNote');if(note)note.classList.remove('show');const cp=document.getElementById('copyPanel');if(cp)cp.classList.remove('show')
 }
 
 async function resizeImage(file){
@@ -560,9 +187,6 @@ function copyLastSaved(){
 async function saveEntry(){
  const editId=document.getElementById('editId').value,workDate=document.getElementById('workDate').value,crop=document.getElementById('crop').value.trim(),amount=document.getElementById('amount').value.trim(),memo=document.getElementById('memo').value.trim();
  if(!workDate)return alert('작업 날짜를 선택해 주세요.');if(!selectedField)return alert('필지를 선택해 주세요.');if(!crop)return alert('작물 이름을 입력해 주세요.');if(!selectedWork)return alert('작업 종류를 선택해 주세요.');if(!selectedWorker)return alert('작업자를 선택해 주세요.');
- if(!fields.includes(selectedField))addCustomCategory('field',selectedField,false);
- if(!works.includes(selectedWork))addCustomCategory('work',selectedWork,false);
- if(!workers.includes(selectedWorker))addCustomCategory('worker',selectedWorker,false);
  setLoading(true);
  try{
   let old=editId?await getEntry(editId):null;
@@ -578,17 +202,8 @@ async function editEntry(id){
 async function removeEntry(id){if(!confirm('이 작업기록을 삭제할까요?'))return;await deleteEntryDB(id);showToast('삭제되었습니다');await renderJournal();if(document.getElementById('search').classList.contains('active'))runSearch();if(document.getElementById('stats').classList.contains('active'))renderStats()}
 
 function entryCard(x){
- const photos=(Array.isArray(x.photos)?x.photos:[]).map((p,i)=>
-  `<button type="button" class="photo-box" onclick="openEntryPhoto(${Number(x.id)},${i})"><img src="${esc(p)}" alt="작업 사진 ${i+1}"></button>`
- ).join('');
+ const photos=(x.photos||[]).map(p=>`<div class="photo-box" onclick="openPhoto('${p}')"><img src="${p}" alt="작업 사진"></div>`).join('');
  return `<article class="entry"><div class="entry-top"><strong>${esc(x.field)} · ${esc(x.crop)}</strong><time>${esc(x.workDate)}</time></div><div class="meta">작업: ${esc(x.work)}<br>작업자: ${esc(x.worker)}${x.amount?`<br>작업량: ${esc(x.amount)}`:''}${x.memo?`<br>메모: ${esc(x.memo)}`:''}</div>${photos?`<div class="entry-photos">${photos}</div>`:''}<div class="entry-actions"><button class="btn small secondary" onclick="editEntry(${x.id})">수정</button><button class="btn small danger" onclick="removeEntry(${x.id})">삭제</button></div></article>`
-}
-async function openEntryPhoto(id,index){
- const entry=await getEntry(id);
- const src=entry&&Array.isArray(entry.photos)?entry.photos[index]:'';
- if(!src){alert('사진 데이터를 찾지 못했습니다.');return}
- document.getElementById('largePhoto').src=src;
- document.getElementById('photoModal').classList.add('open');
 }
 function openPhoto(src){document.getElementById('largePhoto').src=src;document.getElementById('photoModal').classList.add('open')}
 function closePhotoModal(e){if(e&&e.target!==document.getElementById('photoModal'))return;document.getElementById('photoModal').classList.remove('open')}
@@ -611,190 +226,17 @@ async function runSearch(){
 }
 function clearSearch(){['searchFrom','searchTo','searchCrop','searchKeyword'].forEach(id=>document.getElementById(id).value='');['searchField','searchWork','searchWorker'].forEach(id=>document.getElementById(id).value='');runSearch()}
 
-
-async function openStatsGallery(){
- const month=document.getElementById('statsMonth').value||monthString(new Date());
- const all=await getAllEntries();
- const monthEntries=all.filter(x=>String(x.workDate||'').startsWith(month));
- statsGalleryPhotos=[];
- monthEntries.forEach(entry=>{
-  (Array.isArray(entry.photos)?entry.photos:[]).forEach((src,index)=>{
-   if(src)statsGalleryPhotos.push({
-    src,
-    entryId:Number(entry.id),
-    photoIndex:index,
-    workDate:entry.workDate||'',
-    field:entry.field||'',
-    crop:entry.crop||''
-   });
-  });
- });
-
- const [year,monthNumber]=month.split('-').map(Number);
- document.getElementById('statsGalleryTitle').textContent=`${year}년 ${monthNumber}월 저장 사진`;
- document.getElementById('statsGalleryCount').textContent=`총 ${statsGalleryPhotos.length}장`;
-
- const grid=document.getElementById('statsGalleryGrid');
- if(!statsGalleryPhotos.length){
-  grid.innerHTML='<div class="empty stats-gallery-empty">이 달에 저장된 사진이 없습니다.</div>';
- }else{
-  grid.innerHTML=statsGalleryPhotos.map((photo,index)=>`
-   <button type="button" class="stats-gallery-item" onclick="openStatsPhoto(${index})">
-    <img src="${esc(photo.src)}" alt="${esc(photo.workDate)} ${esc(photo.field)} 작업 사진">
-    <span>${esc(photo.workDate.slice(5))}<br>${esc(photo.field)} · ${esc(photo.crop)}</span>
-   </button>`).join('');
- }
- document.getElementById('statsGallery').classList.add('open');
- document.body.style.overflow='hidden';
-}
-
-function closeStatsGallery(){
- document.getElementById('statsGallery').classList.remove('open');
- document.body.style.overflow='';
-}
-
-function openStatsPhoto(index){
- const photo=statsGalleryPhotos[index];
- if(!photo||!photo.src){alert('사진 데이터를 찾지 못했습니다.');return}
- document.getElementById('largePhoto').src=photo.src;
- document.getElementById('photoModal').classList.add('open');
-}
-
-async function openWorkedDaysCalendar(){
- const month=document.getElementById('statsMonth').value||monthString(new Date());
- const all=await getAllEntries();
- const monthEntries=all
-  .filter(x=>String(x.workDate||'').startsWith(month))
-  .sort((a,b)=>String(a.workDate).localeCompare(String(b.workDate)));
-
- const [year,monthNumber]=month.split('-').map(Number);
- calendarMonth=new Date(year,monthNumber-1,1);
- selectedCalendarDate=monthEntries.length?monthEntries[0].workDate:`${month}-01`;
- showScreen('journal');
-}
-
 function countBy(list,key){const c={};list.forEach(x=>{const v=x[key]||'미입력';c[v]=(c[v]||0)+1});return c}
 function renderBars(id,obj){const el=document.getElementById(id),arr=Object.entries(obj).sort((a,b)=>b[1]-a[1]),max=Math.max(1,...arr.map(x=>x[1]));el.innerHTML=arr.length?arr.map(([k,v])=>`<div class="stat-row"><div class="stat-label"><span>${esc(k)}</span><strong>${v}건</strong></div><div class="bar-bg"><div class="bar" style="width:${v/max*100}%"></div></div></div>`).join(''):'<div class="empty">이 달에는 기록이 없습니다.</div>'}
 async function renderStats(){
  const month=document.getElementById('statsMonth').value||monthString(new Date());document.getElementById('statsMonth').value=month;const all=await getAllEntries(),list=all.filter(x=>x.workDate.startsWith(month)),days=new Set(list.map(x=>x.workDate)).size,photos=list.reduce((n,x)=>n+(x.photos||[]).length,0);
- document.getElementById('statSummary').innerHTML=`
-  <div class="stat-box"><strong>${list.length}</strong><span>전체 작업</span></div>
-  <button type="button" class="stat-box stat-link" onclick="openWorkedDaysCalendar()" aria-label="작업한 날을 달력에서 보기">
-   <strong>${days}</strong><span>작업한 날</span><small>달력에서 보기</small>
-  </button>
-  <button type="button" class="stat-box stat-link" onclick="openStatsGallery()" aria-label="저장 사진을 갤러리로 보기">
-   <strong>${photos}</strong><span>저장 사진</span><small>사진 모아보기</small>
-  </button>`;
+ document.getElementById('statSummary').innerHTML=`<div class="stat-box"><strong>${list.length}</strong><span>전체 작업</span></div><div class="stat-box"><strong>${days}</strong><span>작업한 날</span></div><div class="stat-box"><strong>${photos}</strong><span>저장 사진</span></div>`;
  renderBars('fieldStats',countBy(list,'field'));renderBars('cropStats',countBy(list,'crop'));renderBars('workStats',countBy(list,'work'));renderBars('workerStats',countBy(list,'worker'))
 }
 
-function closeOpenOverlay(){
- const photoModal=document.getElementById('photoModal');
- if(photoModal&&photoModal.classList.contains('open')){
-  photoModal.classList.remove('open');
-  return true;
- }
- const statsGallery=document.getElementById('statsGallery');
- if(statsGallery&&statsGallery.classList.contains('open')){
-  closeStatsGallery();
-  return true;
- }
- const galleryReview=document.getElementById('galleryReview');
- if(galleryReview&&galleryReview.classList.contains('open')){
-  cancelGallerySelection();
-  return true;
- }
- return false;
-}
-
-let exitBannerOpen=false;
-let allowAppExit=false;
-
-function showExitBanner(){
- const banner=document.getElementById('exitBanner');
- if(!banner||exitBannerOpen)return;
- exitBannerOpen=true;
- banner.classList.add('open');
- document.body.classList.add('exit-banner-open');
-}
-
-function hideExitBanner(){
- const banner=document.getElementById('exitBanner');
- if(!banner)return;
- exitBannerOpen=false;
- banner.classList.remove('open');
- document.body.classList.remove('exit-banner-open');
-}
-
-function cancelAppExit(){
- hideExitBanner();
-}
-
-function confirmAppExit(){
- hideExitBanner();
- allowAppExit=true;
-
- // 안드로이드 WebView 앱에 종료용 연결 기능이 있는 경우 우선 사용합니다.
- const bridges=[
-  window.AndroidExit,
-  window.AndroidApp,
-  window.Android
- ];
- for(const bridge of bridges){
-  if(bridge&&typeof bridge.exitApp==='function'){
-   bridge.exitApp();
-   return;
-  }
-  if(bridge&&typeof bridge.closeApp==='function'){
-   bridge.closeApp();
-   return;
-  }
- }
-
- // 설치형 웹앱(PWA)에서는 브라우저 기록 밖으로 이동해 앱 화면을 종료합니다.
- history.go(-2);
- setTimeout(()=>{
-  try{window.close()}catch(_){}
- },250);
-}
-
-function setupBackNavigation(){
- // 첫 화면 앞에 종료 확인용 경계 기록을 하나 둡니다.
- history.replaceState({screen:'home',root:true},'',location.href);
- history.pushState({screen:'home',guard:true},'',location.href);
-
- window.addEventListener('popstate',event=>{
-  if(allowAppExit)return;
-
-  if(exitBannerOpen){
-   history.pushState({screen:'home',guard:true},'',location.href);
-   return;
-  }
-
-  if(closeOpenOverlay()){
-   history.pushState({screen:document.querySelector('.screen.active')?.id||'home'},'',location.href);
-   return;
-  }
-
-  const state=event.state||{};
-  const currentScreen=document.querySelector('.screen.active')?.id||'home';
-
-  // 홈 화면의 마지막 뒤로가기에서는 앱을 바로 닫지 않고 종료 배너를 표시합니다.
-  if(state.root===true&&currentScreen==='home'){
-   history.pushState({screen:'home',guard:true},'',location.href);
-   showExitBanner();
-   return;
-  }
-
-  const screen=state.screen||'home';
-  showScreen(screen,{record:false,smooth:false});
- });
-}
-
 async function init(){
- setupBackNavigation();
- refreshCategoryUI();
- document.getElementById('statsMonth').value=monthString(new Date());resetForm();
+ makeChoices('fieldChoices',fields,'field');makeChoices('workChoices',works,'work');makeChoices('workerChoices',workers,'worker');fillSelect('searchField',fields,'필지');fillSelect('searchWork',works,'작업');fillSelect('searchWorker',workers,'작업자');
+ document.getElementById('statsMonth').value=monthString(new Date());resetForm();updateManualControls();
  try{await openDB();await migrateOldData()}catch(e){alert('기기 내부 데이터베이스를 열지 못했습니다. 일반 브라우저에서 다시 열어 주세요.')}
 }
 init();
@@ -802,7 +244,7 @@ init();
 async function buildBackupPayload(){
  const entries=await getAllEntries();
  return {
-  app:'문희농원 작업일지',version:'3.2',exportedAt:new Date().toISOString(),deviceId:getDeviceId(),
+  app:'문희농원 작업일지',version:'2.6',exportedAt:new Date().toISOString(),deviceId:getDeviceId(),
   entries:entries.map(x=>({...x,recordUid:x.recordUid||('LEGACY-'+(x.deviceId||getDeviceId())+'-'+x.id),deviceId:x.deviceId||getDeviceId()})),
   favorites:getFavorites()
  };
@@ -881,166 +323,45 @@ async function exportBackup(){
  }
 }
 
-function normalizeBackupPhoto(value){
- if(typeof value!=='string')return '';
- const photo=value.trim();
- if(!photo)return '';
- if(/^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=\s]+$/i.test(photo))return photo.replace(/\s+/g,'');
- return '';
-}
-function normalizeBackupEntry(item,index,data){
- if(!item||typeof item!=='object')throw new Error(`${index+1}번째 기록의 내용이 없습니다.`);
- const sourceId=item.id??(`ROW-${index}`);
- const sourceDevice=String(item.deviceId||data?.deviceId||'IMPORT');
- const uid=String(item.recordUid||(`LEGACY-${sourceDevice}-${sourceId}`));
- const photos=(Array.isArray(item.photos)?item.photos:[]).map(normalizeBackupPhoto).filter(Boolean).slice(0,3);
- const entry={
-  ...item,
-  recordUid:uid,
-  deviceId:sourceDevice,
-  workDate:String(item.workDate||''),
-  field:String(item.field||''),
-  crop:String(item.crop||''),
-  work:String(item.work||''),
-  worker:String(item.worker||''),
-  amount:String(item.amount||''),
-  memo:String(item.memo||''),
-  photos,
-  createdAt:item.createdAt||new Date().toISOString(),
-  updatedAt:item.updatedAt||item.createdAt||new Date().toISOString()
- };
- if(!/^\d{4}-\d{2}-\d{2}$/.test(entry.workDate))throw new Error(`${index+1}번째 기록의 작업 날짜가 잘못되었습니다.`);
- return entry;
-}
-function sameEntryContent(a,b){
- const keys=['workDate','field','crop','work','worker','amount','memo'];
- if(!keys.every(k=>String(a?.[k]||'')===String(b?.[k]||'')))return false;
- const ap=Array.isArray(a?.photos)?a.photos:[];
- const bp=Array.isArray(b?.photos)?b.photos:[];
- return ap.length===bp.length&&ap.every((v,i)=>v===bp[i]);
-}
-function verifySavedEntry(saved,expected){
- if(!saved)return false;
- if(String(saved.recordUid)!==String(expected.recordUid))return false;
- if(!sameEntryContent(saved,expected))return false;
- return true;
-}
 async function importBackup(event){
- const input=event.target;
- const file=input.files&&input.files[0];
+ const file=event.target.files&&event.target.files[0];
  if(!file)return;
- let stage='파일 읽기';
  try{
-  setLoading(true);
   const raw=await file.text();
-  stage='파일 내용 확인';
-  let data;
-  try{data=JSON.parse(raw.replace(/^\uFEFF/,'').trim())}catch(_){throw new Error('JSON_PARSE')}
-  const entries=Array.isArray(data)?data:(Array.isArray(data?.entries)?data.entries:(Array.isArray(data?.data)?data.data:null));
-  if(!entries)throw new Error('NO_ENTRIES');
-  if(typeof data?.app==='string'&&data.app&&data.app!=='문희농원 작업일지')throw new Error('WRONG_APP');
-
-  const normalized=[];
-  const invalid=[];
-  entries.forEach((item,index)=>{
-   try{normalized.push(normalizeBackupEntry(item,index,data))}
-   catch(err){invalid.push(err.message)}
-  });
-  const sourcePhotoCount=normalized.reduce((n,x)=>n+x.photos.length,0);
-  if(!normalized.length)throw new Error(invalid[0]||'NO_VALID_ENTRIES');
-
-  const ok=confirm(
-   `백업 작업 ${normalized.length}건 · 사진 ${sourcePhotoCount}장이 확인되었습니다.\n`+
-   `현재 데이터에 합칠까요?\n\n`+
-   `같은 기록도 내용이나 사진이 빠져 있으면 원본으로 복구합니다.`
-  );
-  if(!ok)return;
-
-  stage='기존 데이터 확인';
-  const current=await getAllEntries();
-  const byUid=new Map(current.map(x=>[String(x.recordUid||(`LEGACY-${x.deviceId||'OLD'}-${x.id}`)),x]));
-  const usedIds=new Set(current.map(x=>Number(x.id)).filter(Number.isFinite));
-  const nextUniqueId=()=>{let id=Date.now();while(usedIds.has(id))id++;usedIds.add(id);return id};
-
-  let added=0,repaired=0,identical=0,failed=0;
-  let savedPhotoCount=0;
-  const failures=[];
-  const importedIds=[];
-
-  stage='작업과 사진 저장';
-  for(const incoming of normalized){
-   const existing=byUid.get(incoming.recordUid);
-   const copy={...incoming,id:existing?Number(existing.id):nextUniqueId()};
-   try{
-    if(existing&&sameEntryContent(existing,copy)){
-     identical++;
-     importedIds.push(Number(existing.id));
-     savedPhotoCount+=(Array.isArray(existing.photos)?existing.photos.length:0);
-     continue;
-    }
-    await putEntry(copy);
-    const saved=await getEntry(copy.id);
-    if(!verifySavedEntry(saved,copy))throw new Error('저장 후 검증 실패');
-    byUid.set(copy.recordUid,saved);
-    importedIds.push(Number(saved.id));
-    savedPhotoCount+=(Array.isArray(saved.photos)?saved.photos.length:0);
-    if(existing)repaired++;else added++;
-   }catch(err){
-    failed++;
-    failures.push(`${copy.workDate} ${copy.field||''} ${copy.crop||''}: ${err.message||err}`);
-   }
+  const data=JSON.parse(raw);
+  if(!data||data.app!=='문희농원 작업일지'||!Array.isArray(data.entries)){
+   throw new Error('invalid backup');
   }
-
-  stage='즐겨찾기 합치기';
-  if(Array.isArray(data?.favorites)){
-   const merged=[...getFavorites()];
+  const ok=confirm(`백업에 작업 ${data.entries.length}건이 있습니다.\n현재 데이터에 추가로 불러올까요?\n\n같은 작업은 중복될 수 있습니다.`);
+  if(!ok){event.target.value='';return}
+  setLoading(true);
+  const current=await getAllEntries();
+  const known=new Set(current.map(x=>x.recordUid||('LEGACY-'+(x.deviceId||'OLD')+'-'+x.id)));
+  let added=0,skipped=0;
+  for(const item of data.entries){
+   const uid=item.recordUid||('LEGACY-'+(item.deviceId||data.deviceId||'IMPORT')+'-'+item.id);
+   if(known.has(uid)){skipped++;continue}
+   const copy={...item,id:Date.now()+added,recordUid:uid,deviceId:item.deviceId||data.deviceId||'IMPORT'};
+   await putEntry(copy);known.add(uid);added++;
+  }
+  if(Array.isArray(data.favorites)){
+   const current=getFavorites();
+   const merged=[...current];
    for(const fav of data.favorites){
-    if(!fav||typeof fav!=='object')continue;
-    if(!merged.some(x=>(fav.signature&&x.signature===fav.signature)))merged.push(fav);
+    if(!merged.some(x=>x.signature===fav.signature))merged.push(fav);
    }
    saveFavorites(merged);
   }
-
-  stage='최종 저장 확인';
-  const finalEntries=await getAllEntries();
-  const imported=finalEntries.filter(x=>importedIds.includes(Number(x.id)));
-  const finalPhotoCount=imported.reduce((n,x)=>n+(Array.isArray(x.photos)?x.photos.length:0),0);
-  const first=imported.sort((a,b)=>String(a.workDate).localeCompare(String(b.workDate)))[0];
-  if(first){
-   selectedCalendarDate=first.workDate;
-   const [y,m]=first.workDate.split('-').map(Number);
-   calendarMonth=new Date(y,m-1,1);
-  }
-
+  event.target.value='';
+  await renderHome();
+  await renderJournal();
   await renderRecentWorks();
-  if(first){
-   showScreen('journal');
-   await renderJournal();
-  }
-  if(document.getElementById('search')?.classList.contains('active'))await runSearch();
-  if(document.getElementById('stats')?.classList.contains('active'))await renderStats();
-
-  const result=
-   `합치기 완료\n\n`+
-   `새 작업: ${added}건\n`+
-   `기존 기록 복구: ${repaired}건\n`+
-   `완전히 같은 기록: ${identical}건\n`+
-   `저장 확인된 사진: ${finalPhotoCount}장`+
-   (failed?`\n저장 실패: ${failed}건`:'')+
-   (first?`\n\n${first.workDate}의 기록 화면을 열었습니다.`:'');
-  alert(result);
-  showToast(`작업 ${added+repaired}건 반영 · 사진 ${finalPhotoCount}장 확인`);
-  if(failed)alert(`저장하지 못한 기록이 있습니다.\n\n${failures.slice(0,5).join('\n')}`);
-  if(sourcePhotoCount!==savedPhotoCount&&failed===0){
-   console.warn('백업 사진 수와 확인 사진 수 차이', {sourcePhotoCount,savedPhotoCount,finalPhotoCount});
-  }
+  showToast(`새 작업 ${added}건 추가 · 중복 ${skipped}건 제외`);
  }catch(err){
-  console.error('백업 합치기 실패 단계:',stage,err);
-  const messages={JSON_PARSE:'파일 내용이 JSON 형식이 아닙니다.',NO_ENTRIES:'백업파일에서 작업 목록을 찾지 못했습니다.',WRONG_APP:'문희농원 작업일지 백업파일이 아닙니다.'};
-  alert(`데이터 합치기에 실패했습니다.\n\n단계: ${stage}\n이유: ${messages[err.message]||err.message||'알 수 없는 오류'}`);
+  console.error(err);
+  alert('올바른 문희농원 백업 파일이 아닙니다.');
+  event.target.value='';
  }finally{
-  input.value='';
   setLoading(false);
  }
 }
-

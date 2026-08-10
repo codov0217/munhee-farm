@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#2f6f4e">
-<meta name="description" content="문희농원 가족 작업일지">
+<meta name="description" content="문희농원 작업일지와 초보자 농업 매뉴얼">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -12,14 +12,14 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="icon" href="icons/icon-192.png">
-<title>문희농원 작업일지</title>
+<title>문희농원 작업일지 · 농업 매뉴얼</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="updateBanner" class="update-banner"><span><strong>새 버전이 있습니다</strong><br>버튼을 누르면 바로 적용됩니다.</span><button id="updateButton" onclick="applyUpdate()">지금 업데이트</button></div>
+<div id="updateBanner" class="update-banner"><span><strong>새 버전이 있습니다</strong><br>버튼을 누르면 바로 적용됩니다.</span><button type="button" id="updateButton" onclick="applyUpdate()">지금 업데이트</button></div>
+<div id="installBanner" class="install-banner"><div class="text"><strong>휴대폰에 설치하기</strong><br>홈 화면에서 일반 앱처럼 사용할 수 있습니다.</div><button type="button" id="installButton">설치</button></div>
 <div class="app">
-<header><div class="brand"><div class="logo">🌳</div><div><h1>문희농원 작업일지</h1><div class="sub">버전 3.2 · 추가 항목 X 삭제</div></div></div></header>
-<div id="installBanner" class="install-banner"><div class="text"><strong>휴대폰에 설치하기</strong><br>홈 화면에서 일반 앱처럼 사용할 수 있습니다.</div><button id="installButton">설치</button></div>
+<header><div class="brand"><div class="logo">🌳</div><div><h1>문희농원 작업일지</h1><div class="sub">버전 2.7 시안 · 책자형 농업 매뉴얼</div></div></div></header>
 <main>
 <section id="home" class="screen active">
   <div class="hero"><h2>안녕하세요 👋</h2><p>농장 작업을 날짜별로 기록하고 사진, 검색, 통계까지 한곳에서 확인하세요.</p></div>
@@ -59,22 +59,11 @@
     <div id="recentWorks" class="recent-list"></div>
   </div>
   <input id="editId" type="hidden">
-  <div class="card voice-card">
-    <div class="voice-title">
-      <div>
-        <label>🎤 음성으로 작업 입력</label>
-        <div class="hint">예: “밤나무밭 참깨 파종 아버지 두 시간”</div>
-      </div>
-      <button id="voiceButton" type="button" class="voice-button" onclick="toggleVoiceInput()">🎤 말하기</button>
-    </div>
-    <div id="voiceStatus" class="voice-status">버튼을 누른 뒤 작업 내용을 말씀하세요.</div>
-    <div id="voiceResult" class="voice-result"></div>
-  </div>
   <div class="card"><label for="workDate">1. 작업 날짜</label><input id="workDate" class="field" type="date"></div>
-  <div class="card"><div class="choice-heading"><label>2. 필지 선택</label><button type="button" class="add-choice" onclick="promptAddCategory('field')">＋ 새 필지</button></div><div id="fieldChoices" class="choice-grid"></div></div>
+  <div class="card"><label>2. 필지 선택</label><div id="fieldChoices" class="choice-grid"></div></div>
   <div class="card"><label for="crop">3. 작물 이름</label><input id="crop" class="field" placeholder="예: 개미취, 오미자, 사과"><div class="chips"><button class="chip" onclick="setCrop('개미취')">개미취</button><button class="chip" onclick="setCrop('오미자')">오미자</button><button class="chip" onclick="setCrop('수국')">수국</button><button class="chip" onclick="setCrop('사과')">사과</button></div></div>
-  <div class="card"><div class="choice-heading"><label>4. 작업 종류</label><button type="button" class="add-choice" onclick="promptAddCategory('work')">＋ 새 작업</button></div><div id="workChoices" class="choice-grid"></div></div>
-  <div class="card"><div class="choice-heading"><label>5. 작업자</label><button type="button" class="add-choice" onclick="promptAddCategory('worker')">＋ 새 작업자</button></div><div id="workerChoices" class="choice-grid"></div></div>
+  <div class="card"><label>4. 작업 종류</label><div id="workChoices" class="choice-grid"></div></div>
+  <div class="card"><label>5. 작업자</label><div id="workerChoices" class="choice-grid"></div></div>
   <div class="card"><label for="amount">6. 작업량</label><input id="amount" class="field" placeholder="예: 3시간, 2동, 20kg"></div>
   <div class="card">
     <label>7. 사진</label>
@@ -90,11 +79,6 @@
     <div id="photoPreview" class="photo-preview"></div>
   </div>
   <div class="card"><label for="memo">8. 메모</label><textarea id="memo" class="field" rows="3" placeholder="작업 내용을 입력하세요"></textarea></div>
-  <details class="card custom-manager">
-    <summary>⚙️ 직접 추가한 항목 관리</summary>
-    <div class="hint">직접 추가하거나 음성으로 새로 인식한 필지·작업·작업자를 삭제할 수 있습니다.</div>
-    <div id="customCategoryManager"></div>
-  </details>
   <div class="actions"><button class="btn secondary" onclick="showScreen('home')">취소</button><button class="btn primary" onclick="saveEntry()">저장하기</button></div>
 </section>
 
@@ -124,6 +108,1601 @@
   <div class="card"><label>작업 종류별</label><div id="workStats"></div></div>
   <div class="card"><label>작업자별</label><div id="workerStats"></div></div>
 </section>
+
+<section id="manual" class="screen">
+  <button id="manualListFloat" type="button" class="manual-list-fab" onclick="goToManualContents()" aria-label="목차 첫 페이지로 이동">☰ 목록</button>
+  <div id="manualBook" class="manual-book" aria-live="polite">
+    <article class="manual-page manual-cover active" data-label="표지">
+      <div>
+        <div class="cover-eyebrow">MUNHUI FARM · FIELD GUIDE</div>
+        <div class="cover-rule"></div>
+        <div class="cover-emblem">🌿</div>
+        <h2><span>문희농원</span>농업 실무<br>매뉴얼</h2>
+        <p class="cover-crops">대상 작목<br><b>개미취 · 수국 · 바위솔 · 과실수</b></p>
+      </div>
+      <div class="cover-foot"><span>현장에서 바로 펼쳐보는<br>작목 관리 안내서</span><span class="cover-mark">文喜</span></div>
+    </article>
+
+    <article class="manual-page" data-page="02" data-label="목차 1">
+      <div class="manual-running-head"><span>MUNHUI FARM MANUAL</span><span>CONTENTS</span></div>
+      <h2 class="contents-title">목차</h2>
+      <p class="contents-sub">농장 운영과 재배의 기본</p>
+      <div class="toc-list">
+        <button type="button" class="toc-row" onclick="goToManualPage(3)"><span class="toc-part">PART 1.</span><span class="toc-name">작목별 재배기술<small>(개미취 · 수국 · 바위솔 · 과실수)</small></span><span class="toc-page">04</span></button>
+        <button type="button" class="toc-row" onclick="goToManualPage(14)"><span class="toc-part">PART 2.</span><span class="toc-name">토양관리<small>(토양검정 · pH · EC · 유기물 · 배수 · 미량요소)</small></span><span class="toc-page">15</span></button>
+        <button type="button" class="toc-row" onclick="goToManualPage(25)"><span class="toc-part">PART 3.</span><span class="toc-name">비료관리<small>(작목별 시기 · 부족/과다 신호 · 시비기록)</small></span><span class="toc-page">26</span></button>
+        <button type="button" class="toc-row" onclick="goToManualPage(38)"><span class="toc-part">PART 4.</span><span class="toc-name">관수관리<small>(작목별 물관리 · 계절별 관수)</small></span><span class="toc-page">39</span></button>
+        <button type="button" class="toc-row" onclick="goToManualPage(44)"><span class="toc-part">PART 5.</span><span class="toc-name">병해충 사진도감<small>(병해 · 해충 · 증상 · 예방 · 방제)</small></span><span class="toc-page">45</span></button>
+      </div>
+      <div class="manual-colophon">문희농원 농업 실무 매뉴얼 · 제1권</div>
+    </article>
+
+    <article class="manual-page" data-page="03" data-label="목차 2">
+      <div class="manual-running-head"><span>MUNHUI FARM MANUAL</span><span>CONTENTS</span></div>
+      <h2 class="contents-title">목차</h2>
+      <p class="contents-sub">현장 관리와 기록</p>
+      <div class="toc-list">
+        <button type="button" class="toc-row" onclick="goToManualPage(52)"><span class="toc-part">PART 6.</span><span class="toc-name">농약관리<small>(살포 판단 · 약 종류 · 작목별 확인 · 희석 · 안전)</small></span><span class="toc-page">53</span></button>
+        <button type="button" class="toc-row" onclick="goToManualPage(58)"><span class="toc-part">PART 7.</span><span class="toc-name">잡초관리<small>(구분 · 제거 · 멀칭 · 제초제 · 기록)</small></span><span class="toc-page">59</span></button>
+        <button type="button" class="toc-row" onclick="goToManualPage(63)"><span class="toc-part">PART 8.</span><span class="toc-name">월별 농사달력<small>(1월~12월 문희농원 주요 농작업)</small></span><span class="toc-page">64</span></button>
+        <button type="button" class="toc-row" onclick="goToManualPage(70)"><span class="toc-part">PART 9.</span><span class="toc-name">정부지원사업 및 교육<small>(공고 확인 · 준비서류 · 농업기술센터 · 교육)</small></span><span class="toc-page">71</span></button>
+        <button type="button" class="toc-row" onclick="goToManualPage(75)"><span class="toc-part">PART 10.</span><span class="toc-name">작업기록<small>(작업일지 · 자재 · 병해충 · 수확 · 연말정리)</small></span><span class="toc-page">76</span></button>
+        <button type="button" class="toc-row" onclick="goToManualPage(80)"><span class="toc-part">부록</span><span class="toc-name">현장 참고표<small>(희석 · 면적 · 비료 · 진단 · 연락처 · 용어)</small></span><span class="toc-page">81</span></button>
+      </div>
+      <div class="manual-colophon">문희농원 농업 실무 매뉴얼 · 제1권</div>
+    </article>
+
+    <article class="manual-page" data-page="04" data-label="PART 1 작목별 재배기술">
+      <div class="manual-running-head"><span>문희농원 농업 실무 매뉴얼</span><span>PART 01</span></div>
+      <div class="part-number">PART 1.</div><h2 class="part-title">작목별<br>재배기술</h2>
+      <p class="part-topics">(개미취 · 수국 · 바위솔 · 자두(오얏) · 배 · 사과 · 포포나무)</p>
+      <p class="part-intro">문희농원 작목의 심기·물관리·전정·수확 기준을 계절별 현장 작업에 맞춰 정리한 장입니다.</p>
+      <p class="chapter-label">대상 작목</p><ol class="chapter-index"><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(5)"><span>개미취 · 수국 · 바위솔</span><span class="chapter-jump-page">05쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(8)"><span>과실수 공통 관리</span><span class="chapter-jump-page">08쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(9)"><span>자두(오얏) · 배 · 사과</span><span class="chapter-jump-page">09쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(12)"><span>포포나무</span><span class="chapter-jump-page">12쪽 ›</span></button></li></ol>
+      <div class="manual-colophon">MUNHUI FARM · CROP GUIDE</div>
+    </article>
+
+    <article class="manual-page" data-page="05" data-label="개미취 재배기술">
+      <div class="manual-running-head"><span>작목별 재배기술</span><span>개미취</span></div>
+      <div class="cult-kicker">ASTER TATARICUS · 01</div>
+      <h2 class="cult-title">개미취 재배기술</h2>
+      <p class="cult-lead">다년생 산채는 한 번 심은 포장을 여러 해 쓰므로 첫해의 배수·잡초·포기 간격 관리가 이후 수확량을 좌우합니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">개미취 사진</span><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Aster_Tataricus.JPG?width=700" alt="개미취 꽃과 잎의 모습" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>개미취 · Aster tataricus</b>꽃·잎·줄기 생김새를 먼저 익혀 포장 안의 다른 국화과 식물과 구분합니다.<a href="https://commons.wikimedia.org/wiki/Aster_tataricus" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>자리</b><span>양지~밝은 반그늘</span></div>
+        <div class="cult-fact"><b>토양</b><span>유기물 있고 물 빠짐 양호</span></div>
+        <div class="cult-fact"><b>번식</b><span>봄·가을 포기나누기 또는 종자</span></div>
+      </div>
+      <ol class="cult-flow">
+        <li><div><b>포장 준비</b> · 물 고이는 곳은 피하고 두둑과 배수로를 먼저 만듭니다. 퇴비·비료량은 토양검정 후 결정합니다.</div></li>
+        <li><div><b>심기</b> · 분주묘의 눈과 뿌리가 마르지 않게 심고 활착 때까지 흙이 마르지 않도록 관수합니다.</div></li>
+        <li><div><b>생육 관리</b> · 어린 시기 잡초 경쟁을 막고, 장마 전 포기 사이를 정리해 잎이 오래 젖지 않게 합니다.</div></li>
+        <li><div><b>수확</b> · 꽃대가 오르기 전 연한 새순을 수확하고, 한꺼번에 지나치게 베지 않아 뿌리에 잎을 남깁니다.</div></li>
+      </ol>
+      <div class="cult-months">
+        <div class="cult-month"><b>3~4월</b><span>분주·정식<br>배수로 점검</span></div>
+        <div class="cult-month"><b>4~6월</b><span>연한 순 수확<br>잡초 제거</span></div>
+        <div class="cult-month"><b>7~8월</b><span>장마 배수<br>통풍 확보</span></div>
+        <div class="cult-month"><b>9~11월</b><span>종자·분주 준비<br>고사 잔재 정리</span></div>
+      </div>
+      <div class="cult-alert"><b>수확 기준</b> · 정확한 길이보다 잎과 줄기의 연함을 기준으로 합니다. 오래된 줄기는 질겨지고 다음 순 발생도 늦어질 수 있습니다.</div>
+      <div class="cult-source">현장 적용 전 포장별 토양검정 권장 · <a href="https://soil.rda.go.kr/" target="_blank" rel="noopener">농촌진흥청 흙토람</a></div>
+    </article>
+
+    <article class="manual-page" data-page="06" data-label="수국 재배기술">
+      <div class="manual-running-head"><span>작목별 재배기술</span><span>수국</span></div>
+      <div class="cult-kicker">HYDRANGEA · 02</div>
+      <h2 class="cult-title">수국 재배기술</h2>
+      <p class="cult-lead">수국은 물을 좋아하지만 뿌리가 잠기는 과습에는 약합니다. 꽃이 안 피는 가장 흔한 원인은 품종과 맞지 않는 전정입니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">수국 사진</span><img loading="lazy" src="https://files.ibot.cas.cz/cevs/images/taxa/large/Hydrangea_macrophylla3.jpg" alt="큰잎수국의 꽃과 잎" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>수국 · Hydrangea macrophylla</b>품종마다 꽃눈이 생기는 가지가 다르므로 꽃·잎 사진과 함께 품종표를 보관합니다.<a href="https://pladias.cz/en/taxon/overview/Hydrangea%20macrophylla" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>빛</b><span>오전 햇빛·오후 그늘</span></div>
+        <div class="cult-fact"><b>물</b><span>고르게 촉촉하되 배수</span></div>
+        <div class="cult-fact"><b>멀칭</b><span>수분·뿌리온도 유지</span></div>
+      </div>
+      <div class="cult-grid">
+        <div class="cult-box"><h3>심기와 물관리</h3><ul><li>덥고 건조한 한낮을 피해 심기</li><li>뿌리분 너비보다 넓게 파고 깊이는 기존 높이 유지</li><li>겉흙만 보지 말고 손가락 깊이의 수분 확인</li><li>낮에 처져도 밤에 회복하면 고온 스트레스일 수 있음</li></ul></div>
+        <div class="cult-box"><h3>비료와 꽃색</h3><ul><li>봄에 완효성 균형비료를 소량</li><li>질소 과다는 잎만 무성하고 꽃 감소</li><li>큰잎수국은 산성 쪽에서 청색, 높은 pH에서 분홍색 경향</li><li>흰꽃 품종은 pH로 색이 바뀌지 않음</li></ul></div>
+        <div class="cult-box"><h3>묵은가지 개화형</h3><p>큰잎수국·산수국은 전년도 가지에 꽃눈이 생기는 경우가 많습니다. 꽃이 진 직후 필요한 만큼만 자르고 늦가을 강전정은 피합니다.</p></div>
+        <div class="cult-box"><h3>새가지 개화형</h3><p>나무수국·미국수국은 그해 자란 가지에 꽃이 핍니다. 휴면기 말~이른 봄에 죽은 가지와 약한 가지를 정리합니다.</p></div>
+      </div>
+      <div class="cult-alert"><b>전정 전 확인</b> · 품종표가 없으면 첫해에는 죽은 가지만 제거하고 개화 위치를 관찰한 뒤 전정형을 정합니다.</div>
+      <div class="cult-source">자료: <a href="https://extension.umn.edu/trees-and-shrubs/pruning-hydrangeas" target="_blank" rel="noopener">UMN 수국 전정</a> · <a href="https://extension.umd.edu/resource/hydrangea-identify-and-manage-problems" target="_blank" rel="noopener">UMD 수국 관리</a></div>
+    </article>
+
+    <article class="manual-page" data-page="07" data-label="바위솔 재배기술">
+      <div class="manual-running-head"><span>작목별 재배기술</span><span>바위솔</span></div>
+      <div class="cult-kicker">OROSTACHYS · 03</div>
+      <h2 class="cult-title">바위솔 재배기술</h2>
+      <p class="cult-lead">바위솔은 물 부족보다 물이 오래 고이는 피해가 더 큽니다. 흙·화분·관수 모두 ‘빨리 마르는 구조’를 기준으로 잡습니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">바위솔 사진</span><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Orostachys%20japonica%20(rosette%20s4).jpg?width=700" alt="로제트 형태로 자라는 바위솔" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>바위솔 · Orostachys japonica</b>잎이 빽빽한 로제트 중심과 밑동을 보며 건조 주름과 투명한 과습 무름을 구분합니다.<a href="https://commons.wikimedia.org/wiki/File:Orostachys_japonica_(rosette_s4).jpg" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>빛</b><span>밝은 햇빛, 급격한 강광은 순화</span></div>
+        <div class="cult-fact"><b>흙</b><span>유기질 1 : 굵은 무기질 2 참고</span></div>
+        <div class="cult-fact"><b>물</b><span>흠뻑 준 뒤 완전히 말리기</span></div>
+      </div>
+      <ol class="cult-flow">
+        <li><div><b>용기·노지 자리</b> · 반드시 배수구를 확보하고 장맛비가 직접 오래 닿는 자리와 낮은 웅덩이를 피합니다.</div></li>
+        <li><div><b>관수</b> · 날짜를 정해 주지 말고 흙 속까지 마른 뒤 오전에 충분히 줍니다. 받침 물은 바로 버립니다.</div></li>
+        <li><div><b>번식</b> · 자구가 뿌리를 내리기 시작하면 모주에서 분리해 마른 상처를 확인한 뒤 배수 좋은 흙에 심습니다.</div></li>
+        <li><div><b>계절 관리</b> · 봄·가을에는 햇빛과 통풍을 확보하고, 장마와 한겨울에는 관수 횟수를 크게 줄입니다.</div></li>
+      </ol>
+      <div class="cult-grid" style="margin-top:10px">
+        <div class="cult-box"><h3>과습 신호</h3><p>잎이 누렇게 투명해지고 줄기·생장점이 물러집니다. 즉시 물을 끊고 썩은 부위를 건전부와 분리합니다.</p></div>
+        <div class="cult-box"><h3>건조 신호</h3><p>아랫잎이 얇아지고 주름지며 마릅니다. 뿌리가 살아 있다면 한 번에 충분히 관수한 뒤 다시 말립니다.</p></div>
+      </div>
+      <div class="cult-alert"><b>자구 확보</b> · 꽃이 핀 중심 포기가 쇠퇴하는 유형이 있으므로 개화 전에 자구를 별도로 키워 두면 안전합니다.</div>
+      <div class="cult-source">자료: <a href="https://yardandgarden.extension.iastate.edu/how-to/growing-succulents-indoors" target="_blank" rel="noopener">Iowa State 다육식물 관리</a> · <a href="https://yardandgarden.extension.iastate.edu/how-to/how-propagate-succulents" target="_blank" rel="noopener">번식 안내</a></div>
+    </article>
+
+    <article class="manual-page" data-page="08" data-label="과실수 공통 재배기술">
+      <div class="manual-running-head"><span>작목별 재배기술</span><span>과실수 공통</span></div>
+      <div class="cult-kicker">FRUIT TREE · 04</div>
+      <h2 class="cult-title">과실수 공통 관리</h2>
+      <p class="cult-lead">자두·배·사과·포포 모두 햇빛과 배수가 기본입니다. 심기 전 수분수와 나무 사이 거리를 먼저 결정해야 다시 심는 일을 줄일 수 있습니다.</p>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>자리</b><span>하루 햇빛 충분·찬 공기 정체 회피</span></div>
+        <div class="cult-fact"><b>토양</b><span>깊고 배수 양호·심기 전 검정</span></div>
+        <div class="cult-fact"><b>수분수</b><span>품종별 자가결실 여부 확인</span></div>
+      </div>
+      <ol class="cult-flow">
+        <li><div><b>묘목 선택</b> · 품종·대목·수분수·바이러스 무병묘 여부를 기록하고 뿌리 마름과 상처를 확인합니다.</div></li>
+        <li><div><b>심기</b> · 접목부는 땅에 묻지 않고, 뿌리를 펴 심은 뒤 충분히 물을 주고 지주로 흔들림을 막습니다.</div></li>
+        <li><div><b>어린나무</b> · 첫 2년은 결실보다 뿌리와 골격 만들기를 우선하고, 마른 기간에는 깊게 관수합니다.</div></li>
+        <li><div><b>결실나무</b> · 전정→수분→적과→병해충 예찰→수확→낙엽·병든 과실 정리 순서로 반복합니다.</div></li>
+      </ol>
+      <div class="cult-check" style="margin-top:10px">
+        <div><b>겨울</b>전정·도구 소독·동해 확인</div><div><b>개화기</b>저온·수분수·벌 활동 확인</div>
+        <div><b>비대기</b>적과·가지 지지·관수</div><div><b>장마</b>배수·병든 잎과 과실 제거</div>
+        <div><b>수확기</b>품종별 착색·향·경도 확인</div><div><b>수확 후</b>수세 회복·낙엽과 잔과 정리</div>
+      </div>
+      <div class="cult-alert"><b>비료는 나무 나이만으로 정하지 않습니다.</b> 토양검정과 새가지 길이·잎색·착과량을 함께 보고 과다 질소를 피합니다.</div>
+      <div class="cult-source">자료: <a href="https://www.nongsaro.go.kr/portal/ps/psz/psza/contentMain.ps?cntntsNo=10012&amp;menuId=PS00654&amp;tabMenuNo=PS00411" target="_blank" rel="noopener">농촌진흥청 과수 재배기술</a></div>
+    </article>
+
+    <article class="manual-page" data-page="09" data-label="자두 오얏 재배기술">
+      <div class="manual-running-head"><span>작목별 재배기술</span><span>자두(오얏)</span></div>
+      <div class="cult-kicker">PLUM · 05</div>
+      <h2 class="cult-title">자두(오얏) 재배기술</h2>
+      <p class="cult-lead">‘오야’는 오얏·자두나무 기준으로 정리했습니다. 품종마다 수분 능력이 달라 묘목 라벨 확인이 첫 작업입니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">자두 사진</span><img loading="lazy" src="https://s3.amazonaws.com/eit-planttoolbox-prod/media/images/Prunus_salicina_frui_mbDNZrJ7D1qT.jpeg" alt="나무에 열린 자두 열매" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>자두(오얏) · Prunus salicina</b>열매 모양만 보지 말고 묘목 라벨의 품종명·대목·수분수 정보를 함께 기록합니다.<a href="https://plants.ces.ncsu.edu/plants/prunus-salicina/" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>수분</b><span>개화가 겹치는 호환 품종 확인</span></div>
+        <div class="cult-fact"><b>전정</b><span>햇빛 드는 낮은 수관 유지</span></div>
+        <div class="cult-fact"><b>수확</b><span>품종별 착색·향·과육 경도</span></div>
+      </div>
+      <ol class="cult-flow">
+        <li><div><b>휴면기</b> · 안으로 향한 가지, 교차지, 병든 가지를 우선 제거하고 굵은 절단면은 보호합니다.</div></li>
+        <li><div><b>개화기</b> · 수분수의 개화가 겹치는지 확인합니다. 서리 예보에는 찬 공기가 고이는 낮은 곳을 집중 점검합니다.</div></li>
+        <li><div><b>착과기</b> · 열매가 닿지 않게 솎고 약한 가지의 과실을 줄여 가지 부러짐과 소과를 예방합니다.</div></li>
+        <li><div><b>비대·수확기</b> · 급격한 건조 뒤 과다 관수를 피하고, 병든·갈라진 과실은 바로 제거합니다.</div></li>
+      </ol>
+      <div class="cult-months">
+        <div class="cult-month"><b>1~2월</b><span>전정<br>수형 정리</span></div>
+        <div class="cult-month"><b>3~4월</b><span>개화·수분<br>저온 점검</span></div>
+        <div class="cult-month"><b>5~6월</b><span>열매솎기<br>가지 지지</span></div>
+        <div class="cult-month"><b>6~9월</b><span>품종별 수확<br>가을거름 판단</span></div>
+      </div>
+      <div class="cult-alert"><b>주요 예찰</b> · 주머니병, 세균구멍병, 잿빛무늬병과 순나방류를 개화 전부터 확인합니다.</div>
+      <div class="cult-source">자료: <a href="https://nongsaro.go.kr/portal/farmTechMain.ps?menuId=PS65291&amp;stdPrdlstCode=FT020608" target="_blank" rel="noopener">농촌진흥청 자두 작목정보</a></div>
+    </article>
+
+    <article class="manual-page" data-page="10" data-label="배 재배기술">
+      <div class="manual-running-head"><span>작목별 재배기술</span><span>배</span></div>
+      <div class="cult-kicker">PEAR · 06</div>
+      <h2 class="cult-title">배 재배기술</h2>
+      <p class="cult-lead">배는 꽃 피는 기간이 짧아 수분 준비가 중요하고, 결실 뒤에는 열매 수를 일찍 조절해야 크기와 나무 힘을 함께 지킬 수 있습니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">배 사진</span><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Pyrus%20pyrifolia.jpg?width=700" alt="나무에 열린 동양배 열매" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>배 · Pyrus pyrifolia</b>결실 상태와 가지 하중을 함께 살피고, 병반이 있는 과실은 정상 과실과 비교해 기록합니다.<a href="https://commons.wikimedia.org/wiki/File:Pyrus_pyrifolia.jpg" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>수분</b><span>호환 품종 꽃가루·개화 겹침</span></div>
+        <div class="cult-fact"><b>적과</b><span>건전한 열매를 남겨 일찍 실시</span></div>
+        <div class="cult-fact"><b>수형</b><span>가지 유인으로 햇빛·통풍 확보</span></div>
+      </div>
+      <ol class="cult-flow">
+        <li><div><b>전정·유인</b> · 강한 직립지는 솎고 결과지가 겹치지 않게 유인하여 수관 안쪽까지 햇빛을 넣습니다.</div></li>
+        <li><div><b>개화·수분</b> · 꽃가루 준비와 개화 시기 저온을 확인합니다. 벌 활동이 적으면 인공수분을 검토합니다.</div></li>
+        <li><div><b>꽃·열매솎기</b> · 병든 꽃과 기형과를 먼저 제거하고, 과총끼리 간격을 두어 건전한 과실을 남깁니다.</div></li>
+        <li><div><b>비대·수확</b> · 고온기 햇볕데임과 열과, 가지 처짐을 확인하고 품종 고유의 성숙기에 나누어 수확합니다.</div></li>
+      </ol>
+      <div class="cult-grid" style="margin-top:10px">
+        <div class="cult-box"><h3>비 온 뒤</h3><p>검은별무늬병·붉은별무늬병 증상을 잎과 어린 과실에서 확인하고, 젖은 상태에서 나무 사이 작업을 줄입니다.</p></div>
+        <div class="cult-box"><h3>수확 뒤</h3><p>나무에 남은 병든 과실과 낙엽을 정리하고, 과다 결실했던 나무는 가지와 수세 회복을 기록합니다.</p></div>
+      </div>
+      <div class="cult-alert danger"><b>과수화상병</b> · 잎·가지 끝이 불에 탄 듯 검어지고 굽으면 만지거나 옮기지 말고 즉시 농업기술센터 또는 1833-8572로 신고합니다.</div>
+      <div class="cult-source">자료: <a href="https://www.nongsaro.go.kr/portal/farmTechMain.ps?menuId=PS65291&amp;stdPrdlstCode=FT010602" target="_blank" rel="noopener">농촌진흥청 배 작목정보</a></div>
+    </article>
+
+    <article class="manual-page" data-page="11" data-label="사과 재배기술">
+      <div class="manual-running-head"><span>작목별 재배기술</span><span>사과</span></div>
+      <div class="cult-kicker">APPLE · 07</div>
+      <h2 class="cult-title">사과 재배기술</h2>
+      <p class="cult-lead">사과는 수관 안쪽까지 햇빛이 들어가야 꽃눈과 착색이 좋아집니다. 어린나무는 결실보다 주간과 가지 각도 만들기가 우선입니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">사과 사진</span><img loading="lazy" src="https://s3.wp.wsu.edu/uploads/sites/1996/2011/09/apples.jpg" alt="나무에 열린 사과 열매" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>사과 · Malus domestica</b>수관 안쪽과 바깥쪽의 착색·잎 상태를 함께 비교하면 햇빛과 가지 밀도를 판단하기 쉽습니다.<a href="https://treefruit.wsu.edu/" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>수분</b><span>개화 겹치는 다른 품종 필요</span></div>
+        <div class="cult-fact"><b>수형</b><span>주간 확보·경쟁지 제거·유인</span></div>
+        <div class="cult-fact"><b>적과</b><span>일찍, 나무 힘에 맞게</span></div>
+      </div>
+      <ol class="cult-flow">
+        <li><div><b>휴면기 전정</b> · 중앙의 경쟁지와 교차·하향·병든 가지를 제거하고, 한 번에 지나친 강전정은 피합니다.</div></li>
+        <li><div><b>개화기</b> · 수분수와 벌 활동을 확인하고 늦서리 예보 때 저지대·어린나무를 우선 보호합니다.</div></li>
+        <li><div><b>적과·유인</b> · 중심과 중 건전한 열매를 남기고, 가지가 찢어지지 않게 하중을 분산합니다.</div></li>
+        <li><div><b>비대·착색</b> · 탄저병·갈색무늬병을 강우 전후 예찰하고, 과실이 햇볕에 갑자기 노출되지 않게 잎 정리를 나누어 합니다.</div></li>
+      </ol>
+      <div class="cult-months">
+        <div class="cult-month"><b>1~3월</b><span>전정·묘목 심기<br>화상병 궤양 확인</span></div>
+        <div class="cult-month"><b>4~5월</b><span>수분·적화<br>열매솎기 시작</span></div>
+        <div class="cult-month"><b>6~8월</b><span>장마 병해 예찰<br>가지 지지</span></div>
+        <div class="cult-month"><b>8~11월</b><span>품종별 수확<br>낙엽·잔과 정리</span></div>
+      </div>
+      <div class="cult-alert danger"><b>화상병 의심 가지는 직접 자르지 않습니다.</b> 신고 후 조사 지시에 따라 처리하고 전정도구와 작업 동선을 구분합니다.</div>
+      <div class="cult-source">자료: <a href="https://nongsaro.go.kr/portal/farmTechMain.ps?menuId=PS65291&amp;stdPrdlstCode=FT010601" target="_blank" rel="noopener">농촌진흥청 사과 작목정보</a></div>
+    </article>
+
+    <article class="manual-page" data-page="12" data-label="포포나무 재배기술">
+      <div class="manual-running-head"><span>작목별 재배기술</span><span>포포나무</span></div>
+      <div class="cult-kicker">PAWPAW · 08</div>
+      <h2 class="cult-title">포포나무 재배기술</h2>
+      <p class="cult-lead">포포는 어린나무와 성목의 빛 요구가 다릅니다. 활착기에는 차광과 수분을 지키고, 결실기에는 햇빛과 다른 계통의 꽃가루가 필요합니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">포포 사진</span><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Wild%20pawpaw%20patch%20with%20fruit%20in%20Michigan.jpg?width=700" alt="포포나무의 잎과 열매" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>포포나무 · Asimina triloba</b>큰 잎과 송이로 달리는 열매를 확인하고, 같은 나무에서 나온 묘목인지도 별도로 기록합니다.<a href="https://commons.wikimedia.org/wiki/File:Wild_pawpaw_patch_with_fruit_in_Michigan.jpg" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>토양</b><span>깊고 비옥·배수 양호, pH 5.5~7</span></div>
+        <div class="cult-fact"><b>수분</b><span>서로 다른 품종·실생 2주 이상</span></div>
+        <div class="cult-fact"><b>빛</b><span>1~2년 차광, 성목은 햇빛</span></div>
+      </div>
+      <ol class="cult-flow">
+        <li><div><b>묘목 심기</b> · 긴 직근이 꺾이거나 마르지 않게 뿌리분을 보존하고, 바람이 덜한 배수 좋은 곳에 심습니다.</div></li>
+        <li><div><b>첫 2년</b> · 한낮 강광을 차광하고 토양 수분을 고르게 유지합니다. 물 고임과 뿌리 주변 경운은 피합니다.</div></li>
+        <li><div><b>수분</b> · 같은 클론 두 그루가 아니라 유전적으로 다른 나무를 함께 심습니다. 결실이 적으면 붓으로 교차수분합니다.</div></li>
+        <li><div><b>착과·수확</b> · 과다 착과는 솎아 가지 부러짐을 막고, 과실이 향을 내며 부드러워지기 시작할 때 자주 나누어 수확합니다.</div></li>
+      </ol>
+      <div class="cult-grid" style="margin-top:10px">
+        <div class="cult-box"><h3>암꽃 단계</h3><p>꽃 중심이 초록색·윤기 있고 끈끈할 때 다른 나무의 성숙한 꽃가루를 작은 붓으로 묻힙니다.</p></div>
+        <div class="cult-box"><h3>저장 주의</h3><p>완숙 과실은 쉽게 무르고 저장성이 짧습니다. 수확일과 과육 경도를 기록해 이용·출하 순서를 정합니다.</p></div>
+      </div>
+      <div class="cult-alert"><b>종자 번식</b> · 씨는 마르거나 얼면 발아력이 크게 떨어질 수 있습니다. 습윤 저온처리 후 깊은 용기에서 직근을 보호합니다.</div>
+      <div class="cult-source">자료: <a href="https://www.kysu.edu/academics/college-ahnr/school-of-anr/pawpaw/pawpaw-planting-guide.php" target="_blank" rel="noopener">Kentucky State University 포포 재배 안내</a></div>
+    </article>
+
+    <article class="manual-page" data-page="13" data-label="작목별 연간 작업표">
+      <div class="manual-running-head"><span>작목별 재배기술</span><span>연간 작업표</span></div>
+      <div class="cult-kicker">ANNUAL WORK · 09</div>
+      <h2 class="cult-title">작목별 연간 작업표</h2>
+      <p class="cult-lead">문경의 실제 개화·수확일은 해마다 달라집니다. 달력 날짜보다 눈트기·개화·착과·장마 같은 생육 신호를 우선합니다.</p>
+      <div class="cult-check">
+        <div><b>1~2월</b>과실수 전정·궤양 확인<br>도구 세척·소독</div><div><b>3월</b>묘목 심기·개미취 분주<br>수국 죽은 가지 확인</div>
+        <div><b>4월</b>과실수 개화·수분<br>늦서리 대비</div><div><b>5월</b>꽃·열매솎기<br>개미취 연한 순 수확</div>
+        <div><b>6월</b>과실 가지 지지<br>수국·바위솔 과습 점검</div><div><b>7~8월</b>장마 배수·병해 예찰<br>자두 품종별 수확</div>
+        <div><b>9~10월</b>배·사과·포포 수확<br>수확량·품질 기록</div><div><b>11~12월</b>낙엽·잔과·병든 부위 정리<br>토양검정 계획</div>
+      </div>
+      <div class="cult-months">
+        <div class="cult-month"><b>매주</b><span>새잎·잎 뒷면<br>배수구 확인</span></div>
+        <div class="cult-month"><b>비 오기 전</b><span>배수로·지주<br>병든 잔재 정리</span></div>
+        <div class="cult-month"><b>비 온 뒤</b><span>반점·무름<br>낙과 확인</span></div>
+        <div class="cult-month"><b>수확 뒤</b><span>수량·크기·당도<br>작업시간 기록</span></div>
+      </div>
+      <div class="cult-alert"><b>작업일지 연계</b> · ‘예정일’과 ‘실제 작업일’을 따로 남기면 다음 해 문희농원 고유의 재배력이 만들어집니다.</div>
+      <div class="cult-source">기준 지역: 문경시 노지 재배 · 실제 품종과 미세기후에 따라 조정</div>
+    </article>
+
+    <article class="manual-page" data-page="14" data-label="재배기술 현장 체크표">
+      <div class="manual-running-head"><span>작목별 재배기술</span><span>현장 체크표</span></div>
+      <div class="cult-kicker">FIELD CHECK · 10</div>
+      <h2 class="cult-title">재배기술 현장 체크표</h2>
+      <p class="cult-lead">같은 작목도 품종·나무 나이·필지에 따라 기준이 달라집니다. 아래 항목을 기록한 뒤 다음 해 시기와 양을 조정합니다.</p>
+      <div class="cult-check">
+        <div><b>품종·묘목</b>품종명, 대목, 구입처, 심은 날</div><div><b>필지</b>햇빛 시간, 경사, 배수, 바람</div>
+        <div><b>토양</b>검정일, pH, EC, 유기물</div><div><b>물</b>관수일, 양, 강우 뒤 물 고임</div>
+        <div><b>생육</b>눈트기, 개화, 새가지 길이, 잎색</div><div><b>결실</b>수분수, 착과량, 적과일</div>
+        <div><b>병해충</b>첫 발견일, 부위, 사진, 조치</div><div><b>수확</b>첫·끝 수확일, 수량, 품질, 손실</div>
+      </div>
+      <div class="cult-grid" style="margin-top:11px">
+        <div class="cult-box"><h3>비료 결정 순서</h3><p>토양검정 → 작년 생육 → 착과량 → 제품 등록량 확인 → 소량 분시 → 반응 기록</p></div>
+        <div class="cult-box"><h3>농약 결정 순서</h3><p>증상 촬영 → 병해충 확인 → 작물 등록 확인 → 희석·횟수 확인 → 사용기록</p></div>
+      </div>
+      <div class="cult-alert danger"><b>고정 수치보다 현장 기록이 우선입니다.</b> 이 책의 월 표시는 작업 창구이며, 기상과 생육이 다르면 실제 나무 상태에 맞춰 조정합니다.</div>
+      <div class="source-index"><b>주요 자료</b><br><a href="https://www.nongsaro.go.kr/portal/ps/psz/psza/contentMain.ps?cntntsNo=10012&amp;menuId=PS00654&amp;tabMenuNo=PS00411" target="_blank" rel="noopener">농촌진흥청 과수</a> · <a href="https://soil.rda.go.kr/" target="_blank" rel="noopener">흙토람</a> · <a href="https://extension.umn.edu/trees-and-shrubs/pruning-hydrangeas" target="_blank" rel="noopener">수국 전정</a> · <a href="https://yardandgarden.extension.iastate.edu/how-to/growing-succulents-indoors" target="_blank" rel="noopener">다육 관리</a> · <a href="https://www.kysu.edu/academics/college-ahnr/school-of-anr/pawpaw/pawpaw-planting-guide.php" target="_blank" rel="noopener">포포 재배</a></div>
+      <div class="manual-colophon">MUNHUI FARM · CULTIVATION RECORD</div>
+    </article>
+
+    <article class="manual-page" data-page="15" data-label="PART 2 토양관리">
+      <div class="manual-running-head"><span>문희농원 농업 실무 매뉴얼</span><span>PART 02</span></div>
+      <div class="part-number">PART 2.</div><h2 class="part-title">토양관리</h2>
+      <p class="part-topics">(현장 간이진단 · 증상사진 · pH · EC · 배수 · 토양검정)</p>
+      <p class="part-intro">검사할 시간이 없을 때 흙·뿌리·잎·생장량을 먼저 확인하고, 필요한 경우에만 간이측정과 정밀검정으로 이어가는 장입니다.</p>
+      <p class="chapter-label">이 장에서 다룰 내용</p><ol class="chapter-index"><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(16)"><span>검사 없이 하는 10분 현장진단</span><span class="chapter-jump-page">16쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(17)"><span>뿌리·잎 대표 증상사진</span><span class="chapter-jump-page">17쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(19)"><span>간이 pH와 토양검정</span><span class="chapter-jump-page">19쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(21)"><span>EC·유기물·배수·다짐</span><span class="chapter-jump-page">21쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(24)"><span>작목별 기준과 기록</span><span class="chapter-jump-page">24쪽 ›</span></button></li></ol>
+      <div class="manual-colophon">MUNHUI FARM · SOIL MANAGEMENT</div>
+    </article>
+
+    <article class="manual-page" data-page="16" data-label="10분 현장 간이진단">
+      <div class="manual-running-head"><span>토양관리</span><span>첫 번째 진단</span></div>
+      <div class="cult-kicker">FIELD SOIL CHECK · 01</div>
+      <h2 class="cult-title">검사 없이 하는<br>10분 현장 간이진단</h2>
+      <p class="cult-lead">육안으로 비료 성분량을 확정할 수는 없지만, 과습·가뭄·뿌리 손상·비료 과다를 먼저 걸러내면 잘못된 추비를 크게 줄일 수 있습니다.</p>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>① 분포</b><span>전체·저지대·일부 포기</span></div>
+        <div class="cult-fact"><b>② 뿌리</b><span>색·단단함·냄새</span></div>
+        <div class="cult-fact"><b>③ 잎</b><span>새잎·아랫잎·생장량</span></div>
+      </div>
+      <ol class="cult-flow">
+        <li><div><b>퍼진 모양</b> · 포장 전체가 서서히 옅으면 양분 후보, 낮은 곳·한 줄·일부 포기만 나쁘면 물·뿌리·병해 후보입니다.</div></li>
+        <li><div><b>흙 한 줌</b> · 뿌리 깊이 흙을 쥐어 봅니다. 물이 배어나오면 과습, 가루처럼 흩어지면 건조, 공 모양 뒤 손가락에 쉽게 부서지면 적정에 가깝습니다.</div></li>
+        <li><div><b>뿌리 확인</b> · 이상 포기 옆 10~15㎝를 파서 흰색·크림색의 단단한 새뿌리가 있는지 봅니다. 갈색·검은색·물렁함·쉰 냄새는 중단 신호입니다.</div></li>
+        <li><div><b>잎의 나이</b> · 아랫잎 전체 황화는 질소 후보, 새잎의 잎맥 사이 황화는 철·망간 또는 높은 pH 후보입니다.</div></li>
+        <li><div><b>지난해와 비교</b> · 같은 두둑·같은 가지에서 새순 길이와 잎 크기가 계속 줄었는지 사진과 자로 확인합니다.</div></li>
+      </ol>
+      <div class="cult-grid" style="margin-top:10px">
+        <div class="cult-box"><h3>소량 시험 가능</h3><p>전체가 비슷하게 옅고 생장이 줄었으며, 흙 수분이 정상이고 흰 새뿌리가 살아 있을 때.</p></div>
+        <div class="cult-box"><h3>비료 중단</h3><p>저지대만 황화, 갈색·물렁한 뿌리, 비료 뒤 급격한 끝마름, 진녹색 웃자람.</p></div>
+      </div>
+      <div class="cult-alert danger"><b>세 가지가 함께 맞을 때만 시험합니다.</b> ‘넓고 일정한 증상 + 건강한 뿌리 + 실제 생장 감소’가 확인되면 작은 구역에 제품 표시량의 최소 범위로 먼저 비교합니다.</div>
+      <div class="cult-source">자료: <a href="https://soil.rda.go.kr/nutri/nutriObstList.do" target="_blank" rel="noopener">농촌진흥청 원소별 영양진단</a> · <a href="https://extension.colostate.edu/resource/healthy-roots-and-healthy-trees/" target="_blank" rel="noopener">Colorado State University 뿌리 현장진단</a></div>
+    </article>
+
+    <article class="manual-page" data-page="17" data-label="사진사례 뿌리·과습 진단">
+      <div class="manual-running-head"><span>토양관리</span><span>현장사진 ①</span></div>
+      <div class="atlas-kicker">ROOT &amp; WATER · 02</div>
+      <h2 class="atlas-title">노란 잎보다 먼저<br>뿌리를 확인합니다</h2>
+      <p class="atlas-lead">뿌리가 죽으면 물과 양분을 흡수하지 못해 비료 부족처럼 잎이 옅어집니다. 이때 추비하면 염류와 뿌리 손상이 더해질 수 있습니다.</p>
+      <div class="atlas-grid">
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://extension.colostate.edu/wp-content/uploads/2025/06/EXT-Hort-Healthy-Roots-Trees-fig6.jpg?w=800" alt="건강한 흰 세근과 죽은 갈색 세근 비교 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: Colorado State University Extension</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">정상 ↔ 손상</span><h3>뿌리 색 비교</h3><p>건강한 흡수뿌리는 흰색~연한색입니다. 표피 안이 갈색이면 죽은 뿌리일 가능성이 큽니다.</p><a class="atlas-source" href="https://extension.colostate.edu/resource/healthy-roots-and-healthy-trees/" target="_blank" rel="noopener">사진 원문</a></div>
+        </div>
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://ipm-cahnr.media.uconn.edu/wp-content/uploads/sites/3216/2026/07/294.png" alt="피시움 뿌리썩음으로 갈변하고 표피가 벗겨진 뿌리 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: J. Allen / UConn Extension</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">과습·뿌리썩음 후보</span><h3>갈변·물렁한 뿌리</h3><p>갈색 뿌리의 겉껍질이 쉽게 벗겨지고 가는 심만 남으면 비료보다 배수와 병해 진단이 먼저입니다.</p><a class="atlas-source" href="https://ipm.cahnr.uconn.edu/root-rot-diseases-of-greenhouse-crops/" target="_blank" rel="noopener">사진 원문</a></div>
+        </div>
+      </div>
+      <div class="symptom-route" style="margin-top:11px">
+        <div class="symptom-row"><div class="symptom-key">저지대 황화</div><div class="symptom-desc">비 온 뒤 낮은 곳만 누렇고 흙이 오래 젖으면 배수로·물길부터 정비합니다.</div></div>
+        <div class="symptom-row"><div class="symptom-key">다짐 확인</div><div class="symptom-desc">촉촉한 흙에 긴 드라이버를 찔러 같은 깊이에서 반복해 막히면 단단한 층을 의심합니다.</div></div>
+      </div>
+      <div class="cult-alert"><b>간이 pH</b> · 같은 구역 5곳의 흙을 섞어 ‘흙 1 : 증류수 5’로 저은 뒤 20~30분 가라앉혀 윗물의 pH를 봅니다. 정상 구역과 이상 구역을 같은 방법으로 비교합니다.</div>
+      <div class="cult-source">공식 토양 pH도 1:5 물 추출법을 사용합니다. 간이값만으로 석회·유황·미량요소 양을 결정하지 않습니다.</div>
+    </article>
+
+    <article class="manual-page" data-page="18" data-label="사진사례 잎·비료 진단">
+      <div class="manual-running-head"><span>토양관리</span><span>현장사진 ②</span></div>
+      <div class="atlas-kicker">LEAF SIGNALS · 03</div>
+      <h2 class="atlas-title">대표적인 잎 신호를<br>나란히 비교합니다</h2>
+      <p class="atlas-lead">사진은 원인을 확정하는 도구가 아니라 후보를 좁히는 도구입니다. 어느 잎부터 시작했는지와 최근 비료·비·관수를 함께 기록합니다.</p>
+      <div class="atlas-grid">
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap" style="height:105px"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://ipm.ucanr.edu/PMG/IMAGES/M/A-CI-MDEF-FO.023.jpg" alt="질소 과다의 진녹색 잎과 질소 부족의 옅은 잎 비교 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: Robert G. Platt / UC IPM</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">질소 과다 ↔ 부족</span><h3>진녹색과 균일한 황화</h3><p>지나친 진녹색·연한 웃자람은 과다, 오래된 잎부터 균일하게 옅고 생장이 짧으면 부족 후보입니다.</p><a class="atlas-source" href="https://ipm.ucanr.edu/PMG/M/A-CI-MDEF-FO.023.html" target="_blank" rel="noopener">사진 원문</a></div>
+        </div>
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap" style="height:105px"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://extension.colostate.edu/wp-content/uploads/2025/10/CMG-GN-Iron-Chlorosis-fig1.png" alt="잎맥은 녹색이고 잎맥 사이가 노란 철 결핍형 황화 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: Colorado State University Extension</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">철 결핍형 황화</span><h3>새잎·녹색 잎맥</h3><p>새잎의 잎맥은 녹색인데 사이가 노랗다면 철·망간, 높은 pH, 과습·다짐을 함께 의심합니다.</p><a class="atlas-source" href="https://extension.colostate.edu/resource/iron-chlorosis-of-woody-plants/" target="_blank" rel="noopener">사진 원문</a></div>
+        </div>
+        <div class="atlas-card" style="grid-column:1/-1;display:grid;grid-template-columns:145px 1fr">
+          <div class="atlas-photo-wrap" style="height:106px"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://www.extension.umd.edu/sites/extension.umd.edu/files/styles/optimized/public/2021-03/hgic_houseplant_fertilizer_damage_from_osmocote_on_poinsettia-David%20Clement-2064-86-slide.jpg?itok=fIBP0v8G" alt="과다 비료로 잎끝과 가장자리가 갈변한 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: David Clement / UMD Extension</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">비료·염류 화상</span><h3>끝과 가장자리부터 갈변</h3><p>비료를 준 뒤 잎끝·가장자리가 갑자기 마르고 시들면 추가 시비를 멈춥니다. 흙 표면의 흰 염류와 마른 뿌리도 확인합니다.</p><a class="atlas-source" href="https://www.extension.umd.edu/resource/excess-fertilizer-or-salt-damage-flowers" target="_blank" rel="noopener">사진 원문</a></div>
+        </div>
+      </div>
+      <div class="cult-alert danger"><b>현장 원칙</b> · 사진 한 장만 보고 철·붕소·마그네슘·석회를 넣지 않습니다. 뿌리가 건강하고 증상 위치가 맞을 때 작은 구역에서만 먼저 비교합니다.</div>
+      <div class="manual-colophon">사진 비교 → 흙 수분 → 뿌리 → 잎 위치 → 소량 시험</div>
+    </article>
+
+    <article class="manual-page" data-page="19" data-label="토양시료 채취법">
+      <div class="manual-running-head"><span>토양관리</span><span>토양검정</span></div>
+      <div class="cult-kicker">SOIL TEST · 02</div>
+      <h2 class="cult-title">토양시료 채취법</h2>
+      <p class="cult-lead">검사 정확도는 분석기계보다 시료 채취에 먼저 달려 있습니다. 한 줌만 가져가지 않고 필지 전체의 평균을 만듭니다.</p>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>채취 수</b><span>보통 필지당 20~30곳</span></div>
+        <div class="cult-fact"><b>시기</b><span>파종·정식·시비 전</span></div>
+        <div class="cult-fact"><b>의뢰</b><span>문경시 농업기술센터</span></div>
+      </div>
+      <ol class="cult-flow">
+        <li><div><b>구역 나누기</b> · 경사·토색·배수·과거 시비가 다른 곳은 같은 필지라도 별도 시료로 구분합니다.</div></li>
+        <li><div><b>지점 고르기</b> · 지그재그로 이동하며 보통 20~30곳을 고릅니다. 퇴비더미·물 고인 곳·길 가장자리는 제외합니다.</div></li>
+        <li><div><b>일정한 깊이</b> · 표면의 풀과 낙엽을 걷고 경작층을 같은 깊이로 채취합니다. 과수원은 수관 아래 뿌리 활동 구역을 택합니다.</div></li>
+        <li><div><b>골고루 섞기</b> · 깨끗한 통에 모두 넣어 잘 섞고 돌·굵은 뿌리를 제거한 뒤 대표 시료를 담습니다.</div></li>
+        <li><div><b>라벨 붙이기</b> · 농장명·필지·작목·채취일·최근 비료와 퇴비 사용일을 적어 함께 제출합니다.</div></li>
+      </ol>
+      <div class="cult-alert"><b>검정 소요시간</b> · 흙토람 안내상 처방서 발급까지 약 15일이 걸릴 수 있으므로 심기 직전이 아니라 미리 의뢰합니다.</div>
+      <div class="cult-source">자료: <a href="https://soil.rda.go.kr/soilact/composition.do" target="_blank" rel="noopener">흙토람 시료 채취 요령</a> · <a href="https://soil.rda.go.kr/sibi/sibiExamPick_pop.do" target="_blank" rel="noopener">토양검정 의뢰 방법</a></div>
+    </article>
+
+    <article class="manual-page" data-page="20" data-label="토양 pH 관리">
+      <div class="manual-running-head"><span>토양관리</span><span>pH</span></div>
+      <div class="cult-kicker">SOIL pH · 03</div>
+      <h2 class="cult-title">pH는 양분의<br>이용 가능성을 바꿉니다</h2>
+      <p class="cult-lead">pH가 낮거나 높으면 흙에 양분이 있어도 뿌리가 쓰기 어렵거나 특정 원소가 과도하게 녹아 장해가 생길 수 있습니다.</p>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>산성 쪽</b><span>칼슘·마그네슘 부족 가능</span></div>
+        <div class="cult-fact"><b>약산성</b><span>많은 밭·과수 작물의 기준 구간</span></div>
+        <div class="cult-fact"><b>알칼리 쪽</b><span>철·망간 이용 저하 가능</span></div>
+      </div>
+      <div class="cult-grid">
+        <div class="cult-box"><h3>낮을 때</h3><ul><li>처방서의 석회소요량을 확인</li><li>한 번에 임의 증량하지 않기</li><li>석회 종류와 중화력 확인</li><li>뿌리 주변에 덩어리로 놓지 않기</li></ul></div>
+        <div class="cult-box"><h3>높을 때</h3><ul><li>석회·재·고칼슘 자재 추가 중지</li><li>관수수와 토양의 pH를 함께 확인</li><li>황 자재는 처방 없이 과량 사용 금지</li><li>철 결핍 유사증상은 먼저 진단</li></ul></div>
+      </div>
+      <div class="cult-check" style="margin-top:10px">
+        <div><b>개미취</b>약산성~중성, 배수 우선</div><div><b>수국</b>큰잎수국만 pH에 따라 꽃색 변화</div>
+        <div><b>바위솔</b>pH보다 빠른 배수와 통기 중요</div><div><b>과실수</b>대체로 약산성 토양에서 안정적</div>
+        <div><b>포포</b>pH 5.5~7 범위의 깊은 토양 참고</div><div><b>최종 기준</b>작목별 처방서의 적정범위 적용</div>
+      </div>
+      <div class="cult-alert"><b>수국 꽃색 주의</b> · 청색·분홍색 변화는 주로 큰잎수국 계열에서 나타나며 흰 꽃 품종에는 같은 방식으로 적용되지 않습니다.</div>
+      <div class="cult-source">자료: <a href="https://soil.rda.go.kr/sibi/sibiExam.do" target="_blank" rel="noopener">흙토람 토양검정</a> · <a href="https://extension.umd.edu/resource/hydrangea-identify-and-manage-problems" target="_blank" rel="noopener">UMD 수국 pH 안내</a></div>
+    </article>
+
+    <article class="manual-page" data-page="21" data-label="토양 EC 관리">
+      <div class="manual-running-head"><span>토양관리</span><span>EC · 염류</span></div>
+      <div class="cult-kicker">SOIL EC · 04</div>
+      <h2 class="cult-title">EC는 토양 속<br>녹아 있는 염류 신호입니다</h2>
+      <p class="cult-lead">EC가 높으면 뿌리 주변 농도가 높아져 물과 양분 흡수가 어려워집니다. 값은 작목·시설 여부·검사법에 따라 다르므로 처방서 기준으로 판단합니다.</p>
+      <div class="cult-grid">
+        <div class="cult-box"><h3>높아지는 원인</h3><ul><li>화학비료·가축분퇴비 반복 과다</li><li>비가 씻어내지 못하는 시설재배</li><li>배수 불량과 잦은 소량 관수</li><li>염류가 있는 관수수 또는 토양</li></ul></div>
+        <div class="cult-box"><h3>현장 증상</h3><ul><li>맑은 날 잎이 처지고 회복이 느림</li><li>뿌리가 짧고 갈색으로 변함</li><li>잎끝 마름·생육 정지</li><li>토양 표면 흰 결정 또는 이끼</li></ul></div>
+      </div>
+      <ol class="cult-flow" style="margin-top:11px">
+        <li><div><b>추가 투입 중지</b> · 원인이 확인될 때까지 비료·퇴비·석회질 자재를 더 넣지 않습니다.</div></li>
+        <li><div><b>배수 확인</b> · 물이 빠질 길이 없는 상태에서 물만 많이 주면 뿌리 과습이 커집니다.</div></li>
+        <li><div><b>처방에 따른 개선</b> · 배수 가능한 포장에서 관수·유기자원·깊이갈이·녹비작물 등을 토양 상태에 맞춰 선택합니다.</div></li>
+        <li><div><b>재검정</b> · 개선 뒤 EC뿐 아니라 질산태질소·유효인산·양이온 균형도 다시 확인합니다.</div></li>
+      </ol>
+      <div class="cult-alert danger"><b>물을 많이 주는 것만으로 해결하지 않습니다.</b> 배수가 나쁘거나 토양병이 있으면 침수와 뿌리썩음을 악화시킬 수 있습니다.</div>
+      <div class="cult-source">자료: <a href="https://www.nongsaro.go.kr/portal/ps/psz/psza/contentNsSub.ps?cntntsNo=200695&amp;menuId=PS00077" target="_blank" rel="noopener">농촌진흥청 염류집적 사례</a></div>
+    </article>
+
+    <article class="manual-page" data-page="22" data-label="유기물과 양분 균형">
+      <div class="manual-running-head"><span>토양관리</span><span>유기물 · 양분</span></div>
+      <div class="cult-kicker">SOIL NUTRIENTS · 05</div>
+      <h2 class="cult-title">유기물도 많으면<br>장해가 될 수 있습니다</h2>
+      <p class="cult-lead">완숙퇴비는 토양 구조에 도움이 되지만, 성분이 있는 비료이기도 합니다. 매년 습관적으로 넣으면 인산·칼륨·염류가 쌓일 수 있습니다.</p>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>OM</b><span>유기물 함량·토양 구조 참고</span></div>
+        <div class="cult-fact"><b>유효인산</b><span>꽃·뿌리에 필요, 과잉 축적 주의</span></div>
+        <div class="cult-fact"><b>K·Ca·Mg</b><span>각 수치보다 상호 균형</span></div>
+      </div>
+      <div class="cult-check">
+        <div><b>유기물 부족</b>완숙 유기물·피복·녹비를 검토</div><div><b>유기물 과다</b>퇴비 투입 중지, EC·인산 재확인</div>
+        <div><b>인산 과다</b>인산 함유 자재를 줄이고 처방 준수</div><div><b>칼륨 과다</b>마그네슘 흡수 방해 가능성 확인</div>
+        <div><b>칼슘 과다</b>pH 상승·미량요소 이용 저하 점검</div><div><b>마그네슘 부족</b>잎 증상만으로 확정하지 말고 분석</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:11px">
+        <li><div><b>제품 라벨</b> · 퇴비의 원료·부숙도·질소·인산·칼륨 함량을 확인합니다.</div></li>
+        <li><div><b>전체 투입량</b> · 화학비료와 퇴비의 양분을 따로 계산하지 말고 한 작기의 총량으로 봅니다.</div></li>
+        <li><div><b>나누어 주기</b> · 이동하기 쉬운 질소·칼륨은 작물 생육과 처방에 따라 분시하고 반응을 기록합니다.</div></li>
+      </ol>
+      <div class="cult-alert"><b>냄새·열이 남은 미숙퇴비 금지</b> · 뿌리 가까이 넣으면 가스·산소 부족·염류 피해가 생길 수 있습니다.</div>
+      <div class="cult-source">자료: <a href="https://soil.rda.go.kr/sibi/cropSibiPrescript.do" target="_blank" rel="noopener">흙토람 작물별 비료처방</a> · <a href="https://nongsaro.go.kr/portal/ps/psz/psza/contentSub.ps?cntntsNo=233626&amp;menuId=PS00077" target="_blank" rel="noopener">유기물 과다 사례</a></div>
+    </article>
+
+    <article class="manual-page" data-page="23" data-label="배수와 토양 다짐">
+      <div class="manual-running-head"><span>토양관리</span><span>물리성 · 배수</span></div>
+      <div class="cult-kicker">SOIL PHYSICAL · 06</div>
+      <h2 class="cult-title">비료보다 먼저<br>뿌리가 숨 쉴 공간</h2>
+      <p class="cult-lead">배수가 나쁘고 흙이 단단하면 산소가 줄어 뿌리가 갈변하고, 양분이 충분해도 잎이 누렇게 되거나 시들 수 있습니다.</p>
+      <div class="cult-grid">
+        <div class="cult-box"><h3>삽으로 확인</h3><ul><li>20~30cm 아래 단단한 층</li><li>회색·푸른색 얼룩과 썩은 냄새</li><li>뿌리가 옆으로만 퍼짐</li><li>물에 젖은 흙이 오래 뭉침</li></ul></div>
+        <div class="cult-box"><h3>비 온 뒤 확인</h3><ul><li>다음 날까지 고인 물</li><li>낮은 곳만 생육 불량</li><li>표면 이끼·조류 반복</li><li>바퀴자국을 따라 물 고임</li></ul></div>
+      </div>
+      <ol class="cult-flow" style="margin-top:11px">
+        <li><div><b>표면 배수</b> · 포장 밖으로 이어지는 배수로를 만들고 막힌 낙엽·토사를 치웁니다.</div></li>
+        <li><div><b>두둑·식재 위치</b> · 개미취·수국과 어린 과실수는 낮은 곳을 피하고 필요한 경우 높여 심습니다.</div></li>
+        <li><div><b>다짐 예방</b> · 젖은 땅에서 차량·관리기 작업을 줄이고 같은 길만 반복 통행합니다.</div></li>
+        <li><div><b>심토 개선</b> · 단단한 층의 깊이와 배수 출구를 확인한 뒤 건조한 시기에 심토파쇄를 검토합니다.</div></li>
+      </ol>
+      <div class="cult-alert danger"><b>뿌리목을 흙으로 덮지 않습니다.</b> 과실수 줄기 주변에 흙·퇴비를 계속 쌓으면 접목부와 뿌리목이 습해져 부패 위험이 커집니다.</div>
+      <div class="cult-source">자료: <a href="https://soil.rda.go.kr/water/soilWater.do" target="_blank" rel="noopener">흙토람 토양물리성 현장진단</a> · <a href="https://nongsaro.go.kr/portal/ps/psb/psbx/cropEbookLst.ps?menuId=PS65290&amp;sStdPrdlstCode=CS04CS43&amp;stdPrdlstCode=CS" target="_blank" rel="noopener">농경지 토양 관리기술</a></div>
+    </article>
+
+    <article class="manual-page" data-page="24" data-label="작목별 토양 기준">
+      <div class="manual-running-head"><span>토양관리</span><span>작목별 기준</span></div>
+      <div class="cult-kicker">CROP SOIL · 07</div>
+      <h2 class="cult-title">문희농원 작목별<br>토양관리 핵심</h2>
+      <p class="cult-lead">아래는 토양을 선택하고 이상을 찾는 우선순위입니다. 실제 석회·퇴비·비료량은 작목별 처방서 수치를 사용합니다.</p>
+      <div class="cult-check">
+        <div><b>개미취</b>유기물 있는 약산성~중성 토양. 다년생 포장이므로 배수로와 잡초 관리가 우선.</div><div><b>수국</b>고르게 촉촉하지만 물이 고이지 않는 토양. 큰잎수국 꽃색은 pH 영향을 받음.</div>
+        <div><b>바위솔</b>유기질보다 굵은 무기질 비율을 높여 빠르게 마르게 함. 화분 배수구 필수.</div><div><b>자두(오얏)</b>장마철 물 고임과 뿌리목 습해를 피함. 과수원 안에서도 낮은 곳 별도 채취.</div>
+        <div><b>배</b>깊고 배수되는 토양과 넓은 뿌리 공간. 수관 아래 여러 곳에서 평균 시료 채취.</div><div><b>사과</b>배수·토심·대목에 맞는 토양 관리. 줄기 가까운 한 곳의 시료만 쓰지 않음.</div>
+        <div><b>포포나무</b>pH 5.5~7의 깊고 비옥한 배수 토양 참고. 직근 주변 경운과 이식 충격 주의.</div><div><b>공통</b>작목이 바뀌면 이전 작물의 비료 이력과 인산·EC 축적을 다시 검사.</div>
+      </div>
+      <div class="cult-alert"><b>한 필지 한 처방이 아닐 수 있습니다.</b> 경사 위·아래, 물 고이는 곳, 퇴비를 많이 준 곳의 생육이 다르면 구역을 나눠 검사합니다.</div>
+      <div class="cult-source">자료: 농촌진흥청 흙토람 · 작목별 재배기술 자료 종합</div>
+    </article>
+
+    <article class="manual-page" data-page="25" data-label="토양관리 연간 점검표">
+      <div class="manual-running-head"><span>토양관리</span><span>연간 기록</span></div>
+      <div class="cult-kicker">SOIL RECORD · 08</div>
+      <h2 class="cult-title">토양관리 연간 점검표</h2>
+      <p class="cult-lead">검정 결과와 실제 투입량을 함께 남겨야 다음 검사에서 좋아진 이유와 나빠진 이유를 찾을 수 있습니다.</p>
+      <div class="cult-months">
+        <div class="cult-month"><b>1~3월</b><span>검정 계획<br>시료 채취·처방</span></div>
+        <div class="cult-month"><b>3~5월</b><span>처방 반영<br>배수로 정비</span></div>
+        <div class="cult-month"><b>6~8월</b><span>장마 물고임<br>뿌리·EC 이상 기록</span></div>
+        <div class="cult-month"><b>9~12월</b><span>수확 후 생육평가<br>다음 검사 구역 선정</span></div>
+      </div>
+      <div class="cult-check">
+        <div><b>시료번호</b>필지-구역-채취일</div><div><b>작목</b>품종·나무 나이·재배기간</div>
+        <div><b>검정값</b>pH·EC·OM·인산·K·Ca·Mg</div><div><b>처방</b>성분량·면적·제품명·환산량</div>
+        <div><b>투입</b>비료·퇴비·석회·유기자원</div><div><b>물리성</b>물고임·다짐층·뿌리 깊이</div>
+        <div><b>생육</b>잎색·새가지·수량·품질</div><div><b>사진</b>채취 위치·배수·뿌리 상태</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:11px">
+        <li><div><b>같은 단위로 기록</b> · kg/10a, kg/필지, 포대 수를 섞지 말고 면적과 함께 적습니다.</div></li>
+        <li><div><b>처방과 실제 분리</b> · 권장량과 실제 준 양을 각각 기록합니다.</div></li>
+        <li><div><b>변경 이유 기록</b> · 비·가뭄·병해·수세 때문에 양을 바꿨다면 이유를 메모합니다.</div></li>
+      </ol>
+      <div class="cult-alert"><b>무료 토양검정 문의</b> · 문경시 농업기술센터에 검정 가능 작목·필요 시료량·접수 시기를 먼저 확인하면 재채취를 줄일 수 있습니다.</div>
+      <div class="source-index"><b>공식 자료</b><br><a href="https://soil.rda.go.kr/sibi/sibiExam.do" target="_blank" rel="noopener">흙토람 토양검정정보</a> · <a href="https://soil.rda.go.kr/sibi/cropSibiPrescript.do" target="_blank" rel="noopener">비료사용처방</a> · <a href="https://soil.rda.go.kr/water/soilWater.do" target="_blank" rel="noopener">토양물리성 현장진단</a> · 농업기술상담 1544-8572</div>
+      <div class="manual-colophon">MUNHUI FARM · SOIL RECORD</div>
+    </article>
+
+    <article class="manual-page" data-page="26" data-label="PART 3 비료관리">
+      <div class="manual-running-head"><span>문희농원 농업 실무 매뉴얼</span><span>PART 03</span></div>
+      <div class="part-number">PART 3.</div><h2 class="part-title">비료관리</h2>
+      <p class="part-topics">(토양검정 · 시비시기 · 부족/과다 신호 · 작목별 관리)</p>
+      <p class="part-intro">농사를 처음 시작할 때도 “지금 비료를 줘도 되는지, 준다면 어떤 종류를 고를지” 판단할 수 있도록 생육 단계와 현장 신호를 순서대로 확인하는 장입니다.</p>
+      <p class="chapter-label">이 장에서 다룰 내용</p><ol class="chapter-index"><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(27)"><span>비료 전 토양·뿌리 점검</span><span class="chapter-jump-page">27쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(28)"><span>영양 부족·과다 사진 비교</span><span class="chapter-jump-page">28쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(31)"><span>개미취·수국·바위솔 시비</span><span class="chapter-jump-page">31쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(35)"><span>자두·배·사과·포포 시비</span><span class="chapter-jump-page">35쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(38)"><span>처방 환산과 사용 기록</span><span class="chapter-jump-page">38쪽 ›</span></button></li></ol>
+      <div class="manual-colophon">MUNHUI FARM · FERTILIZER GUIDE</div>
+    </article>
+
+    <article class="manual-page" data-page="27" data-label="초보자 비료 판단 순서">
+      <div class="manual-running-head"><span>비료관리</span><span>초보자 판단표</span></div>
+      <div class="cult-kicker">BEGINNER DECISION · 01</div>
+      <h2 class="cult-title">비료 봉지를 열기 전<br>이 순서만 확인합니다</h2>
+      <p class="cult-lead">잎이 노랗다고 바로 비료를 주면 과습·뿌리병·비료 과다를 더 악화시킬 수 있습니다. 검사할 시간이 없을 때는 아래 현장 순서로 ‘줘도 되는 상태’부터 가립니다.</p>
+      <ol class="cult-flow">
+        <li><div><b>흙을 한 줌 확인</b> · 축축하게 뭉치고 냄새가 나거나 물이 고이면 비료 금지. 배수부터 해결합니다.</div></li>
+        <li><div><b>뿌리와 발생 범위 확인</b> · 흰색·연갈색 뿌리는 정상 후보. 갈색으로 물렀거나 한쪽 구역만 나쁘면 비료보다 뿌리·물 문제입니다.</div></li>
+        <li><div><b>어느 잎부터 변했는지 확인</b> · 아랫잎 전체가 서서히 옅고 포장 전체 생장이 약하면 질소 부족 가능성이 있습니다. 반점·구멍·벌레 흔적은 농약 장을 봅니다.</div></li>
+        <li><div><b>최근 14일 기록 확인</b> · 비료를 이미 줬거나 시비 직후 끝이 탔다면 추가 시비 금지. 비료명·양·비 온 날짜를 먼저 적습니다.</div></li>
+      </ol>
+      <div class="cult-check" style="margin-top:10px">
+        <div><b>초록 · 소량 시험 가능</b>배수·뿌리 정상<br>포장 전체 생육 저하<br>아랫잎부터 균일 황화</div><div><b>노랑 · 먼저 관찰</b>새잎만 황화<br>잎맥 사이만 변색<br>원인 불명·일부 포기</div>
+        <div><b>빨강 · 비료 금지</b>물고임·뿌리 갈변<br>시비 직후 급격한 마름<br>흙 표면 흰 염류</div><div><b>처음 고르는 제품</b>작목 페이지의 권장 ‘종류’ 선택<br>제품 표시 최저량부터<br>5~10포기만 비교</div>
+      </div>
+      <div class="cult-alert danger"><b>모르면 전면 살포하지 않습니다.</b> 작은 시험구에 표시량의 낮은 범위로 나누어 주고 7~14일 반응을 본 뒤 넓힙니다. 줄기·관부·마른 뿌리에 비료가 직접 닿지 않게 합니다.</div>
+      <div class="cult-source">기준: <a href="https://soil.rda.go.kr/sibi/cropSibiPrescript.do" target="_blank" rel="noopener">농촌진흥청 흙토람 비료사용처방</a> · 검사 없이 보는 방법은 PART 2 토양관리 참고</div>
+    </article>
+
+    <article class="manual-page" data-page="28" data-label="영양 부족·과다 신호">
+      <div class="manual-running-head"><span>비료관리</span><span>잎·생육 진단</span></div>
+      <div class="cult-kicker">NUTRIENT SIGNS · 02</div>
+      <h2 class="cult-title">어느 잎에서 먼저 시작했는지가<br>첫 번째 단서입니다</h2>
+      <p class="cult-lead">아래 표는 ‘가능성’을 좁히는 용도입니다. 한 가지 증상만 보고 미량요소나 석회를 투입하지 말고 토양·잎 분석으로 확인합니다.</p>
+      <div class="cult-check">
+        <div><b>아랫잎 전체 황화</b>질소 부족 후보<br>오래된 잎부터 옅어짐</div><div><b>아랫잎 가장자리 탐</b>칼륨 부족 후보<br>황화 뒤 갈변·마름</div>
+        <div><b>아랫잎 잎맥 사이 황화</b>마그네슘 후보<br>잎맥은 비교적 녹색</div><div><b>새잎 잎맥 사이 황화</b>철·망간 후보<br>높은 pH·뿌리 문제도 확인</div>
+        <div><b>새순 끝 멎음·기형</b>칼슘·붕소 후보<br>가뭄·고온·뿌리 손상도 확인</div><div><b>진녹색·연한 웃자람</b>질소 과다 후보<br>꽃 감소·도복·병 증가</div>
+        <div><b>비료 뒤 급격한 끝마름</b>염류·비료 화상 후보<br>흰 염류·갑작스런 시듦</div><div><b>한쪽·저지대만 황화</b>과습·뿌리병 후보<br>갈색 뿌리·냄새 확인</div>
+      </div>
+      <div class="cult-grid" style="margin-top:11px">
+        <div class="cult-box"><h3>칼슘의 함정</h3><p>토양에 칼슘이 있어도 가뭄·고온으로 이동이 막히면 새잎·과실에 증상이 납니다. 석회만 더 주면 pH가 과도하게 오를 수 있습니다.</p></div>
+        <div class="cult-box"><h3>미량요소의 함정</h3><p>붕소·철·망간은 필요량과 독성량의 간격이 좁습니다. 결핍을 확인하지 않은 예방 살포는 피합니다.</p></div>
+      </div>
+      <div class="cult-alert"><b>사진 기록법</b> · 정상 잎과 증상 잎을 함께 찍고 ‘새잎/아랫잎, 포장 전체/일부, 최근 비료·관수일’을 적어야 다음 진단이 쉬워집니다.</div>
+      <div class="cult-source">자료: <a href="https://soil.rda.go.kr/nutri/nutriObstList.do" target="_blank" rel="noopener">흙토람 원소별 영양진단</a> · <a href="https://www.nongsaro.go.kr/portal/ps/psv/psvr/psvrc/rdaInterDtl.ps?cntntsNo=206118&amp;menuId=PS00063" target="_blank" rel="noopener">농촌진흥청 영양장해 증상</a></div>
+    </article>
+
+    <article class="manual-page" data-page="29" data-label="사진사례 다량원소 부족·과다">
+      <div class="manual-running-head"><span>비료관리</span><span>현장사진 ①</span></div>
+      <div class="atlas-kicker">N · K · Mg SIGNALS · 03</div>
+      <h2 class="atlas-title">질소·칼륨·마그네슘<br>대표 패턴 비교</h2>
+      <p class="atlas-lead">작물마다 잎 모양은 달라도 ‘어느 잎에서, 어떤 방향으로 번지는지’가 중요한 공통 단서입니다. 사진과 같은 색만으로 확정하지 않습니다.</p>
+      <div class="atlas-grid">
+        <div class="atlas-card" style="grid-column:1/-1;display:grid;grid-template-columns:145px 1fr">
+          <div class="atlas-photo-wrap" style="height:108px"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://ipm.ucanr.edu/PMG/IMAGES/M/A-CI-MDEF-FO.023.jpg" alt="질소 과다의 진녹색 잎과 질소 부족의 옅은 잎 비교 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: Robert G. Platt / UC IPM</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">질소 과다 ↔ 부족</span><h3>진녹색·웃자람 ↔ 균일한 황화</h3><p>질소 과다는 잎이 진하고 새가지가 길고 연합니다. 부족은 오래된 잎부터 잎맥까지 비교적 균일하게 옅어지고 생장이 짧아집니다.</p><a class="atlas-source" href="https://ipm.ucanr.edu/PMG/M/A-CI-MDEF-FO.023.html" target="_blank" rel="noopener">사진 원문</a></div>
+        </div>
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap" style="height:102px"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://ipm.ucanr.edu/PMG/IMAGES/M/A-AM-MDEF-FO.017.jpg" alt="칼륨 부족으로 오래된 잎끝과 가장자리가 갈변한 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: Jack Kelly Clark / UC IPM</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">칼륨 부족 후보</span><h3>아랫잎 가장자리 마름</h3><p>오래된 잎의 끝·가장자리부터 황화한 뒤 갈색으로 타들어갑니다. 가뭄·염류도 함께 확인합니다.</p><a class="atlas-source" href="https://ipm.ucanr.edu/PMG/M/A-AM-MDEF-FO.017.html" target="_blank" rel="noopener">사진 원문</a></div>
+        </div>
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap" style="height:102px"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://ipm.ucanr.edu/PMG/IMAGES/M/A-CI-MDEF-FO.021.jpg" alt="마그네슘 부족으로 오래된 잎의 잎맥 사이가 황화한 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: Robert G. Platt / UC IPM</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">마그네슘 부족 후보</span><h3>아랫잎 잎맥 사이 황화</h3><p>오래된 잎의 굵은 잎맥은 녹색으로 남고 사이가 노래집니다. 심해지면 붉은빛·갈변이 생깁니다.</p><a class="atlas-source" href="https://ipm.ucanr.edu/PMG/M/A-CI-MDEF-FO.021.html" target="_blank" rel="noopener">사진 원문</a></div>
+        </div>
+      </div>
+      <div class="cult-alert danger"><b>칼륨 부족과 비료 화상은 비슷합니다.</b> 오래된 잎에서 서서히 번지면 칼륨 후보, 시비 직후 여러 잎끝이 급격히 타면 비료·염류 과다를 먼저 의심합니다.</div>
+      <div class="manual-colophon">대표 패턴 · 실제 작목은 잎 위치와 발생 경과를 함께 비교</div>
+    </article>
+
+    <article class="manual-page" data-page="30" data-label="사진사례 미량요소·비료 화상">
+      <div class="manual-running-head"><span>비료관리</span><span>현장사진 ②</span></div>
+      <div class="atlas-kicker">Fe &amp; FERTILIZER BURN · 04</div>
+      <h2 class="atlas-title">철 결핍형 황화와<br>비료 과다 화상</h2>
+      <p class="atlas-lead">새잎 황화는 흙에 철이 없어서가 아니라 높은 pH·과습·다짐 때문에 흡수가 막힌 경우도 많습니다. 반면 비료 화상은 시비 뒤 갑자기 나타나는 경우가 많습니다.</p>
+      <div class="atlas-grid">
+        <div class="atlas-card" style="grid-column:1/-1;display:grid;grid-template-columns:145px 1fr">
+          <div class="atlas-photo-wrap" style="height:115px"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://ipm.ucanr.edu/PMG/IMAGES/M/A-WO-MDEF-FO.029.jpg" alt="새잎의 잎맥은 녹색이고 잎맥 사이가 노란 철 결핍형 황화 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: Edward J. Perry / UC Cooperative Extension</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">철 결핍형 황화 후보</span><h3>새잎부터, 녹색 잎맥</h3><p>새로 나온 잎의 잎맥은 녹색인데 사이가 노랗고 오래된 잎은 상대적으로 녹색입니다. pH·과습·뿌리 상태를 먼저 봅니다.</p><a class="atlas-source" href="https://ipm.ucanr.edu/PMG/M/A-WO-MDEF-FO.029.html" target="_blank" rel="noopener">사진 원문</a></div>
+        </div>
+        <div class="atlas-card" style="grid-column:1/-1;display:grid;grid-template-columns:145px 1fr">
+          <div class="atlas-photo-wrap" style="height:115px"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://www.extension.umd.edu/sites/extension.umd.edu/files/styles/optimized/public/2021-03/hgic_houseplant_fertilizer_damage_from_osmocote_on_poinsettia-David%20Clement-2064-86-slide.jpg?itok=fIBP0v8G" alt="비료 과다로 잎끝과 가장자리가 갈변한 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: David Clement / UMD Extension</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">비료·염류 과다 후보</span><h3>시비 뒤 끝·가장자리 급변</h3><p>잎끝과 가장자리가 갈색으로 마르고 시들며, 흙 표면에 흰 염류가 보일 수 있습니다. 추가 비료를 즉시 멈춥니다.</p><a class="atlas-source" href="https://www.extension.umd.edu/resource/excess-fertilizer-or-salt-damage-flowers" target="_blank" rel="noopener">사진 원문</a></div>
+        </div>
+      </div>
+      <div class="cult-check" style="margin-top:11px">
+        <div><b>새잎·녹색 잎맥</b>철·망간 또는 높은 pH 후보</div><div><b>아랫잎 전체 황화</b>질소 부족 후보</div>
+        <div><b>시비 뒤 급격한 마름</b>비료·염류 과다 후보</div><div><b>저지대·한쪽만 황화</b>과습·뿌리병 후보</div>
+      </div>
+      <div class="cult-alert danger"><b>사진만 보고 미량요소를 넣지 않습니다.</b> 철·붕소·망간은 과량 피해가 생길 수 있습니다. 뿌리와 간이 pH를 확인하고 작은 구역에서만 반응을 비교합니다.</div>
+      <div class="manual-colophon">사진 → 발생 잎 → 시비 시점 → 뿌리·수분 → 소량 비교</div>
+    </article>
+
+    <article class="manual-page" data-page="31" data-label="개미취 비료관리">
+      <div class="manual-running-head"><span>비료관리</span><span>개미취</span></div>
+      <div class="cult-kicker">ASTER · 05</div>
+      <h2 class="cult-title">개미취 비료관리</h2>
+      <p class="cult-lead">봄 싹이 트기 전 토양 상태를 기준으로 밑거름을 정하고, 수확 뒤 새순의 회복이 실제로 약할 때만 가볍게 웃거름을 검토합니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">개미취 사진</span><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Aster_Tataricus.JPG?width=700" alt="비료 상태를 살필 개미취 잎과 줄기" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>개미취 잎 전체를 비교</b>한 잎보다 포장 전체의 잎색·새순 크기·수확 뒤 회복 속도를 함께 봅니다.<a href="https://commons.wikimedia.org/wiki/Aster_tataricus" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>기본 시기</b><span>휴면 말기·봄 생육 전</span></div>
+        <div class="cult-fact"><b>추비 판단</b><span>수확 뒤 재생 속도</span></div>
+        <div class="cult-fact"><b>피할 때</b><span>장마·과습·늦은 생육기</span></div>
+      </div>
+      <div class="cult-check"><div><b>처음 고를 비료</b>봄: 완효성 균형 복합비료<br>제품 표시의 낮은 양부터</div><div><b>수확 뒤 회복이 약할 때</b>질소가 포함된 웃거름<br>소량만 나누어 사용</div></div>
+      <ol class="cult-flow">
+        <li><div><b>봄 생육 전</b> · 토양검정 처방이 있을 때만 밑거름을 뿌리층에 고르게 반영합니다. 관부에 비료가 닿지 않게 합니다.</div></li>
+        <li><div><b>첫 수확 뒤</b> · 토양 수분과 배수가 정상인데 포장 전체의 새순이 작고 옅으며 재생이 느릴 때 소량 분시를 검토합니다.</div></li>
+        <li><div><b>장마·늦여름</b> · 물 고인 곳의 황화에는 비료보다 배수와 뿌리 상태가 먼저입니다. 늦은 질소는 연약한 새순과 월동 피해를 키울 수 있습니다.</div></li>
+      </ol>
+      <div class="cult-grid" style="margin-top:10px">
+        <div class="cult-box"><h3>필요 가능성</h3><p>아랫잎부터 옅어지고 줄기·잎이 전반적으로 작으며, 수확 뒤 새순 회복이 같은 두둑 전체에서 느립니다.</p></div>
+        <div class="cult-box"><h3>과다 가능성</h3><p>잎이 지나치게 진하고 줄기가 길고 물러 쓰러지며, 잎이 무성한데 조직이 연하고 병이 늘어납니다.</p></div>
+      </div>
+      <div class="cult-alert danger"><b>낮은 곳만 누렇게 변하면 추비하지 않습니다.</b> 뿌리가 갈색·물러졌거나 흙에서 냄새가 나면 배수와 뿌리병을 먼저 확인합니다.</div>
+      <div class="cult-source">기준: 토양검정 처방 · 생육/수확 기록 · 농촌진흥청 영양진단을 함께 적용</div>
+    </article>
+
+    <article class="manual-page" data-page="32" data-label="수국 비료관리">
+      <div class="manual-running-head"><span>비료관리</span><span>수국</span></div>
+      <div class="cult-kicker">HYDRANGEA · 06</div>
+      <h2 class="cult-title">수국 비료관리</h2>
+      <p class="cult-lead">봄 생육 초기에 완효성 균형비료를 검토하고, 여름 후반 질소는 피합니다. 꽃이 적다는 이유만으로 비료를 늘리지 않습니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">수국 사진</span><img loading="lazy" src="https://files.ibot.cas.cz/cevs/images/taxa/large/Hydrangea_macrophylla3.jpg" alt="비료 상태를 살필 수국 꽃과 잎" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>수국은 잎과 꽃을 따로 판단</b>꽃이 적어도 전정·동해·품종 문제일 수 있습니다. 잎색만으로 비료를 결정하지 않습니다.<a href="https://pladias.cz/en/taxon/overview/Hydrangea%20macrophylla" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>주 시기</b><span>봄 새눈·새잎 전후</span></div>
+        <div class="cult-fact"><b>추가 판단</b><span>초여름 생육·재개화형</span></div>
+        <div class="cult-fact"><b>중단</b><span>늦여름 이후 질소</span></div>
+      </div>
+      <div class="cult-check"><div><b>처음 고를 비료</b>화목용 완효성 균형비료<br>봄 1회, 표시 하한부터</div><div><b>피할 선택</b>꽃이 적다고 고질소 반복<br>확인 없이 석회·철분 투입</div></div>
+      <ol class="cult-flow">
+        <li><div><b>봄</b> · 토양검정과 전년도 생육이 약할 때 제품 표시량 안에서 완효성 균형비료를 뿌리 범위에 고르게 줍니다.</div></li>
+        <li><div><b>첫 꽃 뒤</b> · 계속 꽃피는 품종이면서 새가지가 짧고 잎색이 옅을 때만 가벼운 보충을 검토합니다. 건조한 포기에는 먼저 물을 줍니다.</div></li>
+        <li><div><b>늦여름~가을</b> · 질소 추비를 멈춰 가지가 굳도록 합니다. 겨울눈이 붙는 구품종은 늦은 생장과 전정이 다음 꽃을 줄일 수 있습니다.</div></li>
+      </ol>
+      <div class="cult-grid" style="margin-top:10px">
+        <div class="cult-box"><h3>부족 가능성</h3><p>배수·수분이 정상인데 오래된 잎부터 균일하게 옅어지고 새가지와 잎이 작습니다.</p></div>
+        <div class="cult-box"><h3>과다 가능성</h3><p>잎이 크고 진하며 새가지가 길고 연한데 꽃이 적거나, 비료 뒤 잎 가장자리가 탑니다.</p></div>
+      </div>
+      <div class="cult-alert danger"><b>꽃이 안 피는 주원인은 따로 있을 수 있습니다.</b> 잘못된 전정, 늦서리, 겨울눈 피해, 질소 과다를 먼저 확인합니다. 청색 발현을 원할 때 인산 과다는 불리할 수 있습니다.</div>
+      <div class="cult-source">자료: <a href="https://extension.oregonstate.edu/news/hydrangeas-bring-beauty-variety-oregon-gardens" target="_blank" rel="noopener">Oregon State University 수국 관리</a> · <a href="https://extension.umd.edu/resource/hydrangea-identify-and-manage-problems" target="_blank" rel="noopener">University of Maryland 수국 문제진단</a></div>
+    </article>
+
+    <article class="manual-page" data-page="33" data-label="바위솔 비료관리">
+      <div class="manual-running-head"><span>비료관리</span><span>바위솔</span></div>
+      <div class="cult-kicker">SUCCULENT · 07</div>
+      <h2 class="cult-title">바위솔 비료관리</h2>
+      <p class="cult-lead">바위솔은 양분 요구가 적습니다. 모양이 흐트러지고 물러지는 문제는 비료 부족보다 빛 부족·과습·배수 불량일 가능성이 큽니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">바위솔 사진</span><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Orostachys%20japonica%20(rosette%20s4).jpg?width=700" alt="비료 상태를 살필 바위솔 로제트" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>바위솔은 촘촘한 로제트가 기준</b>잎 사이가 벌어지고 연해지면 비료 부족보다 햇빛·수분 상태를 먼저 봅니다.<a href="https://commons.wikimedia.org/wiki/File:Orostachys_japonica_(rosette_s4).jpg" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>빈도</b><span>필요할 때만 매우 묽게</span></div>
+        <div class="cult-fact"><b>가능 시기</b><span>봄~초여름 생육기</span></div>
+        <div class="cult-fact"><b>금지</b><span>장마·고온·겨울 휴면</span></div>
+      </div>
+      <div class="cult-check"><div><b>처음 고를 비료</b>다육식물용 저질소 비료<br>액비는 표시 농도의 1/2부터</div><div><b>주지 않는 상태</b>잎이 통통하고 생장 정상<br>과습·뿌리무름·휴면 중</div></div>
+      <ol class="cult-flow">
+        <li><div><b>먼저 환경 확인</b> · 충분한 빛, 배수 빠른 흙, 마른 뒤 물주기, 건강한 흰 뿌리가 모두 맞는지 봅니다.</div></li>
+        <li><div><b>활착 뒤 소량</b> · 분갈이 직후가 아니라 새뿌리와 새잎이 자라는 때 다육식물용 비료를 제품 표시 농도의 1/4~1/2 정도로 묽게 검토합니다.</div></li>
+        <li><div><b>반응 관찰</b> · 한 번 준 뒤 로제트가 단단하게 유지되는지 봅니다. 웃자람·끝마름·흰 염류가 보이면 중단합니다.</div></li>
+      </ol>
+      <div class="cult-grid" style="margin-top:10px">
+        <div class="cult-box"><h3>필요 가능성</h3><p>빛과 물주기, 뿌리가 모두 정상인데도 생육기에 새잎이 작고 전체 잎색이 옅으며 성장이 멎습니다.</p></div>
+        <div class="cult-box"><h3>과다 가능성</h3><p>로제트가 길고 헐거워지며 조직이 연하고, 잎끝이 타거나 화분 표면에 흰 염류가 남습니다.</p></div>
+      </div>
+      <div class="cult-alert danger"><b>노랗고 물렁한 잎은 굶주림 신호가 아닐 수 있습니다.</b> 물주기를 멈추고 관부·뿌리 무름과 배수구 막힘을 먼저 확인합니다.</div>
+      <div class="cult-source">자료: <a href="https://yardandgarden.extension.iastate.edu/how-to/growing-succulents-indoors" target="_blank" rel="noopener">Iowa State University 다육식물 관리</a></div>
+    </article>
+
+    <article class="manual-page" data-page="34" data-label="과실수 공통 비료관리">
+      <div class="manual-running-head"><span>비료관리</span><span>과실수 공통</span></div>
+      <div class="cult-kicker">FRUIT TREES · 08</div>
+      <h2 class="cult-title">과실수는 잎보다<br>새가지·착과량을 함께 봅니다</h2>
+      <p class="cult-lead">자두·배·사과·포포는 나무 나이와 결실량에 따라 요구량이 크게 달라집니다. 같은 양을 매년 반복하지 말고 필지별 검정과 수세 기록으로 조정합니다.</p>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>밑거름</b><span>휴면기 말~봄 생육 전</span></div>
+        <div class="cult-fact"><b>웃거름</b><span>착과량·수세로 결정</span></div>
+        <div class="cult-fact"><b>분석</b><span>토양 + 잎 무기성분</span></div>
+      </div>
+      <div class="cult-check"><div><b>처음 고를 비료</b>과수용 완효성 복합비료<br>휴면기 말~싹트기 전</div><div><b>퇴비를 쓸 때</b>완숙퇴비만 사용<br>줄기에서 떨어져 얕고 넓게</div></div>
+      <ol class="cult-flow">
+        <li><div><b>어린나무</b> · 심을 때 비료를 뿌리와 맞대지 않습니다. 첫해는 활착·관수·주간 형성이 우선이며 새 생장이 확인된 뒤에만 소량을 검토합니다.</div></li>
+        <li><div><b>결실나무</b> · 전년도 새가지 길이, 잎색, 꽃눈, 착과량, 수확량과 토양검정으로 밑거름을 정합니다.</div></li>
+        <li><div><b>착과 뒤</b> · 열매가 많고 수세가 약하며 분석상 부족할 때만 나누어 보충합니다. 과다 착과는 비료보다 적과가 먼저입니다.</div></li>
+        <li><div><b>수확 뒤</b> · 자동으로 질소를 주지 않습니다. 잎이 건강하고 시기가 충분히 이른지 확인하고 다음 해 처방 자료로 남깁니다.</div></li>
+      </ol>
+      <div class="cult-grid" style="margin-top:10px">
+        <div class="cult-box"><h3>부족 가능성</h3><p>나무 전체의 잎이 옅고 새가지가 해마다 짧으며, 분석값도 낮고 뿌리·수분은 정상입니다.</p></div>
+        <div class="cult-box"><h3>질소 과다 가능성</h3><p>직립 도장지가 길고 진녹색이며 수관이 어둡고, 꽃눈·착색·숙기가 늦고 병이 늘어납니다.</p></div>
+      </div>
+      <div class="cult-alert"><b>기준 가지를 정해 매년 같은 위치에서 측정합니다.</b> 새가지 길이·잎색·수확량을 같은 방법으로 기록해야 비료 반응을 비교할 수 있습니다.</div>
+      <div class="cult-source">자료: <a href="https://soil.rda.go.kr/nutri/introMineral.do" target="_blank" rel="noopener">농촌진흥청 사과·배 잎 무기성분 기준</a></div>
+    </article>
+
+    <article class="manual-page" data-page="35" data-label="자두·배 비료관리">
+      <div class="manual-running-head"><span>비료관리</span><span>자두 · 배</span></div>
+      <div class="cult-kicker">PLUM &amp; PEAR · 09</div>
+      <h2 class="cult-title">자두·배 비료관리</h2>
+      <p class="cult-lead">휴면기~봄 생육 전의 밑거름을 중심으로 하고, 결실 뒤에는 열매 수와 새가지 힘을 함께 봅니다. 품종·토양에 따라 달력이 달라 고정 월보다 생육 단계를 우선합니다.</p>
+      <div class="crop-photo-pair">
+        <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">자두 사진</span><img loading="lazy" src="https://s3.amazonaws.com/eit-planttoolbox-prod/media/images/Prunus_salicina_frui_mbDNZrJ7D1qT.jpeg" alt="자두나무 열매" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>자두</b>착과량과 새가지 힘을 함께 비교합니다.<a href="https://plants.ces.ncsu.edu/plants/prunus-salicina/" target="_blank" rel="noopener">출처</a></div></div>
+        <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">배 사진</span><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Pyrus%20pyrifolia.jpg?width=700" alt="배나무 열매" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>배</b>과다 결실이면 비료보다 적과를 먼저 합니다.<a href="https://commons.wikimedia.org/wiki/File:Pyrus_pyrifolia.jpg" target="_blank" rel="noopener">출처</a></div></div>
+      </div>
+      <div class="cult-months">
+        <div class="cult-month"><b>휴면기 말</b><span>토양검정<br>밑거름 결정</span></div>
+        <div class="cult-month"><b>꽃·착과기</b><span>수분·적과 우선<br>성급한 추비 금지</span></div>
+        <div class="cult-month"><b>과실 비대기</b><span>착과량·수세<br>필요 시 분시</span></div>
+        <div class="cult-month"><b>수확 뒤</b><span>잎·가지 평가<br>다음 처방 기록</span></div>
+      </div>
+      <div class="cult-check"><div><b>자두·배 기본 선택</b>과수용 완효성 복합비료<br>봄 밑거름 중심</div><div><b>열매가 작을 때</b>비료부터 늘리지 말고<br>적과·물·착과량 먼저 확인</div></div>
+      <div class="cult-grid" style="margin-top:11px">
+        <div class="cult-box"><h3>자두</h3><p>열매가 많은데 새가지와 잎이 약하고 분석상 부족할 때만 보충합니다. 질소가 많으면 도장지·숙기 지연·무른 과실·병 발생이 늘 수 있습니다.</p></div>
+        <div class="cult-box"><h3>배</h3><p>착과 뒤 수세와 잎 분석으로 웃거름을 결정합니다. 과다 결실로 과실이 작을 때는 비료보다 이른 적과와 수분 관리가 먼저입니다.</p></div>
+      </div>
+      <div class="cult-check" style="margin-top:11px">
+        <div><b>필요 가능성</b>수관 전체 잎이 옅고 작음<br>새가지가 계속 짧음</div><div><b>과다 가능성</b>직립 도장지 급증<br>숙기·착색 지연</div>
+        <div><b>비료보다 물</b>잎이 한낮만 처지고<br>토양이 지나치게 건조</div><div><b>비료보다 배수</b>저지대만 황화<br>뿌리 갈변·낙엽</div>
+      </div>
+      <div class="cult-alert danger"><b>수확 직후 관행적으로 질소를 주지 않습니다.</b> 늦은 새가지가 나오면 월동이 약해질 수 있으므로 수확 시기·잎 상태·분석 결과를 함께 봅니다.</div>
+      <div class="cult-source">자료: <a href="https://www.nongsaro.go.kr/portal/ps/psb/psbl/workScheduleDtl.ps?cntntsNo=30661&amp;menuId=PS00087&amp;sKidofcomdtySeCode=210002&amp;totalSearchYn=Y" target="_blank" rel="noopener">농촌진흥청 배 농작업 일정</a> · <a href="https://nongsaro.go.kr/portal/farmTechMain.ps?menuId=PS65291&amp;stdPrdlstCode=FT020608" target="_blank" rel="noopener">자두 작목정보</a></div>
+    </article>
+
+    <article class="manual-page" data-page="36" data-label="사과 비료관리">
+      <div class="manual-running-head"><span>비료관리</span><span>사과</span></div>
+      <div class="cult-kicker">APPLE · 10</div>
+      <h2 class="cult-title">사과 비료관리</h2>
+      <p class="cult-lead">사과는 질소가 많으면 도장지와 그늘이 늘고 과실 착색·꽃눈이 불리해집니다. 밑거름은 처방으로, 웃거름은 착과량·새가지·잎 분석으로 결정합니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">사과 사진</span><img loading="lazy" src="https://s3.wp.wsu.edu/uploads/sites/1996/2011/09/apples.jpg" alt="비료 상태를 살필 사과나무 열매와 잎" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>사과는 수관 안팎을 비교</b>진녹색 도장지와 그늘이 늘면 질소 과다 가능성을 먼저 기록합니다.<a href="https://treefruit.wsu.edu/" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>주 시기</b><span>휴면기 말~봄 생육 전</span></div>
+        <div class="cult-fact"><b>보충 판단</b><span>착과량·수세·잎 분석</span></div>
+        <div class="cult-fact"><b>핵심 경계</b><span>질소 과다·늦은 생장</span></div>
+      </div>
+      <div class="cult-check"><div><b>사과 기본 선택</b>과수용 완효성 복합비료<br>봄 밑거름 중심</div><div><b>칼슘제가 필요한 때</b>과실장해 원인 확인 뒤 보조<br>관수·질소·착과량 먼저 교정</div></div>
+      <ol class="cult-flow">
+        <li><div><b>봄</b> · 필지별 처방과 나무 나이를 반영해 뿌리 분포 범위에 고르게 줍니다. 줄기 가까이에 몰아주지 않습니다.</div></li>
+        <li><div><b>착과 뒤</b> · 적과를 마친 뒤 나무가 감당할 열매 수와 새가지 세력을 평가합니다. 분석 없이 질소를 반복하지 않습니다.</div></li>
+        <li><div><b>비대·착색기</b> · 수관이 어둡고 도장지가 길면 추비를 멈추고, 가지 유인·적정 착과·물 관리를 우선합니다.</div></li>
+      </ol>
+      <div class="cult-grid" style="margin-top:10px">
+        <div class="cult-box"><h3>부족 가능성</h3><p>뿌리와 수분이 정상인데 아랫잎부터 옅고, 기준 가지의 새가지가 계속 짧으며 잎 분석도 낮습니다.</p></div>
+        <div class="cult-box"><h3>과다 가능성</h3><p>진녹색 도장지가 길고 수관 안쪽이 그늘지며, 과실 착색·숙기·꽃눈 형성이 늦고 병든 조직이 늘어납니다.</p></div>
+      </div>
+      <div class="cult-alert danger"><b>칼슘제만으로 과실 장해가 해결되지는 않습니다.</b> 고른 관수, 과다 질소 방지, 적정 착과와 수관 관리가 함께 필요하며 석회는 토양 pH·칼슘 검사 뒤 사용합니다.</div>
+      <div class="cult-source">자료: <a href="https://nongsaro.go.kr/portal/farmTechMain.ps?menuId=PS65291&amp;stdPrdlstCode=FT010601" target="_blank" rel="noopener">농촌진흥청 사과 작목정보</a> · <a href="https://soil.rda.go.kr/nutri/introMineral.do" target="_blank" rel="noopener">사과 잎 무기성분 기준</a></div>
+    </article>
+
+    <article class="manual-page" data-page="37" data-label="포포나무 비료관리">
+      <div class="manual-running-head"><span>비료관리</span><span>포포나무</span></div>
+      <div class="cult-kicker">PAWPAW · 11</div>
+      <h2 class="cult-title">포포나무 비료관리</h2>
+      <p class="cult-lead">포포는 긴 직근이 손상되기 쉬워 어린나무의 첫 우선순위는 활착·수분·차광입니다. 이식 직후 시든 나무에 비료부터 주지 않습니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">포포 사진</span><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Wild%20pawpaw%20patch%20with%20fruit%20in%20Michigan.jpg?width=700" alt="비료 상태를 살필 포포나무 잎과 열매" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>포포 어린나무는 활착이 먼저</b>잎끝 마름은 비료 부족보다 강광·건조·뿌리 손상을 먼저 확인합니다.<a href="https://commons.wikimedia.org/wiki/File:Wild_pawpaw_patch_with_fruit_in_Michigan.jpg" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts">
+        <div class="cult-fact"><b>첫해 우선</b><span>활착·관수·임시 차광</span></div>
+        <div class="cult-fact"><b>가능 시기</b><span>새 생장 확인 뒤 상반기</span></div>
+        <div class="cult-fact"><b>중단</b><span>한여름 이후 질소</span></div>
+      </div>
+      <div class="cult-check"><div><b>어린 포포 기본 선택</b>활착 뒤 완효성 균형비료<br>표시 하한의 절반부터</div><div><b>성목 기본 선택</b>과수용 균형비료<br>봄, 수세가 약할 때만</div></div>
+      <ol class="cult-flow">
+        <li><div><b>심은 직후</b> · 뿌리분과 직근을 보호하고 물을 충분히 줍니다. 뿌리에 비료가 직접 닿지 않게 하며 시든 동안에는 시비를 미룹니다.</div></li>
+        <li><div><b>새잎이 자란 뒤</b> · 수분·차광이 안정되고 새 생장이 확인되면, 상반기에만 균형비료를 제품 표시량 안에서 묽고 가볍게 검토합니다.</div></li>
+        <li><div><b>성목</b> · 매년 자동 시비하지 말고 잎색·새가지·착과량과 토양검정을 봅니다. 늦은 질소는 가지 굳음을 늦출 수 있습니다.</div></li>
+      </ol>
+      <div class="cult-grid" style="margin-top:10px">
+        <div class="cult-box"><h3>필요 가능성</h3><p>뿌리·수분·빛이 정상인데 새잎이 작고 옅으며 새가지가 약하고, 토양·잎 분석도 부족을 가리킵니다.</p></div>
+        <div class="cult-box"><h3>과다 가능성</h3><p>새가지가 길고 연하며 잎끝이 타고, 흙 표면에 염류가 남거나 가을까지 새순이 멈추지 않습니다.</p></div>
+      </div>
+      <div class="cult-alert"><b>어린 포포의 잎이 타면 비료보다 햇빛·건조를 먼저 봅니다.</b> 1~2년 차는 강한 한낮 햇빛에 약하므로 임시 차광과 토양 수분을 확인합니다.</div>
+      <div class="cult-source">자료: <a href="https://www.kysu.edu/academics/college-ahnr/school-of-anr/pawpaw/pawpaw-planting-guide.php" target="_blank" rel="noopener">Kentucky State University 포포 식재·시비 안내</a></div>
+    </article>
+
+    <article class="manual-page" data-page="38" data-label="연간 시비·기록표">
+      <div class="manual-running-head"><span>비료관리</span><span>연간 기록</span></div>
+      <div class="cult-kicker">FERTILIZER RECORD · 12</div>
+      <h2 class="cult-title">연간 시비·판단 기록표</h2>
+      <p class="cult-lead">‘무엇을 얼마나 줬는지’뿐 아니라 왜 줬고 어떤 반응이 있었는지 남겨야 다음 해 문희농원 기준이 만들어집니다.</p>
+      <div class="cult-months">
+        <div class="cult-month"><b>휴면기</b><span>전년 생육평가<br>토양검정</span></div>
+        <div class="cult-month"><b>봄 생육 전</b><span>처방 환산<br>밑거름</span></div>
+        <div class="cult-month"><b>착과·수확 뒤</b><span>수세·재생 확인<br>필요 시 분시</span></div>
+        <div class="cult-month"><b>늦여름~가을</b><span>질소 중단<br>월동 준비</span></div>
+      </div>
+      <div class="cult-check" style="margin-top:11px">
+        <div><b>대상</b>필지·작목·품종·나이</div><div><b>근거</b>토양/잎 검사·증상·착과량</div>
+        <div><b>제품</b>제품명·N-P₂O₅-K₂O 보증성분</div><div><b>양</b>처방 성분량·환산 제품량</div>
+        <div><b>작업</b>날짜·면적·살포 위치·작업자</div><div><b>조건</b>토양 수분·비 예보·관수 여부</div>
+        <div><b>반응</b>7~14일 뒤 잎색·새가지·EC</div><div><b>이상</b>끝마름·웃자람·황화·조치</div>
+      </div>
+      <div class="cult-grid" style="margin-top:11px">
+        <div class="cult-box"><h3>제품량 환산</h3><p>필요 제품량 = 처방된 성분량 ÷ 제품의 해당 성분비. 예: 질소 2kg가 필요하고 제품 질소가 20%면 2÷0.20=10kg입니다.</p></div>
+        <div class="cult-box"><h3>복합비료 주의</h3><p>질소 기준으로 맞췄을 때 인산·칼리가 과해질 수 있습니다. 세 성분을 모두 계산하고 이미 준 퇴비·비료를 차감합니다.</p></div>
+      </div>
+      <div class="cult-alert danger"><b>단위부터 확인합니다.</b> kg/10a, kg/필지, g/포기와 제품 희석배수를 섞지 말고 실제 면적과 제품 보증성분을 함께 적습니다.</div>
+      <div class="source-index"><b>공식 자료</b><br><a href="https://soil.rda.go.kr/sibi/cropSibiPrescript.do" target="_blank" rel="noopener">흙토람 비료사용처방</a> · <a href="https://soil.rda.go.kr/nutri/nutriObstList.do" target="_blank" rel="noopener">원소별 영양진단</a> · <a href="https://soil.rda.go.kr/nutri/introMineral.do" target="_blank" rel="noopener">사과·배 잎 무기성분 기준</a></div>
+      <div class="manual-colophon">MUNHUI FARM · FERTILIZER RECORD</div>
+    </article>
+
+    <article class="manual-page" data-page="39" data-label="PART 4 관수관리">
+      <div class="manual-running-head"><span>문희농원 농업 실무 매뉴얼</span><span>PART 04</span></div>
+      <div class="part-number">PART 4.</div><h2 class="part-title">관수관리</h2>
+      <p class="part-topics">(현장 수분 확인 · 작목별 물관리 · 가뭄·과습 대처 · 기록)</p>
+      <p class="part-intro">정해진 요일이 아니라 뿌리 주변 흙과 아침 잎 상태를 보고 물을 줄지 판단합니다. 문희농원 작목별 차이와 응급 대처를 초보자 순서로 정리했습니다.</p>
+      <p class="chapter-label">번호를 누르면 해당 페이지로 이동합니다</p><ol class="chapter-index"><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(40)"><span>물주기 전 5분 현장판단</span><span class="chapter-jump-page">40쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(41)"><span>개미취·수국 물관리</span><span class="chapter-jump-page">41쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(42)"><span>바위솔 물관리</span><span class="chapter-jump-page">42쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(43)"><span>과실수·포포 물관리</span><span class="chapter-jump-page">43쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(44)"><span>가뭄·과습 대처와 기록</span><span class="chapter-jump-page">44쪽 ›</span></button></li></ol>
+      <div class="manual-colophon">MUNHUI FARM · WATER MANAGEMENT</div>
+    </article>
+
+    <article class="manual-page" data-page="40" data-label="초보자 관수 판단">
+      <div class="manual-running-head"><span>관수관리</span><span>초보자 판단표</span></div>
+      <div class="cult-kicker">WATER OR WAIT · 01</div>
+      <h2 class="cult-title">겉흙만 보지 말고<br>뿌리 깊이의 흙을 봅니다</h2>
+      <p class="cult-lead">매일 조금씩 주면 겉뿌리만 늘고 안쪽은 계속 마를 수 있습니다. 반대로 잎이 처진다고 바로 물을 주면 과습을 더 심하게 만들 수 있습니다.</p>
+      <ol class="cult-flow">
+        <li><div><b>아침에 잎을 봅니다</b> · 한낮에만 처졌다가 아침에 회복하면 더위 반응일 수 있습니다. 아침에도 처지고 흙이 말랐을 때 물을 검토합니다.</div></li>
+        <li><div><b>흙 10cm 안쪽 확인</b> · 손가락·모종삽으로 파서 쥐어봅니다. 가루처럼 흩어지면 건조, 물이 배거나 냄새가 나면 과습 후보입니다.</div></li>
+        <li><div><b>한 포기 아닌 구역을 봅니다</b> · 경사 위·아래, 햇볕·그늘, 어린나무·성목을 나눠 3곳 이상 확인합니다.</div></li>
+        <li><div><b>줄 때는 천천히 깊게</b> · 물이 흐르지 않게 나누어 주고 뿌리층까지 젖었는지 다시 파봅니다. 줄기 바로 옆보다 뿌리 분포 범위에 줍니다.</div></li>
+      </ol>
+      <div class="cult-check" style="margin-top:10px"><div><b>물을 줄 신호</b>아침에도 잎 탄력 저하<br>속흙이 부슬부슬 건조<br>화분이 눈에 띄게 가벼움</div><div><b>기다릴 신호</b>속흙이 차고 축축함<br>저지대만 황화·낙엽<br>뿌리 갈변·쉰 냄새</div></div>
+      <div class="cult-alert danger"><b>물과 비료를 동시에 습관적으로 주지 않습니다.</b> 뿌리가 약하거나 흙이 과습한 상태에서는 비료 흡수가 안 되고 뿌리 피해가 커질 수 있습니다.</div>
+      <div class="cult-source">현장 기준: 흙의 수분·배수·뿌리 상태 + 아침 잎 회복 여부를 함께 기록</div>
+    </article>
+
+    <article class="manual-page" data-page="41" data-label="개미취·수국 관수관리">
+      <div class="manual-running-head"><span>관수관리</span><span>개미취 · 수국</span></div>
+      <div class="cult-kicker">ASTER &amp; HYDRANGEA · 02</div>
+      <h2 class="cult-title">잎이 넓은 작물은<br>마름과 과습을 함께 봅니다</h2>
+      <div class="crop-photo-pair">
+        <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">개미취 사진</span><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Aster_Tataricus.JPG?width=700" alt="관수 상태를 살필 개미취" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>개미취</b>아침 잎 탄력과 두둑 속흙을 함께 봅니다.<a href="https://commons.wikimedia.org/wiki/Aster_tataricus" target="_blank" rel="noopener">출처</a></div></div>
+        <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">수국 사진</span><img loading="lazy" src="https://files.ibot.cas.cz/cevs/images/taxa/large/Hydrangea_macrophylla3.jpg" alt="관수 상태를 살필 수국" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>수국</b>한낮 처짐보다 다음 날 아침 회복을 확인합니다.<a href="https://pladias.cz/en/taxon/overview/Hydrangea%20macrophylla" target="_blank" rel="noopener">출처</a></div></div>
+      </div>
+      <div class="cult-check">
+        <div><b>개미취</b>봄 새순·수확 뒤 재생기에는 흙이 완전히 마르지 않게 관리<br>잎보다 두둑 흙에 아침 관수</div><div><b>수국</b>꽃봉오리·개화기 급건조 방지<br>뿌리 주변 멀칭으로 수분 유지<br>저지대 물고임은 즉시 배수</div>
+        <div><b>개미취 물 부족</b>아침에도 잎이 얇고 축 처짐<br>새잎이 작고 수확 뒤 회복 지연</div><div><b>수국 물 부족</b>잎끝 마름·아침까지 처짐<br>꽃이 빠르게 시듦<br>화분 무게 감소</div>
+        <div><b>공통 과습 신호</b>낮은 곳부터 누렇게 변함<br>줄기 밑동·뿌리 갈변<br>흙 냄새·버섯·이끼 증가</div><div><b>공통 예방</b>늦은 저녁 잎 적시기 피하기<br>물받이 고인 물 제거<br>표면보다 속흙 기준</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px">
+        <li><div><b>심은 직후</b> · 활착 전에는 뿌리분이 마르지 않게 자주 확인하되 항상 축축하게 두지 않습니다.</div></li>
+        <li><div><b>생육 중</b> · 아침에 천천히 주고, 다음 관수 전 속흙이 적당히 마르는 시간을 둡니다.</div></li>
+        <li><div><b>장마 뒤</b> · 물을 추가하기 전에 두둑 옆·낮은 곳의 배수와 뿌리 냄새를 먼저 봅니다.</div></li>
+      </ol>
+      <div class="cult-alert"><b>수국의 한낮 처짐만으로 물 부족을 확정하지 않습니다.</b> 햇볕이 강한 시간에 처져도 저녁·아침에 회복하고 속흙이 촉촉하면 관수를 미룹니다.</div>
+      <div class="manual-colophon">아침 잎 · 속흙 · 뿌리 · 저지대 순서로 확인</div>
+    </article>
+
+    <article class="manual-page" data-page="42" data-label="바위솔 관수관리">
+      <div class="manual-running-head"><span>관수관리</span><span>바위솔</span></div>
+      <div class="cult-kicker">SUCCULENT WATER · 03</div>
+      <h2 class="cult-title">바위솔은 ‘자주 조금’보다<br>마른 뒤 충분히</h2>
+      <p class="cult-lead">다육질 잎에 물을 저장하므로 일반 화초처럼 자주 주면 밑동과 뿌리가 쉽게 무릅니다. 화분 배수구와 흙의 마름 속도가 기준입니다.</p>
+      <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">바위솔 사진</span><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Orostachys%20japonica%20(rosette%20s4).jpg?width=700" alt="관수 상태를 살필 바위솔" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>바위솔 잎의 두께와 투명도</b>얇은 주름은 건조 후보, 투명하고 물러지는 잎은 과습 후보로 먼저 나눕니다.<a href="https://commons.wikimedia.org/wiki/File:Orostachys_japonica_(rosette_s4).jpg" target="_blank" rel="noopener">사진 출처</a></div></div>
+      <div class="cult-facts"><div class="cult-fact"><b>확인</b><span>화분 무게·나무꼬치</span></div><div class="cult-fact"><b>관수</b><span>아침, 흙 전체 적시기</span></div><div class="cult-fact"><b>중단</b><span>장마·휴면·무름</span></div></div>
+      <ol class="cult-flow">
+        <li><div><b>속까지 마름 확인</b> · 나무꼬치를 꽂아 흙이 거의 묻지 않고 화분이 가벼울 때 물을 검토합니다.</div></li>
+        <li><div><b>한 번에 충분히</b> · 배수구로 물이 흐를 만큼 주고 받침의 물은 바로 버립니다. 잎 중심에 물이 오래 고이지 않게 합니다.</div></li>
+        <li><div><b>다시 마를 때까지 기다림</b> · 달력으로 정하지 말고 통풍·화분 크기·계절에 따른 실제 마름을 봅니다.</div></li>
+      </ol>
+      <div class="cult-check" style="margin-top:10px"><div><b>건조 후보</b>잎이 얇고 주름짐<br>아랫잎부터 바삭하게 마름<br>흙이 화분 벽에서 떨어짐</div><div><b>과습·무름 후보</b>잎이 투명하고 물러짐<br>밑동이 검고 쉽게 빠짐<br>축축한 흙과 악취</div></div>
+      <div class="cult-grid" style="margin-top:10px"><div class="cult-box"><h3>장마</h3><p>비를 계속 맞는 화분은 비가림과 통풍을 우선하고 젖은 상태에서 추가 관수·비료를 중단합니다.</p></div><div class="cult-box"><h3>겨울</h3><p>생장이 멈추고 흙 마름이 느리면 간격을 크게 늘립니다. 얼기 직전 물주기는 피합니다.</p></div></div>
+      <div class="cult-alert danger"><b>무른 잎에는 물을 주지 않습니다.</b> 건강한 포기와 즉시 격리하고 썩은 조직·젖은 흙을 제거한 뒤 건조·통풍을 회복합니다.</div>
+      <div class="manual-colophon">화분 무게 → 속흙 → 잎 탄력 → 배수구 확인</div>
+    </article>
+
+    <article class="manual-page" data-page="43" data-label="과실수·포포 관수관리">
+      <div class="manual-running-head"><span>관수관리</span><span>과실수 · 포포</span></div>
+      <div class="cult-kicker">FRUIT TREE WATER · 04</div>
+      <h2 class="cult-title">과실수는 줄기보다<br>뿌리 퍼진 범위에 깊게</h2>
+      <div class="crop-photo-pair">
+        <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">사과 사진</span><img loading="lazy" src="https://s3.wp.wsu.edu/uploads/sites/1996/2011/09/apples.jpg" alt="관수 상태를 살필 과실수 예시 사과" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>자두·배·사과</b>열매 수와 수관 끝 아래 속흙을 함께 봅니다.<a href="https://treefruit.wsu.edu/" target="_blank" rel="noopener">출처</a></div></div>
+        <div class="crop-photo-band"><div class="crop-photo-visual"><span class="photo-fallback">포포 사진</span><img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Wild%20pawpaw%20patch%20with%20fruit%20in%20Michigan.jpg?width=700" alt="관수 상태를 살필 포포나무" onerror="this.style.display='none'"></div><div class="crop-photo-copy"><b>포포</b>어린나무는 차광과 활착 상태까지 같이 확인합니다.<a href="https://commons.wikimedia.org/wiki/File:Wild_pawpaw_patch_with_fruit_in_Michigan.jpg" target="_blank" rel="noopener">출처</a></div></div>
+      </div>
+      <div class="cult-check">
+        <div><b>심은 첫해</b>뿌리분이 마르지 않게 자주 확인<br>새잎이 나와도 활착 전 과신 금지<br>줄기 둘레 물고임 방지</div><div><b>성목</b>짧고 잦은 관수보다 뿌리층까지 깊게<br>수관 가장자리 여러 지점 확인<br>경사 상·하단 분리</div>
+        <div><b>꽃·착과기</b>급격한 건조와 과습 반복 방지<br>꽃·어린 과실 낙과 원인을 물만으로 단정하지 않음</div><div><b>과실 비대기</b>가뭄 뒤 한꺼번에 과다 관수 금지<br>토양 수분을 고르게 회복<br>열매터짐·품질 변화 관찰</div>
+        <div><b>포포 어린나무</b>첫 1~2년은 뿌리 활착·수분 유지와 임시 차광 우선<br>직근 손상·물고임 주의</div><div><b>수확 뒤·가을</b>잎이 있는 동안 심한 건조 방지<br>기온 하강 뒤 관수량 감소<br>얼기 직전 과습 금지</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px">
+        <li><div><b>관수 위치 표시</b> · 나무마다 수관 끝 아래 3~4곳을 정해 같은 곳의 속흙을 비교합니다.</div></li>
+        <li><div><b>천천히 나누어 줌</b> · 경사지에서 흘러내리면 짧게 끊어 여러 번 주고, 멀칭으로 증발과 흙 튐을 줄입니다.</div></li>
+        <li><div><b>다음 날 재확인</b> · 10~20cm 안쪽까지 젖었는지, 저지대에 고이지 않았는지 확인해 다음 양을 조정합니다.</div></li>
+      </ol>
+      <div class="cult-alert danger"><b>과실이 작다고 물과 비료를 동시에 늘리지 않습니다.</b> 착과량·뿌리·토양 수분·병해를 나누어 확인해야 원인을 구분할 수 있습니다.</div>
+      <div class="manual-colophon">어린나무와 성목 · 경사 위와 아래를 따로 기록</div>
+    </article>
+
+    <article class="manual-page" data-page="44" data-label="가뭄·과습 대처와 관수기록">
+      <div class="manual-running-head"><span>관수관리</span><span>응급 대처·기록</span></div>
+      <div class="cult-kicker">TROUBLE &amp; RECORD · 05</div>
+      <h2 class="cult-title">가뭄과 과습은<br>조치 방향이 반대입니다</h2>
+      <div class="cult-check">
+        <div><b>가뭄 신호</b>아침에도 처짐<br>속흙이 가루처럼 마름<br>잎끝 마름·낙엽<br>경사 위부터 악화</div><div><b>가뭄 조치</b>서늘한 시간 천천히 깊게 관수<br>한 번에 흘러내리면 나누어 공급<br>멀칭·어린나무 임시 차광</div>
+        <div><b>과습 신호</b>비 뒤에도 흙이 계속 축축<br>낮은 곳부터 황화<br>뿌리 갈변·무름·냄새<br>이끼·버섯 증가</div><div><b>과습 조치</b>관수·비료 즉시 중단<br>배수로와 막힌 출구 확보<br>밟지 말고 마른 뒤 뿌리 재확인</div>
+      </div>
+      <div class="cult-box" style="margin-top:11px"><h3>살수량을 현장에서 재는 법</h3><p>같은 모양의 곧은 컵 3개를 살수 구역에 놓고 물 높이를 잽니다. <b>물 1mm는 1㎡당 1L</b>입니다. 위치별 차이가 크면 노즐·압력·배치를 조정합니다.</p></div>
+      <div class="cult-check" style="margin-top:10px"><div><b>관수 기록</b>날짜·필지·작목·구역<br>관수 시간·물량·방법<br>작업자·날씨</div><div><b>관수 전</b>아침 잎 상태<br>10cm 속흙 촉감<br>최근 강우·배수</div><div><b>관수 후</b>젖은 깊이·유출 여부<br>다음 날 잎 회복<br>저지대 물고임</div><div><b>다음 기준</b>며칠 뒤 다시 말랐는지<br>같은 양 유지/증감<br>이상 포기 위치</div></div>
+      <div class="cult-alert"><b>초보자의 목표는 정확한 정답보다 반복 기록입니다.</b> 같은 지점·같은 시간에 흙과 잎을 확인하면 문희농원만의 관수 간격을 만들 수 있습니다.</div>
+      <div class="source-index"><b>참고</b><br><a href="https://www.nongsaro.go.kr/portal/portalMain.ps" target="_blank" rel="noopener">농촌진흥청 농사로</a> · <a href="https://weather.rda.go.kr/" target="_blank" rel="noopener">농업기상정보서비스</a> · 농업기술상담 1544-8572</div>
+      <div class="manual-colophon">MUNHUI FARM · WATER RECORD</div>
+    </article>
+
+    <article class="manual-page" data-page="45" data-label="PART 5 병해충 사진도감">
+      <div class="manual-running-head"><span>문희농원 농업 실무 매뉴얼</span><span>PART 05</span></div>
+      <div class="part-number">PART 5.</div><h2 class="part-title">병해충<br>사진도감</h2>
+      <p class="part-topics">(병해 · 해충 · 증상 · 예방 · 방제)</p>
+      <p class="part-intro">잎과 줄기, 꽃과 열매의 증상을 사진과 비교해 원인을 찾도록 구성하는 장입니다.</p>
+      <p class="chapter-label">이 장에서 다룰 내용</p><ol class="chapter-index"><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(46)"><span>사진도감 사용법</span><span class="chapter-jump-page">46쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(47)"><span>개미취 병해충</span><span class="chapter-jump-page">47쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(48)"><span>수국·바위솔 병해충</span><span class="chapter-jump-page">48쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(51)"><span>과실수 병해·기록과 신고</span><span class="chapter-jump-page">51쪽 ›</span></button></li></ol>
+      <div class="manual-colophon">MUNHUI FARM · PEST &amp; DISEASE</div>
+    </article>
+
+    <article class="manual-page" data-page="46" data-label="사진도감 사용법">
+      <div class="manual-running-head"><span>병해충 사진도감</span><span>진단 순서</span></div>
+      <div class="atlas-kicker">FIELD DIAGNOSIS · 01</div>
+      <h2 class="atlas-title">사진은 ‘후보 찾기’에<br>사용합니다</h2>
+      <p class="atlas-lead">같은 반점도 병원균·약해·햇볕데임·영양장해일 수 있습니다. 사진만 보고 농약을 정하지 말고 아래 순서로 좁혀갑니다.</p>
+      <div class="symptom-route">
+        <div class="symptom-row"><div class="symptom-key">① 부위</div><div class="symptom-desc">새잎·아랫잎·꽃·줄기·뿌리 중 어디서 먼저 시작했는지 확인</div></div>
+        <div class="symptom-row"><div class="symptom-key">② 모양</div><div class="symptom-desc">가루, 둥근 반점, 물 먹은 자국, 잎 말림, 솜·끈끈이, 구멍을 구분</div></div>
+        <div class="symptom-row"><div class="symptom-key">③ 환경</div><div class="symptom-desc">최근 비·관수, 고온·건조, 배수, 밀식, 새 비료·농약 사용 여부 기록</div></div>
+        <div class="symptom-row"><div class="symptom-key">④ 확대</div><div class="symptom-desc">잎 앞·뒷면과 줄기 접합부를 확대 촬영하고 벌레·알·거미줄 확인</div></div>
+      </div>
+      <div class="photo-rule"><b>01</b><p>전체 포기와 발생 위치를 한 장 찍습니다.</p></div>
+      <div class="photo-rule"><b>02</b><p>병든 부위와 정상 부위의 경계를 가까이 찍습니다.</p></div>
+      <div class="photo-rule"><b>03</b><p>날짜·작목·필지·날씨·관수·처리 내용을 작업일지에 남깁니다.</p></div>
+      <div class="atlas-note"><b>확정 전 원칙</b> · 병든 포기는 우선 격리하고, 전정도구를 소독합니다. 농약은 진단 후 농촌진흥청 농약안전정보시스템에서 ‘작물+병해충’ 등록 여부를 확인합니다.</div>
+      <div class="manual-colophon">사진 비교 → 현장 확인 → 기록 → 전문가 진단</div>
+    </article>
+
+    <article class="manual-page" data-page="47" data-label="개미취 병해충">
+      <div class="manual-running-head"><span>병해충 사진도감</span><span>개미취</span></div>
+      <div class="atlas-kicker">ASTER SCABER · 02</div>
+      <h2 class="atlas-title">개미취 · 먼저 볼 증상</h2>
+      <p class="atlas-lead">국내 개미취 작목별 공식 사진자료가 적어 국화과 식물의 대표 증상을 비교합니다. 아래 증상은 최종 병명이 아니라 진단 후보입니다.</p>
+      <div class="atlas-grid">
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://bugwoodcloud.org/images/768x512/5512067.jpg" alt="새순에 모여 있는 진딧물 참고 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: Whitney Cranshaw / Colorado State Univ. / Bugwood.org</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">해충 후보</span><h3>진딧물</h3><p>새순·잎 뒷면에 무리 지어 붙고 잎이 오그라듭니다. 끈끈한 감로, 개미, 검은 그을음도 함께 확인합니다.</p><a class="atlas-source" href="https://www.insectimages.org/browse/image/5512067" target="_blank" rel="noopener">사진 원문</a></div>
+        </div>
+        <div class="atlas-card">
+          <div class="atlas-copy"><span class="atlas-tag">병해 후보</span><h3>흰가루 증상</h3><p>잎과 줄기에 흰색~회백색 가루가 보이고 심하면 잎이 뒤틀리거나 보랏빛으로 변할 수 있습니다.</p><a class="atlas-source" href="https://pnwhandbooks.org/plantdisease/host-disease/aster-powdery-mildew" target="_blank" rel="noopener">국화과 자료</a></div>
+          <div class="atlas-copy"><span class="atlas-tag">관리</span><h3>습도와 통풍부터</h3><p>포기 간격을 확보하고 잎을 오래 젖게 하는 관수를 피합니다. 심한 잎과 잔재물은 따로 치웁니다.</p></div>
+        </div>
+      </div>
+      <div class="atlas-note"><b>구분 포인트</b> · 흰 가루가 손에 묻는지, 잎 뒷면에 벌레가 있는지, 새잎부터인지 아랫잎부터인지 촬영해 비교합니다.</div>
+      <div class="manual-colophon">자료: PNW Plant Disease Handbook · University of Minnesota Extension · Bugwood</div>
+    </article>
+
+    <article class="manual-page" data-page="48" data-label="수국 병해">
+      <div class="manual-running-head"><span>병해충 사진도감</span><span>수국 · 병해</span></div>
+      <div class="atlas-kicker">HYDRANGEA · 03</div>
+      <h2 class="atlas-title">수국 · 잎 반점 비교</h2>
+      <p class="atlas-lead">반점의 색과 경계만 보지 말고, 비 온 뒤 번지는지·아랫잎부터 시작하는지·회색 포자가 생기는지 함께 봅니다.</p>
+      <div class="atlas-grid">
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://extension.umd.edu/sites/extension.umd.edu/files/styles/optimized/public/2021-03/HGIC_shrubs_cercosporaleafspot_16x9.jpg?itok=fVLvVm4r" alt="수국 곰팡이성 잎 반점 참고 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: Penn State / Bugwood · UMD Extension</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">곰팡이성 후보</span><h3>점무늬·반점</h3><p>갈색~회색 반점에 진한 자주색 테가 보일 수 있습니다. 병든 잎·잔재물을 치우고 잎을 적시는 관수를 줄입니다.</p><a class="atlas-source" href="https://ncpms.rda.go.kr/mobile/MobileSicknsDtlR.ms?dtlKey=D00000988&amp;hiKncrCode=FL&amp;pageIndex=1&amp;sKncrCode=FL082019" target="_blank" rel="noopener">농촌진흥청 도감</a></div>
+        </div>
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://extension.umd.edu/sites/extension.umd.edu/files/styles/optimized/public/2021-09/hgic_shrub_hydrangea_bacterial%20leaf%20spot_600.jpg?itok=zRWlR_OH" alt="수국 세균성 잎 반점 참고 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: Edward L. Barnard / Bugwood · UMD</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">세균성 후보</span><h3>물 먹은 듯한 반점</h3><p>붉은 갈색~자주색 반점이 아랫잎에서 시작하고 빗물·관수 물방울로 번질 수 있습니다.</p><a class="atlas-source" href="https://extension.umd.edu/resource/hydrangea-identify-and-manage-problems" target="_blank" rel="noopener">비교 자료</a></div>
+        </div>
+      </div>
+      <div class="atlas-note"><b>잿빛곰팡이병</b> · 잎·꽃에 갈색 병반이 생기고 습할 때 회색 포자가 보일 수 있습니다. 밀식·과습을 피하고 병든 부위는 바로 제거합니다.</div>
+      <div class="manual-colophon">자료: 농촌진흥청 국가농작물병해충관리시스템 · University of Maryland Extension</div>
+    </article>
+
+    <article class="manual-page" data-page="49" data-label="수국 해충">
+      <div class="manual-running-head"><span>병해충 사진도감</span><span>수국 · 해충</span></div>
+      <div class="atlas-kicker">HYDRANGEA · 04</div>
+      <h2 class="atlas-title">수국 · 작은 해충의 흔적</h2>
+      <p class="atlas-lead">해충은 몸체보다 피해 흔적이 먼저 보일 때가 많습니다. 흰 종이 위에 꽃·잎을 털어 움직이는 점을 확인합니다.</p>
+      <div class="atlas-grid">
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://extension.umd.edu/sites/extension.umd.edu/files/styles/optimized/public/2021-09/hgic_shrubs_ins_Cottony_Camellia_scale_5429846_600.jpg?itok=A9H67DYz" alt="수국 잎 뒷면의 솜깍지벌레류 참고 사진" onerror="this.style.display='none'"><span class="photo-credit">사진: Brian Kunkel / Bugwood · UMD Extension</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">흡즙성 해충 예</span><h3>솜·가루 모양</h3><p>잎 뒷면과 잎맥에 흰 솜 또는 납작한 껍질이 붙고 감로·그을음이 생기면 깍지벌레류를 의심합니다.</p><a class="atlas-source" href="https://extension.umd.edu/resource/hydrangea-identify-and-manage-problems" target="_blank" rel="noopener">수국 해충 자료</a></div>
+        </div>
+        <div class="atlas-card">
+          <div class="atlas-copy"><span class="atlas-tag">총채벌레</span><h3>꽃잎 변색·쪼그라듦</h3><p>꽃잎이 갈색으로 변하거나 오그라들고 은색 긁힌 자국이 보입니다. 꽃을 털어 가늘고 작은 벌레를 확인합니다.</p><a class="atlas-source" href="https://ncpms.rda.go.kr/mobile/MobileSpcsDtlR.ms?dtlKey=ZK1AG0010&amp;hiKncrCode=VC&amp;pageIndex=2&amp;sKncrCode=VC010901" target="_blank" rel="noopener">농촌진흥청 도감</a></div>
+          <div class="atlas-copy"><span class="atlas-tag">응애</span><h3>미세한 점·거미줄</h3><p>잎에 아주 작은 흰 점이 늘고 잎 뒷면에 가는 거미줄이 보입니다. 고온·건조할 때 빠르게 늘 수 있습니다.</p></div>
+        </div>
+      </div>
+      <div class="atlas-note"><b>현장 조치</b> · 피해가 적으면 강한 물줄기로 씻고 심한 잎·꽃을 제거한 뒤 격리합니다. 약제는 해충을 확인한 다음 등록 여부를 조회합니다.</div>
+      <div class="manual-colophon">자료: 농촌진흥청 NCPMS · UMD Extension · UMN Extension</div>
+    </article>
+
+    <article class="manual-page" data-page="50" data-label="바위솔 병해충">
+      <div class="manual-running-head"><span>병해충 사진도감</span><span>바위솔</span></div>
+      <div class="atlas-kicker">OROSTACHYS · 05</div>
+      <h2 class="atlas-title">바위솔 · 무름과 해충 구분</h2>
+      <p class="atlas-lead">바위솔은 과습 피해가 병해충처럼 보이기 쉽습니다. 물을 주기 전에 뿌리와 생장점, 잎 사이를 먼저 확인합니다.</p>
+      <div class="symptom-route">
+        <div class="symptom-row"><div class="symptom-key">무름</div><div class="symptom-desc"><b>잎·줄기가 반투명하고 물러짐</b> · 흙이 오래 젖어 있거나 배수가 나쁜지 확인. 물주기를 멈추고 병든 조직을 건전부와 분리합니다.</div></div>
+        <div class="symptom-row"><div class="symptom-key">뿌리썩음</div><div class="symptom-desc"><b>시들고 뿌리가 갈색·검게 변함</b> · 화분 배수구, 토양 냄새, 뿌리의 단단함을 확인합니다.</div></div>
+        <div class="symptom-row"><div class="symptom-key">깍지·가루</div><div class="symptom-desc"><b>잎 사이 흰 솜·끈끈이</b> · 생장점과 잎겨드랑이를 확대해 움직임과 알집을 봅니다.</div></div>
+        <div class="symptom-row"><div class="symptom-key">햇볕데임</div><div class="symptom-desc"><b>빛 받은 면만 마른 갈색</b> · 갑작스러운 강광 노출 시 생기며 벌레·가루·번짐이 없습니다.</div></div>
+      </div>
+      <div class="atlas-warning">바위솔의 국내 작목별 공식 병해충 사진자료가 충분하지 않습니다. 무름을 발견하면 병명·약제를 임의로 확정하지 말고 농업기술센터에 사진과 식물체 상태를 함께 문의하세요.</div>
+      <div class="atlas-note"><b>예방 핵심</b> · 배수 좋은 흙과 통풍을 확보하고, 잎 중심부에 물이 오래 고이지 않게 합니다. 새로 들인 식물은 바로 합식하지 않고 따로 관찰합니다.</div>
+      <div class="manual-colophon">일반 증상 참고: Iowa State University Extension · UMN Extension</div>
+    </article>
+
+    <article class="manual-page" data-page="51" data-label="과실수 병해 예시">
+      <div class="manual-running-head"><span>병해충 사진도감</span><span>과실수 · 사과 예시</span></div>
+      <div class="atlas-kicker">FRUIT TREE · 06</div>
+      <h2 class="atlas-title">과실수 · 사과 반점 예시</h2>
+      <p class="atlas-lead">과실수는 수종마다 병해충이 다릅니다. 아래는 사과의 대표 예시이며 배·복숭아·감에는 그대로 적용하지 않습니다.</p>
+      <div class="atlas-grid">
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://img1.newsis.com/2020/07/28/NISI20200728_0000571023_web.jpg?rnd=20200728081352" alt="사과 탄저병 피해 열매 참고 사진" onerror="this.style.display='none'"><span class="photo-credit">사진 제공: 안동시 · 뉴시스 보도자료</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">사과 · 열매</span><h3>탄저병</h3><p>과실에 갈색 반점이 생겨 둥글게 커지고 움푹 패입니다. 고온다습·잦은 비에 번지기 쉬워 병든·떨어진 과실을 치웁니다.</p><a class="atlas-source" href="https://ncpms.rda.go.kr/mobile/MobileSicknsDtlR.ms?dtlKey=D00000884&amp;totalSearchYn=Y" target="_blank" rel="noopener">농촌진흥청 도감</a></div>
+        </div>
+        <div class="atlas-card">
+          <div class="atlas-photo-wrap"><span class="photo-fallback">인터넷 연결 시 사진이 표시됩니다</span><img loading="lazy" src="https://img1.newsis.com/2020/07/28/NISI20200728_0000571024_web.jpg?rnd=20200728081455" alt="사과 갈색무늬병 피해 잎 참고 사진" onerror="this.style.display='none'"><span class="photo-credit">사진 제공: 안동시 · 뉴시스 보도자료</span></div>
+          <div class="atlas-copy"><span class="atlas-tag">사과 · 잎</span><h3>갈색무늬병</h3><p>잎에 갈색 반점이 생겨 커지고 심하면 일찍 낙엽집니다. 비가 많고 배수·통풍이 나쁠 때 늘 수 있습니다.</p><a class="atlas-source" href="https://www.nongsaro.go.kr/portal/ps/pss/pssa/sicknsSearchDtl.ps?menuId=PS00202&amp;pageIndex=1&amp;pageSize=10&amp;sicknsCode=D00000888" target="_blank" rel="noopener">농사로 도감</a></div>
+        </div>
+      </div>
+      <div class="atlas-note"><b>공통 관리</b> · 병든 과실과 낙엽을 바로 제거하고, 수관 안쪽까지 바람이 통하도록 관리합니다. 강우 전후에는 더 자주 관찰합니다.</div>
+      <div class="manual-colophon">사진: 안동시 제공 자료 · 설명: 농촌진흥청 NCPMS·농사로</div>
+    </article>
+
+    <article class="manual-page" data-page="52" data-label="병해충 기록과 신고">
+      <div class="manual-running-head"><span>병해충 사진도감</span><span>기록 · 신고 · 출처</span></div>
+      <div class="atlas-kicker">FIELD ACTION · 07</div>
+      <h2 class="atlas-title">발견 즉시 남길 기록</h2>
+      <ul class="record-checks">
+        <li>작목·품종·필지·발견 날짜·발생한 포기 수</li>
+        <li>전체 모습, 병든 부위 근접, 잎 뒷면을 같은 날 촬영</li>
+        <li>최근 7일의 비·관수·온도 변화와 비료·농약 사용 내역</li>
+        <li>격리·제거·세척 등 먼저 한 조치와 2~3일 뒤 변화</li>
+      </ul>
+      <div class="atlas-warning"><b>과수화상병 의심 시 즉시 신고</b><br>사과·배의 잎과 열매, 가지 끝이 불에 탄 듯 검거나 적갈색으로 변하고 가지 끝이 지팡이처럼 굽거나 세균액이 보이면 만지거나 옮기지 말고 신고합니다.<br><b>전국 신고전화 1833-8572</b> 또는 관할 농업기술센터</div>
+      <div class="atlas-note"><b>농약 선택 원칙</b> · 제품명을 책에 고정하지 않습니다. 등록 내용은 바뀔 수 있으므로 <a class="atlas-source" href="https://psis.rda.go.kr/" target="_blank" rel="noopener">농약안전정보시스템</a>에서 작물명·병해충명·사용시기·횟수를 매번 확인합니다.</div>
+      <div class="source-index"><b>공식 자료 바로가기</b><br>
+        <a href="https://ncpms.rda.go.kr/mobile/MobileSicknsDtlR.ms?dtlKey=D00000987&amp;hiKncrCode=FL&amp;pageIndex=1&amp;sKncrCode=FL082019" target="_blank" rel="noopener">농촌진흥청 수국 잿빛곰팡이병</a> ·
+        <a href="https://ncpms.rda.go.kr/mobile/MobileSicknsDtlR.ms?dtlKey=D00000988&amp;hiKncrCode=FL&amp;pageIndex=1&amp;sKncrCode=FL082019" target="_blank" rel="noopener">수국 점무늬병</a> ·
+        <a href="https://www.rda.go.kr/board/board.do?boardId=farmprmninfo&amp;currPage=1&amp;dataNo=100000810806&amp;mode=updateCnt&amp;prgId=day_farmprmninfoEntry" target="_blank" rel="noopener">2026 과수화상병 안내</a><br>
+        보조 자료: University of Maryland Extension · University of Minnesota Extension · PNW Plant Disease Handbook · Iowa State University Extension. 사진은 각 이미지 아래에 별도 표기했습니다.
+      </div>
+      <div class="manual-colophon">진단 문의 시 이 페이지의 기록 항목을 함께 전달하세요.</div>
+    </article>
+
+    <article class="manual-page" data-page="53" data-label="PART 6 농약관리">
+      <div class="manual-running-head"><span>문희농원 농업 실무 매뉴얼</span><span>PART 06</span></div>
+      <div class="part-number">PART 6.</div><h2 class="part-title">농약관리</h2>
+      <p class="part-topics">(살포 판단 · 증상별 약 종류 · 작목별 확인 · 희석 · 안전)</p>
+      <p class="part-intro">농사를 처음 시작해도 “지금 농약이 필요한지, 어떤 종류를 찾아야 하는지”를 순서대로 판단하도록 만든 현장용 장입니다.</p>
+      <p class="chapter-label">번호를 누르면 해당 페이지로 이동합니다</p><ol class="chapter-index"><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(54)"><span>농약을 써야 하는 때</span><span class="chapter-jump-page">54쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(55)"><span>증상별로 찾을 약의 종류</span><span class="chapter-jump-page">55쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(56)"><span>문희농원 작목별 빠른 판단표</span><span class="chapter-jump-page">56쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(57)"><span>희석배수·혼용 계산</span><span class="chapter-jump-page">57쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(58)"><span>살포 안전·작업기록</span><span class="chapter-jump-page">58쪽 ›</span></button></li></ol>
+      <div class="manual-colophon">MUNHUI FARM · PESTICIDE SAFETY</div>
+    </article>
+
+    <article class="manual-page" data-page="54" data-label="초보자 농약 살포 판단">
+      <div class="manual-running-head"><span>농약관리</span><span>초보자 판단표</span></div>
+      <div class="cult-kicker">SPRAY OR WAIT · 01</div>
+      <h2 class="cult-title">농약은 벌레나 병이<br>확인됐을 때만 찾습니다</h2>
+      <p class="cult-lead">잎이 노랗거나 시든 것만으로는 농약을 고를 수 없습니다. 물·비료·햇볕 피해를 먼저 제외하고, 작물명과 병해충명이 모두 맞는 등록 농약만 사용합니다.</p>
+      <ol class="cult-flow">
+        <li><div><b>정상 잎과 비교</b> · 잎 앞뒤, 새잎과 아랫잎, 줄기와 뿌리를 봅니다. 벌레·알·배설물·곰팡이·번지는 반점이 있는지 사진을 찍습니다.</div></li>
+        <li><div><b>퍼지는지 표시</b> · 포기 수와 위치를 적고 2~3일 뒤 다시 봅니다. 한 잎만 다친 것은 제거·관찰이 먼저입니다.</div></li>
+        <li><div><b>병해충명 후보 확인</b> · PART 5 사진도감과 국가농작물병해충관리시스템으로 후보를 좁힙니다. 확신이 없으면 사진을 들고 기술센터에 문의합니다.</div></li>
+        <li><div><b>등록 농약 검색</b> · 농약안전정보시스템에서 ‘작물명 + 병해충명’을 함께 검색하고 희석배수·수확 전 일수·사용 횟수를 확인합니다.</div></li>
+        <li><div><b>날씨와 주변 확인</b> · 강풍·폭염·비 직전·꽃에 벌이 활동하는 시간은 피하고, 사람·아이·동물·수로 쪽으로 날리지 않습니다.</div></li>
+      </ol>
+      <div class="cult-check" style="margin-top:10px"><div><b>살포 검토</b>병해충이 확인됨<br>발생 포기가 늘어남<br>등록 농약과 사용법 확인</div><div><b>살포하지 않음</b>영양·가뭄·과습·햇볕 피해<br>정체 모를 반점<br>해당 작물 등록이 없음</div></div>
+      <div class="cult-alert danger"><b>사과·배 과수화상병 의심 시 임의로 자르거나 약부터 뿌리지 않습니다.</b> 꽃·가지가 불에 탄 듯 검게 마르고 갈고리처럼 휘면 현장을 건드리지 말고 문경시 농업기술센터에 즉시 알립니다.</div>
+      <div class="cult-source">확인: <a href="https://ncpms.rda.go.kr/npms/MberInfoCM.np" target="_blank" rel="noopener">국가농작물병해충관리시스템</a> · <a href="https://psis.rda.go.kr/psis/agc/res/agchmRegistStusLst.ps" target="_blank" rel="noopener">농약안전사용기준 검색</a></div>
+    </article>
+
+    <article class="manual-page" data-page="55" data-label="증상별 농약 종류 찾기">
+      <div class="manual-running-head"><span>농약관리</span><span>약 종류 찾기</span></div>
+      <div class="cult-kicker">WHAT TO LOOK FOR · 02</div>
+      <h2 class="cult-title">증상을 보고 먼저<br>‘약의 종류’를 고릅니다</h2>
+      <p class="cult-lead">아래는 제품명이 아니라 검색 방향입니다. 같은 살충제라도 응애에는 듣지 않을 수 있고, 같은 살균제라도 모든 병에 쓸 수 없습니다.</p>
+      <div class="cult-check">
+        <div><b>흰가루·회색 곰팡이·번지는 반점</b>병명 확인 → 해당 병에 등록된 <strong>살균제</strong> 검색<br>병든 잎·꽃 제거와 통풍 병행</div><div><b>물 먹은 듯한 반점·무름·악취</b>세균병·뿌리썩음 후보<br>관수 중단·격리 후 진단<br>등록된 살균/세균병 약만</div>
+        <div><b>진딧물·깍지벌레·가루이</b>해충 이름 확인 → 해당 해충 등록 <strong>살충제</strong><br>소수면 닦기·강한 물줄기 먼저</div><div><b>잎의 미세한 흰 점·거미줄</b>응애 후보 → 일반 살충제가 아닌 <strong>응애약(살비제)</strong> 검색<br>잎 뒷면까지 확인</div>
+        <div><b>잎 구멍·배설물·애벌레</b>나방류·잎벌레 후보 → 어린 유충기에 등록 <strong>살충제</strong><br>손으로 잡기·피해잎 제거 병행</div><div><b>민달팽이·달팽이 흔적</b>은색 점액 자국 확인<br>은신처·습기 제거 우선<br>필요 시 등록 <strong>달팽이약</strong></div>
+      </div>
+      <div class="cult-grid" style="margin-top:10px"><div class="cult-box"><h3>살균제</h3><p>병이 생기기 전 또는 초기에 효과적인 제품이 많습니다. 이미 말라 죽은 잎을 되살리는 약이 아니므로 병든 조직 제거·통풍·빗물 튐 방지가 함께 필요합니다.</p></div><div class="cult-box"><h3>살충제·살비제</h3><p>해충의 종류와 발생 단계가 맞아야 합니다. 같은 작용기작을 연속 사용하지 말고 제품 표시와 등록 횟수를 따릅니다.</p></div></div>
+      <div class="cult-alert danger"><b>바이러스·약해·냉해·햇볕데임·영양장해에는 농약이 해결책이 아닙니다.</b> 정체를 모르면 먼저 사진과 표본으로 진단받습니다.</div>
+      <div class="cult-source">제품 선택: <a href="https://psis.rda.go.kr/psis/pma/agc/res/agchmSrchLst.ps" target="_blank" rel="noopener">농촌진흥청 농약제품검색</a></div>
+    </article>
+
+    <article class="manual-page" data-page="56" data-label="문희농원 작목별 농약 판단표">
+      <div class="manual-running-head"><span>농약관리</span><span>작목별 빠른표</span></div>
+      <div class="cult-kicker">MUNHUI CROPS · 03</div>
+      <h2 class="cult-title">문희농원 작목별<br>처음 확인할 것</h2>
+      <p class="cult-lead">아래 증상이 보이면 먼저 적힌 조치를 하고, 계속 번질 때만 정확한 작물명·병해충명으로 등록 농약을 찾습니다.</p>
+      <div class="cult-check">
+        <div><b>개미취</b>반점·흰가루 → 병든 잎 제거, 잎을 오래 젖게 하지 않기 → 등록 살균제<br>진딧물·애벌레 → 잎 뒷면 확인 → 등록 살충제</div><div><b>수국</b>잿빛곰팡이·점무늬 → 꽃·병든 잎 제거, 통풍 → 수국/화훼 등록 살균제<br>진딧물·응애 → 살충제와 살비제 구분</div>
+        <div><b>바위솔</b>밑동 무름·악취 → 물 중단, 썩은 포기 격리·제거가 먼저<br>깍지벌레·응애 → 격리 후 등록 약을 한 포기에 시험</div><div><b>자두·배·사과</b>반점·썩음병은 병명과 방제 적기 확인 → 등록 살균제<br>진딧물·응애·나방은 예찰 후 각각 살충/살비제 선택</div>
+        <div><b>포포나무</b>국내 등록 농약이 제한될 수 있으므로 다른 과수 약을 임의 사용하지 않음<br>병든 잎 제거·통풍·해충 포획 후 기술센터 문의</div><div><b>먹는 작물 공통</b>개미취·과실수는 수확 전 사용금지 기간과 총 사용 횟수를 반드시 지킴<br>수확 예정일보다 역산해 결정</div>
+      </div>
+      <div class="cult-alert"><b>약 이름을 외우지 말고 검색 조건을 기억합니다.</b> ① 작물명 ② 병해충명 ③ 희석배수 ④ 수확 전 일수 ⑤ 최대 사용 횟수 ⑥ 작용기작. 여섯 항목이 모두 맞아야 사용합니다.</div>
+      <div class="cult-alert danger"><b>관상용 등록과 식용 등록은 다릅니다.</b> 수국·바위솔에 쓰던 약을 개미취나 과실수에 그대로 사용하지 않습니다.</div>
+      <div class="cult-source">공식 검색: <a href="https://psis.rda.go.kr/psis/agc/res/agchmRegistStusLst.ps" target="_blank" rel="noopener">농약안전사용기준</a> · 농업기술상담 1544-8572</div>
+    </article>
+
+    <article class="manual-page" data-page="57" data-label="농약 희석배수와 혼용">
+      <div class="manual-running-head"><span>농약관리</span><span>희석·혼용</span></div>
+      <div class="cult-kicker">DILUTION &amp; MIXING · 04</div>
+      <h2 class="cult-title">희석배수는 계산하고<br>혼용은 확인된 조합만</h2>
+      <p class="cult-lead">제품 뚜껑으로 대충 계량하지 않습니다. 라벨의 희석배수와 물통 용량을 먼저 적고 전용 계량컵·저울로 잽니다.</p>
+      <div class="cult-box"><h3>기본 계산식</h3><p><b>필요 약량(mL 또는 g) = 물의 양(L) × 1,000 ÷ 희석배수</b><br>액제는 mL, 수화제·입상수화제는 g 등 제품 표시 단위를 그대로 사용합니다.</p></div>
+      <button type="button" class="dilution-launch" onclick="goToManualPrintedPage(82)"><span>🧮 물양·약제량 희석 계산기 열기</span><span>82쪽 ›</span></button>
+      <div class="cult-check" style="margin-top:10px">
+        <div><b>물 20L · 500배</b>20×1,000÷500<br><strong>40mL 또는 40g</strong></div><div><b>물 20L · 1,000배</b>20×1,000÷1,000<br><strong>20mL 또는 20g</strong></div>
+        <div><b>물 20L · 2,000배</b>20×1,000÷2,000<br><strong>10mL 또는 10g</strong></div><div><b>물 10L · 1,000배</b>10×1,000÷1,000<br><strong>10mL 또는 10g</strong></div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px">
+        <li><div><b>라벨을 사진으로 남김</b> · 작물·병해충·희석배수·사용시기·횟수를 작업 전에 기록합니다.</div></li>
+        <li><div><b>물과 약을 정확히 계량</b> · 제품 라벨의 투입·교반 순서를 따르고, 살포 중에도 침전되지 않게 관리합니다.</div></li>
+        <li><div><b>혼용표 없으면 따로 살포</b> · 작은 병에서 섞여 보인다고 작물 안전성과 법적 사용이 확인되는 것은 아닙니다.</div></li>
+        <li><div><b>필요량만 조제</b> · 남은 희석액을 수로·하천·하수구에 버리거나 다음 날 보관하지 않습니다.</div></li>
+      </ol>
+      <div class="cult-alert danger"><b>두 제품의 희석배수를 더하거나 반으로 나누지 않습니다.</b> 혼용하더라도 각 제품은 라벨에 적힌 자기 희석배수로 계산하며, 등록된 혼용 가능 여부를 먼저 확인합니다.</div>
+      <div class="cult-source">기준 확인: <a href="https://psis.rda.go.kr/psis/agc/res/agchmRegistStusLst.ps" target="_blank" rel="noopener">농약안전정보시스템</a></div>
+    </article>
+
+    <article class="manual-page" data-page="58" data-label="농약 살포 안전과 기록">
+      <div class="manual-running-head"><span>농약관리</span><span>안전·기록</span></div>
+      <div class="cult-kicker">SAFE SPRAYING · 05</div>
+      <h2 class="cult-title">살포 전·중·후를<br>한 장으로 확인합니다</h2>
+      <div class="cult-check">
+        <div><b>살포 전</b>긴소매 방제복·내화학 장갑·장화·보안경·제품 표시 보호구<br>노즐·호스 누출 점검</div><div><b>날씨</b>바람이 약하고 서늘한 시간<br>비 예보·강풍·폭염 피하기<br>벌 활동과 주변 작물 확인</div>
+        <div><b>살포 중</b>바람을 등지고 뒤로 이동<br>먹기·마시기·흡연 금지<br>아이·동물·비작업자 접근 금지</div><div><b>살포 후</b>손·얼굴·몸을 씻고 옷 분리 세탁<br>장비는 라벨대로 세척<br>수확·출입 가능 시기 표시</div>
+      </div>
+      <div class="cult-box" style="margin-top:11px"><h3>작업일지에 반드시 적을 것</h3><p>날짜·필지·작물·병해충명·제품명·품목명·작용기작·희석배수·물량·사용 약량·살포면적·작업자·날씨·수확 가능일·누적 사용 횟수·7일 뒤 효과와 약해.</p></div>
+      <ol class="cult-flow" style="margin-top:10px">
+        <li><div><b>작용기작을 바꿉니다</b> · 같은 계통을 연속 사용하지 말고 등록 범위 안에서 교호 사용해 저항성 위험을 줄입니다.</div></li>
+        <li><div><b>7일 뒤 다시 봅니다</b> · 살아 있는 해충 수, 새 반점 증가, 약해를 같은 위치에서 촬영합니다. 효과가 없다고 임의로 농도를 높이지 않습니다.</div></li>
+        <li><div><b>중독 의심 시 즉시 중단</b> · 어지럼·메스꺼움·호흡곤란·눈/피부 노출이 있으면 오염 의복을 벗고 라벨의 응급조치를 확인해 119 또는 의료기관에 연락합니다.</div></li>
+      </ol>
+      <div class="cult-alert danger"><b>농약은 원래 용기와 잠금 보관함에 둡니다.</b> 음료병에 옮겨 담지 말고 비료·사료·식품·아이 손이 닿는 곳과 분리합니다.</div>
+      <div class="source-index"><b>공식 확인처</b><br><a href="https://psis.rda.go.kr/psis/pma/agc/res/agchmSrchLst.ps" target="_blank" rel="noopener">농약제품 검색</a> · <a href="https://ncpms.rda.go.kr/npms/MberInfoCM.np" target="_blank" rel="noopener">병해충 발생정보</a> · 농업기술상담 1544-8572</div>
+      <div class="manual-colophon">MUNHUI FARM · SAFE SPRAY RECORD</div>
+    </article>
+
+    <article class="manual-page" data-page="59" data-label="PART 7 잡초관리">
+      <div class="manual-running-head"><span>문희농원 농업 실무 매뉴얼</span><span>PART 07</span></div>
+      <div class="part-number">PART 7.</div><h2 class="part-title">잡초관리</h2>
+      <p class="part-topics">(잡초 구분 · 우선순위 · 손제초·멀칭 · 제초제 · 계절별 기록)</p>
+      <p class="part-intro">잡초 이름을 모두 외우기보다 씨 맺기 전 제거할 것, 뿌리로 다시 나는 것, 작물 가까이에서 약을 쓰면 안 되는 것을 구분해 관리합니다.</p>
+      <p class="chapter-label">번호를 누르면 해당 페이지로 이동합니다</p><ol class="chapter-index"><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(60)"><span>잡초 구분과 제거 우선순위</span><span class="chapter-jump-page">60쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(61)"><span>손제초·예초·멀칭 방법</span><span class="chapter-jump-page">61쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(62)"><span>제초제 안전사용 판단</span><span class="chapter-jump-page">62쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(63)"><span>계절별 잡초관리와 기록</span><span class="chapter-jump-page">63쪽 ›</span></button></li></ol>
+      <div class="manual-colophon">MUNHUI FARM · WEED CONTROL</div>
+    </article>
+
+    <article class="manual-page" data-page="60" data-label="잡초 구분과 우선순위">
+      <div class="manual-running-head"><span>잡초관리</span><span>초보자 구분</span></div>
+      <div class="cult-kicker">IDENTIFY &amp; PRIORITIZE · 01</div>
+      <h2 class="cult-title">이름보다 먼저<br>다시 나는 방식을 봅니다</h2>
+      <div class="cult-check">
+        <div><b>한해살이 잡초</b>봄·여름에 싹이 나 씨로 번짐<br>작을 때 뽑고 꽃·씨 생기기 전 제거<br>뿌리를 깊게 팔 필요는 적음</div><div><b>여러해살이 잡초</b>뿌리·땅속줄기에서 반복 발생<br>윗부분만 베면 다시 남<br>뿌리 제거 또는 반복 약화 필요</div>
+        <div><b>화본과형</b>잎이 가늘고 평행맥, 마디가 뚜렷<br>어릴 때 제거가 쉬움<br>작물과 약 선택성이 다름</div><div><b>광엽형</b>넓은 잎과 그물맥<br>꽃 모양·잎 배열 사진 기록<br>종류 확인 뒤 약 선택</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px">
+        <li><div><b>1순위</b> · 씨가 맺히기 직전의 잡초와 덩굴처럼 작물을 덮는 잡초부터 제거합니다.</div></li>
+        <li><div><b>2순위</b> · 개미취·수국·어린 과수의 뿌리와 바로 경쟁하는 포기 주변을 정리합니다.</div></li>
+        <li><div><b>3순위</b> · 통로·둑은 완전히 맨땅으로 만들기보다 짧게 예초해 토양 유실과 재발을 줄입니다.</div></li>
+        <li><div><b>사진 표시</b> · 잎 앞뒤·줄기 마디·꽃·전체 모양과 발생 위치를 찍어 다음 해 같은 시기에 비교합니다.</div></li>
+      </ol>
+      <div class="cult-alert"><b>비 온 직후 흙이 부드러울 때 뿌리째 뽑기 쉽습니다.</b> 다만 물에 젖은 포장을 반복해서 밟으면 다짐이 생기므로 작업 동선을 최소화합니다.</div>
+      <div class="cult-alert danger"><b>정체를 모르는 식물에 제초제를 먼저 뿌리지 않습니다.</b> 작물 새순·흡지·어린 묘목이 잡초처럼 보일 수 있으므로 표시 말뚝을 사용합니다.</div>
+      <div class="manual-colophon">씨 맺기 전 · 작물 가까이 · 재생 뿌리 순서로 관리</div>
+    </article>
+
+    <article class="manual-page" data-page="61" data-label="손제초·예초·멀칭">
+      <div class="manual-running-head"><span>잡초관리</span><span>비화학 관리</span></div>
+      <div class="cult-kicker">REMOVE &amp; PREVENT · 02</div>
+      <h2 class="cult-title">작을 때 제거하고<br>빈 땅을 덮어 재발을 줄입니다</h2>
+      <div class="cult-check">
+        <div><b>손제초·호미</b>작물 바로 주변과 어린 잡초에 적합<br>흙이 촉촉할 때 뿌리째 제거<br>과수의 얕은 뿌리 손상 주의</div><div><b>예초</b>통로·둑·넓은 구역에 적합<br>꽃 피기 전 반복 예초<br>돌·철사·사람 방향 확인</div>
+        <div><b>멀칭</b>볏짚·우드칩·잡초매트로 빛 차단<br>줄기·관부에는 붙이지 않음<br>두더지·쥐·과습을 정기 확인</div><div><b>재배 관리</b>건강한 작물 피복과 적정 간격 유지<br>관수는 잡초가 아닌 작물 뿌리 쪽<br>빈자리 오래 두지 않기</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px">
+        <li><div><b>작업 전</b> · 작물 줄기와 관수호스를 말뚝·끈으로 표시하고 돌·전선·과수 지주를 치웁니다.</div></li>
+        <li><div><b>작업 중</b> · 예초기 날이 나무 줄기와 수국 밑동에 닿지 않게 보호대를 두고 바깥쪽으로 작업합니다.</div></li>
+        <li><div><b>작업 후</b> · 씨가 달린 잡초와 병든 잔재는 포장에 흩뿌리지 말고 별도 수거합니다.</div></li>
+        <li><div><b>멀칭 점검</b> · 2~4주마다 들춰 과습·뿌리목 부패·해충 은신을 확인하고 꺼진 곳을 보충합니다.</div></li>
+      </ol>
+      <div class="cult-alert danger"><b>나무 줄기 둘레를 화산 모양으로 두껍게 덮지 않습니다.</b> 수피가 계속 젖고 쥐가 숨으면 줄기 부패와 껍질 피해가 생길 수 있습니다.</div>
+      <div class="cult-source">기본 원칙: 발생 초기 제거 + 씨 맺기 전 차단 + 작물 주변 피복 유지</div>
+    </article>
+
+    <article class="manual-page" data-page="62" data-label="제초제 안전사용 판단">
+      <div class="manual-running-head"><span>잡초관리</span><span>제초제</span></div>
+      <div class="cult-kicker">HERBICIDE DECISION · 03</div>
+      <h2 class="cult-title">제초제는 작물·잡초·시기가<br>모두 맞아야 합니다</h2>
+      <p class="cult-lead">비선택성 제초제는 닿는 녹색 조직을 해칠 수 있습니다. 과수 줄기, 어린 수피, 뿌리싹과 개미취·수국·바위솔에는 비산 한 방울도 피해가 될 수 있습니다.</p>
+      <ol class="cult-flow">
+        <li><div><b>등록 확인</b> · 농약안전정보시스템에서 작물 또는 사용 장소, 대상 잡초, 처리 시기·방법이 모두 맞는 제품만 고릅니다.</div></li>
+        <li><div><b>선택성 확인</b> · 작물 위에 쓸 수 있는지, 작물 사이 바닥에만 쓰는 비선택성인지 라벨에서 구분합니다.</div></li>
+        <li><div><b>바람·비 확인</b> · 바람·폭염·비 직전에는 중단하고 낮은 압력과 비산 방지 덮개를 사용합니다.</div></li>
+        <li><div><b>소구역 시험</b> · 처음 쓰는 조합은 작물에서 충분히 떨어진 작은 구역에만 사용하고 약해·효과를 기록합니다.</div></li>
+      </ol>
+      <div class="cult-check" style="margin-top:10px"><div><b>절대 묻히지 않기</b>개미취·수국·바위솔 잎<br>어린 과수 수피·새순·흡지<br>노출 뿌리·상처</div><div><b>혼용하지 않기</b>비료·영양제와 임의 혼용<br>다른 제초제와 무단 혼합<br>혼용표에 없는 조합</div><div><b>살포 후 표시</b>제품명·날짜·구역<br>재출입·파종 제한<br>남은 사용 횟수</div><div><b>약해 의심</b>새잎 뒤틀림·황화<br>살포선 따라 마름<br>즉시 중단하고 사진 기록</div></div>
+      <div class="cult-alert danger"><b>작물 가까이는 손제초·멀칭을 우선합니다.</b> ‘과수원용’이라는 말만 보고 모든 과수나 어린나무에 쓸 수 있다고 판단하지 않습니다.</div>
+      <div class="cult-source">공식 확인: <a href="https://psis.rda.go.kr/psis/agc/res/agchmRegistStusLst.ps" target="_blank" rel="noopener">농촌진흥청 농약안전사용기준</a></div>
+    </article>
+
+    <article class="manual-page" data-page="63" data-label="계절별 잡초관리와 기록">
+      <div class="manual-running-head"><span>잡초관리</span><span>계절·기록</span></div>
+      <div class="cult-kicker">SEASON &amp; RECORD · 04</div>
+      <h2 class="cult-title">잡초는 한 번 없애기보다<br>씨앗이 쌓이지 않게 관리합니다</h2>
+      <div class="cult-months"><div class="cult-month"><b>2~4월</b><span>어린 잡초 확인<br>멀칭 보수</span></div><div class="cult-month"><b>5~6월</b><span>꽃 피기 전<br>1차 집중 제거</span></div><div class="cult-month"><b>7~8월</b><span>장마 뒤 급증<br>예초·배수</span></div><div class="cult-month"><b>9~11월</b><span>씨 맺기 전 제거<br>다음 해 지도</span></div></div>
+      <div class="cult-check" style="margin-top:11px"><div><b>작업 기록</b>날짜·필지·구역<br>잡초 사진·이름 후보<br>작업자·소요시간</div><div><b>방법</b>손제초·예초·멀칭·제초제<br>제거 면적·장비<br>제초제 제품·희석·사용량</div><div><b>결과</b>7일·30일 뒤 재생 정도<br>작물 약해 여부<br>씨 맺기 전 완료 여부</div><div><b>다음 계획</b>재발 지점 지도 표시<br>멀칭 보수 날짜<br>다음 예초 예상 시기</div></div>
+      <ol class="cult-flow" style="margin-top:10px">
+        <li><div><b>봄</b> · 월동 잡초와 새싹을 작을 때 제거하고 두둑·나무 둘레 멀칭을 보수합니다.</div></li>
+        <li><div><b>초여름</b> · 꽃대가 올라오기 전에 집중 제거해 여름 종자 생산을 막습니다.</div></li>
+        <li><div><b>장마</b> · 젖은 포장 다짐을 피하면서 통로와 배수로를 우선 예초합니다.</div></li>
+        <li><div><b>가을</b> · 씨 달린 잔재를 별도 수거하고 반복 발생 지점을 지도에 표시합니다.</div></li>
+      </ol>
+      <div class="cult-alert"><b>완전한 맨땅이 목표가 아닙니다.</b> 경사지 통로는 짧은 초생을 남기면 토양 유실과 진흙 튐을 줄일 수 있으므로 작물 경쟁·병해를 보며 높이를 관리합니다.</div>
+      <div class="source-index"><b>참고</b><br><a href="https://www.nongsaro.go.kr/portal/ps/psb/psbx/cropEbookLst.ps?menuId=PS65290&amp;stdPrdlstCode=CP" target="_blank" rel="noopener">농촌진흥청 농업기술길잡이 잡초방제기술</a> · 농업기술상담 1544-8572</div>
+      <div class="manual-colophon">MUNHUI FARM · WEED RECORD</div>
+    </article>
+
+    <article class="manual-page" data-page="64" data-label="PART 8 월별 농사달력">
+      <div class="manual-running-head"><span>문희농원 농업 실무 매뉴얼</span><span>PART 08</span></div>
+      <div class="part-number">PART 8.</div><h2 class="part-title">월별<br>농사달력</h2>
+      <p class="part-topics">(1월~12월 준비 · 관찰 · 작업 · 기록)</p>
+      <p class="part-intro">월은 준비 시기를 놓치지 않기 위한 기준입니다. 실제 작업일은 문경의 기온·강우와 작물의 싹·꽃·수확 상태를 보고 앞뒤로 조정합니다.</p>
+      <p class="chapter-label">번호를 누르면 해당 페이지로 이동합니다</p><ol class="chapter-index"><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(65)"><span>1~2월 · 겨울 준비</span><span class="chapter-jump-page">65쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(66)"><span>3~4월 · 생육 시작</span><span class="chapter-jump-page">66쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(67)"><span>5~6월 · 생육·개화·착과</span><span class="chapter-jump-page">67쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(68)"><span>7~8월 · 장마·폭염</span><span class="chapter-jump-page">68쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(69)"><span>9~10월 · 수확·월동 준비</span><span class="chapter-jump-page">69쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(70)"><span>11~12월 · 정리·다음 해 계획</span><span class="chapter-jump-page">70쪽 ›</span></button></li></ol>
+      <div class="manual-colophon">MUNHUI FARM · MONTHLY CALENDAR</div>
+    </article>
+
+    <article class="manual-page" data-page="65" data-label="1~2월 농사달력">
+      <div class="manual-running-head"><span>월별 농사달력</span><span>1 · 2월</span></div>
+      <div class="cult-kicker">WINTER PLANNING · 01</div>
+      <h2 class="cult-title">1~2월<br>기록을 보고 준비합니다</h2>
+      <div class="cult-check">
+        <div><b>전체 농장</b>전년도 작업·수확·병해충 기록 정리<br>필지별 문제 3가지 선정<br>종자·묘목·자재 재고 조사</div><div><b>개미취·수국·바위솔</b>동해·들뜬 뿌리·배수 상태 확인<br>수국 겨울눈과 마른 가지 구분<br>바위솔 과습·동결 화분 점검</div>
+        <div><b>과실수</b>병든 가지·마른 과실 표시<br>전정 도구 소독 준비<br>수종·품종별 전정 시기 확인 후 작업</div><div><b>행정·교육</b>문경시 새해 농업인 교육 확인<br>보조사업 공고와 자부담 검토<br>경영체 정보 변경 여부 확인</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px">
+        <li><div><b>1월</b> · 작업일지 백업, 전년도 비료·농약 사용량 합계, 고장 장비와 부족 자재를 목록으로 만듭니다.</div></li>
+        <li><div><b>2월</b> · 토양이 얼지 않고 작업이 가능한 날 배수로·지주·울타리를 점검하고 봄 작업 순서를 정합니다.</div></li>
+        <li><div><b>과수 전정</b> · 나무가 젖거나 심한 한파인 날은 피하고, 수종·나이별 원칙을 확인해 큰 가지를 한꺼번에 제거하지 않습니다.</div></li>
+      </ol>
+      <div class="cult-alert danger"><b>수국은 품종에 따라 꽃눈이 붙는 가지가 다릅니다.</b> 품종을 모르면 겨울에 무작정 낮게 자르지 말고 마른 가지와 꽃대만 표시해 봄 새눈을 확인합니다.</div>
+      <div class="manual-colophon">이번 해 목표 · 필요한 자재 · 교육·공고를 한 장에 정리</div>
+    </article>
+
+    <article class="manual-page" data-page="66" data-label="3~4월 농사달력">
+      <div class="manual-running-head"><span>월별 농사달력</span><span>3 · 4월</span></div>
+      <div class="cult-kicker">SPRING START · 02</div>
+      <h2 class="cult-title">3~4월<br>싹과 뿌리가 움직입니다</h2>
+      <div class="cult-check">
+        <div><b>토양·비료</b>속흙 수분·배수·뿌리 점검<br>필요 필지만 봄 밑거름<br>마른 뿌리·줄기에 비료 직접 접촉 금지</div><div><b>관수·시설</b>호스·노즐·물탱크 세척<br>구역별 물 도달 시험<br>경사 위·저지대 분리 점검</div>
+        <div><b>개미취</b>새순 발생 위치 표시<br>두둑 잡초 조기 제거<br>잎색·포기 수·첫 수확 예상 기록</div><div><b>수국·바위솔</b>수국 새눈 확인 후 동해 가지 정리<br>바위솔 마른 잎과 무른 포기 분리<br>화분 배수구 점검</div>
+        <div><b>과실수</b>꽃눈·새가지·동해 확인<br>병든 잔재와 미이라 과실 제거<br>사과·배 화상병 의심 증상 예찰</div><div><b>잡초·병해충</b>어린 잡초를 씨 맺기 전 제거<br>주 1회 같은 위치 촬영<br>약은 병해충 확인 후 선택</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>3월</b> · 배수·시설·도구를 먼저 준비하고, 싹이 트기 전후의 첫 사진을 필지별 기준 사진으로 남깁니다.</div></li><li><div><b>4월</b> · 새잎·꽃 발생을 주 1회 기록하고 급격한 저온·건조 예보에 맞춰 어린 묘목을 보호합니다.</div></li></ol>
+      <div class="cult-alert"><b>봄 첫 작업을 한날에 몰지 않습니다.</b> 전정·비료·농약·관수를 동시에 하면 이상 증상의 원인을 알기 어려우므로 날짜를 나누고 기록합니다.</div>
+      <div class="manual-colophon">봄 기준사진을 남기면 여름 이상을 빨리 찾을 수 있습니다.</div>
+    </article>
+
+    <article class="manual-page" data-page="67" data-label="5~6월 농사달력">
+      <div class="manual-running-head"><span>월별 농사달력</span><span>5 · 6월</span></div>
+      <div class="cult-kicker">GROWTH &amp; FRUIT SET · 03</div>
+      <h2 class="cult-title">5~6월<br>생육·개화·착과를 봅니다</h2>
+      <div class="cult-check">
+        <div><b>개미취</b>수확일·수확량·품질 기록<br>수확 뒤 새순 회복 확인<br>회복 약할 때만 물·비료 원인 분리</div><div><b>수국</b>꽃봉오리·개화와 물 부족 관찰<br>시든 꽃·병든 잎 정리<br>품종을 모르면 강한 전정 보류</div>
+        <div><b>바위솔</b>장마 전 배수·비가림 준비<br>깍지벌레·응애·밑동 무름 확인<br>생육기라도 속흙 마른 뒤 관수</div><div><b>과실수</b>착과량을 보고 적과<br>열매·잎·새가지 균형 기록<br>나방·진딧물·응애·반점 예찰</div>
+        <div><b>포포</b>어린나무 수분·차광·활착 확인<br>강풍에 흔들리지 않게 지주 보강<br>꽃이 있어도 수분·착과를 별도 기록</div><div><b>잡초·안전</b>꽃 피기 전 1차 집중 제거<br>예초기 돌·철사·관수호스 확인<br>더운 시간 작업 줄이기</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>5월</b> · 과수 착과와 개미취 수확을 기록하고 어린나무·수국의 급건조를 막습니다.</div></li><li><div><b>6월</b> · 장마 전 배수로·지주·비가림·멀칭을 점검하고 병해충 발생 지도를 만듭니다.</div></li></ol>
+      <div class="cult-alert danger"><b>열매가 많다고 비료를 늘리지 않습니다.</b> 과실수는 적과가 먼저이며, 개미취 수확 뒤 황화도 물고임·뿌리 상태를 확인한 후 판단합니다.</div>
+      <div class="manual-colophon">수확·착과량과 새가지 힘을 함께 기록</div>
+    </article>
+
+    <article class="manual-page" data-page="68" data-label="7~8월 농사달력">
+      <div class="manual-running-head"><span>월별 농사달력</span><span>7 · 8월</span></div>
+      <div class="cult-kicker">RAINY &amp; HOT SEASON · 04</div>
+      <h2 class="cult-title">7~8월<br>장마·폭염 피해를 막습니다</h2>
+      <div class="cult-check">
+        <div><b>비 뒤 첫 확인</b>배수로 막힘·저지대 물고임<br>쓰러짐·뿌리 노출·흙 유실<br>과습 중 관수·비료 중단</div><div><b>폭염 첫 확인</b>아침 회복 여부와 속흙<br>어린 포포·새로 심은 묘목 차광<br>한낮 관수·농약 작업 피하기</div>
+        <div><b>병해충</b>젖은 잎의 반점·곰팡이 증가 관찰<br>병든 잔재 제거·통풍 확보<br>확진·등록 확인 뒤 방제</div><div><b>바위솔</b>계속 젖은 화분 비가림<br>무른 포기 즉시 격리<br>장마 중 비료 중단</div>
+        <div><b>과실수</b>열매 햇볕데임·갈라짐·낙과 기록<br>가뭄 뒤 물을 한꺼번에 과다 공급하지 않기<br>도장지·수관 통풍 확인</div><div><b>잡초·작업자</b>장마 뒤 통로·배수로 우선 예초<br>씨 맺기 전 제거<br>휴식·물·그늘로 온열질환 예방</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>7월</b> · 비가 그친 직후 배수와 병든 잔재를 먼저 처리하고 약제 살포는 날씨·등록 기준을 다시 확인합니다.</div></li><li><div><b>8월</b> · 늦은 질소를 줄이고 새가지가 굳는지, 수확 예정 과실의 농약 사용기한이 남았는지 확인합니다.</div></li></ol>
+      <div class="cult-alert danger"><b>시든 잎에 물·비료·농약을 한꺼번에 처리하지 않습니다.</b> 열·가뭄·과습·뿌리병을 먼저 구분하고 한 가지 조치 후 반응을 봅니다.</div>
+      <div class="manual-colophon">비 뒤 배수 · 폭염 전 수분 · 사람 안전을 먼저</div>
+    </article>
+
+    <article class="manual-page" data-page="69" data-label="9~10월 농사달력">
+      <div class="manual-running-head"><span>월별 농사달력</span><span>9 · 10월</span></div>
+      <div class="cult-kicker">HARVEST &amp; HARDENING · 05</div>
+      <h2 class="cult-title">9~10월<br>수확하고 월동을 준비합니다</h2>
+      <div class="cult-check">
+        <div><b>수확</b>자두·배·사과·포포 수확일·수량·등급<br>낙과·병든 과실 별도 수거<br>마지막 농약일과 수확 가능일 대조</div><div><b>나무 상태</b>잎색·낙엽 시기·새가지 길이 기록<br>도장지·병든 가지 위치 표시<br>수확 뒤 자동 질소 시비 금지</div>
+        <div><b>개미취·수국</b>남은 잎의 병해·수세 확인<br>수국 꽃눈이 붙는 가지 보호<br>늦은 질소·강전정 피하기</div><div><b>바위솔</b>장마 뒤 회복·뿌리 상태 확인<br>겨울 전 배수·화분 안정<br>마른 꽃대·병든 잔재 정리</div>
+        <div><b>잡초</b>씨 달린 잡초 우선 수거<br>여러해살이 재발 위치 표시<br>멀칭 보수량 계산</div><div><b>시설·배수</b>태풍 뒤 지주·울타리·관수선 점검<br>겨울 물빠짐 확인<br>노출 뿌리 보호</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>9월</b> · 수확 예정표와 마지막 농약 기록을 맞추고 태풍·집중호우 전후 사진을 남깁니다.</div></li><li><div><b>10월</b> · 수확량과 품질을 정리하고 늦게 자라는 새순·병든 잎·잡초 씨앗을 관리합니다.</div></li></ol>
+      <div class="cult-alert"><b>좋은 수확 기록은 무게만이 아닙니다.</b> 품종·수확일·크기·상처·당도 또는 맛·저장성·판매/가정용 비율을 함께 남겨야 다음 해 관리와 연결됩니다.</div>
+      <div class="manual-colophon">수확 결과가 다음 해 비료·전정·방제 계획의 기준</div>
+    </article>
+
+    <article class="manual-page" data-page="70" data-label="11~12월 농사달력">
+      <div class="manual-running-head"><span>월별 농사달력</span><span>11 · 12월</span></div>
+      <div class="cult-kicker">CLOSE &amp; REVIEW · 06</div>
+      <h2 class="cult-title">11~12월<br>농장을 닫고 다음 해를 엽니다</h2>
+      <div class="cult-check">
+        <div><b>월동 준비</b>어린 과수·포포의 줄기·뿌리 보호<br>수국·바위솔 배수와 동해 대비<br>강풍에 흔들리는 지주 보강</div><div><b>관수·시설</b>동파 우려 호스·펌프 물 빼기<br>물탱크·노즐 세척<br>배수로 낙엽·토사 제거</div>
+        <div><b>농약·비료</b>재고·유효기간·용기 손상 확인<br>잠금·분리 보관<br>빈 용기와 폐자재 지정 방법으로 배출</div><div><b>도구·장비</b>예초기·분무기·전정가위 세척<br>날·호스·배터리·보호구 점검<br>수리 필요 목록 작성</div>
+        <div><b>연말 결산</b>작목별 수확량·비용·작업시간<br>병해충·약해·과습 위치 지도<br>성공 3개·개선 3개 선정</div><div><b>다음 해 준비</b>묘목·비료·농약·멀칭 수량 계획<br>교육·지원사업 확인 일정 등록<br>가족 작업 역할 초안</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>11월</b> · 동파·동해·들쥐 피해를 줄이도록 시설과 어린나무를 준비하고 남은 자재를 정리합니다.</div></li><li><div><b>12월</b> · 작업일지를 백업하고 필지·작목별 한 해 요약을 작성해 다음 해 첫 페이지에 붙입니다.</div></li></ol>
+      <div class="cult-alert"><b>달력은 매년 수정합니다.</b> 실제 싹튼 날·첫 수확일·장마 시작·첫서리·병해충 발생일을 올해 달력 옆에 적으면 문희농원 기준이 됩니다.</div>
+      <div class="source-index"><b>월별 확인</b><br><a href="https://www.nongsaro.go.kr/portal/portalMain.ps" target="_blank" rel="noopener">농촌진흥청 농사로</a> · <a href="https://weather.rda.go.kr/" target="_blank" rel="noopener">농업기상정보서비스</a></div>
+      <div class="manual-colophon">MUNHUI FARM · YEAR REVIEW</div>
+    </article>
+
+    <article class="manual-page" data-page="71" data-label="PART 9 정부지원사업 및 교육">
+      <div class="manual-running-head"><span>문희농원 농업 실무 매뉴얼</span><span>PART 09</span></div>
+      <div class="part-number">PART 9.</div><h2 class="part-title">정부지원사업<br>및 교육</h2>
+      <p class="part-topics">(공고 찾기 · 자격 판단 · 준비서류 · 교육 · 연간 관리)</p>
+      <p class="part-intro">지원사업 이름과 금액은 매년 바뀝니다. 특정 사업을 외우기보다 공식 공고를 찾고 신청자·농지·자부담·사전구매 제한을 확인하는 방법을 정리합니다.</p>
+      <p class="chapter-label">번호를 누르면 해당 페이지로 이동합니다</p><ol class="chapter-index"><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(72)"><span>공고·교육을 확인하는 곳</span><span class="chapter-jump-page">72쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(73)"><span>신청자격과 사업성 판단</span><span class="chapter-jump-page">73쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(74)"><span>미리 준비하는 신청서류</span><span class="chapter-jump-page">74쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(75)"><span>연간 확인표와 교육기록</span><span class="chapter-jump-page">75쪽 ›</span></button></li></ol>
+      <div class="manual-colophon">MUNHUI FARM · SUPPORT &amp; EDUCATION</div>
+    </article>
+
+    <article class="manual-page" data-page="72" data-label="지원공고·교육 확인처">
+      <div class="manual-running-head"><span>지원사업 및 교육</span><span>확인처</span></div>
+      <div class="cult-kicker">WHERE TO CHECK · 01</div>
+      <h2 class="cult-title">지원사업은 소문보다<br>공식 공고문을 봅니다</h2>
+      <div class="cult-check">
+        <div><b>문경시청 고시·공고</b>문경시·농업기술센터 모집공고<br>접수기간·담당부서·첨부서식 확인<br>마감일이 짧을 수 있어 주 1회 확인</div><div><b>문경시 농업기술센터</b>작목 교육·시범사업·가공·농기계<br>전화 문의 시 작목·지역·경영체 명의 준비<br>교육은 방문접수 여부 확인</div>
+        <div><b>AgriX</b>농림사업 지침서와 맞춤형 사업안내<br>경영체·후계농·귀농 관련 창구 확인<br>전국사업과 지자체사업 구분</div><div><b>농업교육포털</b>예비농·신규농·작목·온라인 교육 검색<br>수료증과 학습이력 보관<br>공익직불 등 의무교육 별도 확인</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px">
+        <li><div><b>관심 분야 3개 설정</b> · 재배시설·농기계·교육처럼 지금 필요한 분야만 정해 공고를 모읍니다.</div></li>
+        <li><div><b>공고문과 첨부파일 저장</b> · 제목만 보지 말고 시행지침·신청서·평가표·사업비 기준을 같은 폴더에 저장합니다.</div></li>
+        <li><div><b>담당자에게 확인</b> · 신청 명의, 문희농원 필지, 자부담, 사전구매 가능 여부를 질문하고 통화일을 기록합니다.</div></li>
+        <li><div><b>마감 3일 전 제출 목표</b> · 보완 요청을 받을 시간을 남기고 접수증·이메일·문자 등 제출 증빙을 보관합니다.</div></li>
+      </ol>
+      <div class="cult-alert danger"><b>블로그·판매업체 안내만으로 신청하지 않습니다.</b> 최종 기준은 해당 연도의 공고문과 담당부서 답변이며, 작년 조건을 그대로 적용하지 않습니다.</div>
+      <div class="source-index"><b>공식 확인처</b><br><a href="https://www.gbmg.go.kr/portal/saeol/gosi/list.do?mId=0301060000" target="_blank" rel="noopener">문경시 고시·공고</a> · <a href="https://www.agrix.go.kr/" target="_blank" rel="noopener">농림사업정보시스템</a> · <a href="https://edu.agriedu.net/" target="_blank" rel="noopener">농업교육포털</a></div>
+    </article>
+
+    <article class="manual-page" data-page="73" data-label="지원사업 신청자격 판단">
+      <div class="manual-running-head"><span>지원사업 및 교육</span><span>자격·사업성</span></div>
+      <div class="cult-kicker">ELIGIBILITY · 02</div>
+      <h2 class="cult-title">‘받을 수 있나’보다<br>‘누가 책임질 사업인가’부터</h2>
+      <p class="cult-lead">가족이 함께 농사해도 경영체 대표, 농지·시설 소유자, 신청자, 실제 운영자가 다르면 신청이 제한될 수 있습니다. 문희농원 내부 역할을 먼저 정합니다.</p>
+      <div class="cult-check">
+        <div><b>신청자</b>농업경영체 등록 여부<br>연령·거주·영농경력<br>중복지원·체납·교육 요건</div><div><b>사업 장소</b>신청자 명의 농지·시설인지<br>임대차 기간이 충분한지<br>건축·개발·전기 등 인허가</div>
+        <div><b>돈</b>보조·융자·자부담 비율<br>부가세 포함 여부<br>선지출·정산 방식과 현금 여력</div><div><b>운영</b>누가 설치·사용·보관·수리할지<br>의무사용 기간과 사후점검<br>고장·보험·소모품 비용</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px">
+        <li><div><b>공고 대상과 일치</b> · 작목·면적·지역·경영체·연령·영농경력이 모두 맞는지 줄마다 표시합니다.</div></li>
+        <li><div><b>자부담 가능</b> · 선정돼도 자부담과 부가세, 유지비를 감당할 수 있는지 가족이 합의합니다.</div></li>
+        <li><div><b>실제 활용일수</b> · 장비·시설을 한 해 몇 번 쓰고 누가 관리할지 계산해 단순히 ‘보조금이 크다’로 결정하지 않습니다.</div></li>
+        <li><div><b>탈락해도 필요한 사업</b> · 전액 자비라면 하지 않을 사업인지 생각해 과잉투자를 걸러냅니다.</div></li>
+      </ol>
+      <div class="cult-alert danger"><b>선정 통보·계약 전에 구매하거나 공사를 시작하면 지원 대상에서 제외될 수 있습니다.</b> 반드시 공고문과 담당자에게 착수 가능 시점을 확인합니다.</div>
+      <div class="manual-colophon">명의 · 장소 · 자부담 · 운영자 · 사후관리 다섯 가지 확인</div>
+    </article>
+
+    <article class="manual-page" data-page="74" data-label="지원사업 신청서류 준비">
+      <div class="manual-running-head"><span>지원사업 및 교육</span><span>준비서류</span></div>
+      <div class="cult-kicker">DOCUMENT PACK · 03</div>
+      <h2 class="cult-title">공고 전에도 준비할 수 있는<br>기본 서류 묶음</h2>
+      <div class="cult-check">
+        <div><b>신청자 증빙</b>신분·주소·가족관계 필요서류<br>농업경영체 등록확인서<br>교육 수료증·자격증</div><div><b>농지·시설 증빙</b>토지대장·등기·농지원부 등 공고 요구서류<br>임대차계약서·사용승낙<br>현장 위치도·사진</div>
+        <div><b>사업 계획</b>현재 문제와 필요한 이유<br>설치 장소·규모·활용 계획<br>연간 작업일수·기대효과</div><div><b>견적·자금</b>공고 기준에 맞는 비교견적<br>자부담·부가세·운반·설치비<br>통장·세금·보험 관련 서류</div>
+        <div><b>운영·사후관리</b>담당자·교육 계획<br>보관·정비·소모품·보험<br>의무사용 기간 관리</div><div><b>제출 관리</b>공고문 버전과 제출목록<br>파일명·원본·사본 구분<br>접수일·담당자·보완기한</div>
+      </div>
+      <div class="cult-box" style="margin-top:11px"><h3>문희농원 사업계획 5문장 틀</h3><p>① 현재 어떤 작업이 어렵다. ② 누가 얼마나 자주 작업한다. ③ 무엇을 도입하면 어떻게 줄어든다. ④ 자부담과 유지관리는 누가 맡는다. ⑤ 설치 후 작업일지로 사용실적과 효과를 증명한다.</p></div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>원본 폴더</b> · 매년 바뀌지 않는 기본서류를 한곳에 두고 유효기간과 발급일을 표시합니다.</div></li><li><div><b>사업별 사본</b> · 공고문 이름으로 폴더를 복사해 요구된 순서대로 번호를 붙입니다.</div></li><li><div><b>제출 전 대조</b> · 신청서의 이름·주소·면적·금액이 증빙과 같은지 가족 2명이 교차 확인합니다.</div></li></ol>
+      <div class="cult-alert"><b>공고마다 요구서류가 다릅니다.</b> 이 페이지는 준비 틀이며 실제 제출은 해당 공고문 체크리스트를 최우선으로 합니다.</div>
+      <div class="manual-colophon">기본서류는 재사용하고 공고별 사본은 따로 보관</div>
+    </article>
+
+    <article class="manual-page" data-page="75" data-label="지원·교육 연간 관리표">
+      <div class="manual-running-head"><span>지원사업 및 교육</span><span>연간 관리</span></div>
+      <div class="cult-kicker">ANNUAL TRACKER · 04</div>
+      <h2 class="cult-title">공고·교육·수료증을<br>작업일지처럼 관리합니다</h2>
+      <div class="cult-months"><div class="cult-month"><b>1~2월</b><span>새해 교육<br>연간 공고 확인</span></div><div class="cult-month"><b>3~6월</b><span>작목·기계 교육<br>신청·보완</span></div><div class="cult-month"><b>7~9월</b><span>온라인 교육<br>중간 실적 정리</span></div><div class="cult-month"><b>10~12월</b><span>정산·사후관리<br>다음 해 준비</span></div></div>
+      <div class="cult-check" style="margin-top:11px">
+        <div><b>공고 기록</b>사업명·연도·담당부서<br>공고일·마감일<br>신청 명의·대상 필지</div><div><b>조건</b>보조·융자·자부담<br>의무교육·면적·연령<br>사전구매 제한</div>
+        <div><b>진행</b>문의일·담당자 답변<br>제출일·보완일<br>선정·탈락·이유</div><div><b>교육</b>과정명·기관·시간<br>수료일·수료증 파일<br>농장에 적용할 한 가지</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>월 1회 확인일</b> · 매월 첫째 주처럼 날짜를 정해 문경시 공고·AgriX·농업교육포털을 확인합니다.</div></li><li><div><b>교육 후 24시간 안에</b> · 배운 내용 중 문희농원에서 시험할 한 가지와 주의점 한 가지를 작업일지에 적습니다.</div></li><li><div><b>탈락 기록도 보관</b> · 자격 미달·서류 누락·우선순위 부족을 적어 다음 공고의 준비자료로 씁니다.</div></li></ol>
+      <div class="cult-alert danger"><b>지원금은 ‘공짜 장비’가 아닙니다.</b> 자부담·의무사용·실적보고·현장점검·환수 조건을 가족 모두가 확인한 뒤 신청합니다.</div>
+      <div class="source-index"><b>공식 확인처</b><br><a href="https://www.agrix.go.kr/" target="_blank" rel="noopener">AgriX 맞춤형 사업안내</a> · <a href="https://edu.agriedu.net/" target="_blank" rel="noopener">농업교육포털</a> · 농업교육 상담 1811-8656</div>
+      <div class="manual-colophon">MUNHUI FARM · SUPPORT TRACKER</div>
+    </article>
+
+    <article class="manual-page" data-page="76" data-label="PART 10 작업기록">
+      <div class="manual-running-head"><span>문희농원 농업 실무 매뉴얼</span><span>PART 10</span></div>
+      <div class="part-number">PART 10.</div><h2 class="part-title">작업기록</h2>
+      <p class="part-topics">(하루 작업 · 농약·비료 · 관수·병해충 · 수확·비용 · 연말정리)</p>
+      <p class="part-intro">완벽한 일기보다 다음 사람이 같은 작업을 재현하고, 이상이 생겼을 때 원인을 거슬러 찾을 수 있는 기록을 남깁니다.</p>
+      <p class="chapter-label">번호를 누르면 해당 페이지로 이동합니다</p><ol class="chapter-index"><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(77)"><span>하루 작업일지 작성법</span><span class="chapter-jump-page">77쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(78)"><span>농약·비료·자재 기록</span><span class="chapter-jump-page">78쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(79)"><span>관수·병해충·사진 기록</span><span class="chapter-jump-page">79쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(80)"><span>수확·비용·연말 결산</span><span class="chapter-jump-page">80쪽 ›</span></button></li></ol>
+      <div class="manual-colophon">MUNHUI FARM · WORK RECORDS</div>
+    </article>
+
+    <article class="manual-page" data-page="77" data-label="하루 작업일지 작성법">
+      <div class="manual-running-head"><span>작업기록</span><span>하루 일지</span></div>
+      <div class="cult-kicker">DAILY LOG · 01</div>
+      <h2 class="cult-title">작업 직후 3분 안에<br>여섯 가지만 적습니다</h2>
+      <div class="cult-check">
+        <div><b>언제·어디서</b>날짜·시작/종료 시간<br>필지·두둑·나무 번호<br>날씨·비 온 뒤 며칠</div><div><b>무엇을</b>작목·품종·나이<br>작업 종류와 목적<br>작업 전 상태</div>
+        <div><b>누가</b>작업자 이름<br>함께 작업한 사람<br>교육·주의사항 전달 여부</div><div><b>어떻게</b>도구·장비·설정<br>작업 범위·수량<br>평소와 다르게 한 점</div>
+        <div><b>얼마나</b>작업시간·면적·포기 수<br>물·비료·농약·자재 사용량<br>남은 재고</div><div><b>결과·다음 일</b>완료·미완료·이상<br>다시 볼 날짜<br>사진 2~3장</div>
+      </div>
+      <div class="cult-box" style="margin-top:11px"><h3>좋은 한 줄 예시</h3><p>“5월 18일 오전, 중앙밭 개미취 2두둑 첫 수확. 아버지와 1시간 20분, 18kg. 저지대 7포기 황화 사진 기록, 비료는 주지 않고 배수 확인을 5월 20일에 다시 하기로 함.”</p></div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>작업 전 사진</b> · 전체 위치가 보이는 사진 한 장과 문제 부위 가까운 사진 한 장을 찍습니다.</div></li><li><div><b>작업 후 사진</b> · 같은 방향에서 다시 찍고 말뚝·손·자 등 크기 비교 기준을 넣습니다.</div></li><li><div><b>다음 확인일</b> · 비료·농약·관수는 1~14일 안의 재확인 날짜를 반드시 지정합니다.</div></li></ol>
+      <div class="cult-alert"><b>‘평소대로’라고만 쓰지 않습니다.</b> 다음 사람이 알 수 있도록 제품·양·시간·구역을 숫자로 남깁니다.</div>
+      <div class="manual-colophon">날짜 · 필지 · 작목 · 작업 · 양 · 다음 확인일</div>
+    </article>
+
+    <article class="manual-page" data-page="78" data-label="농약·비료·자재 기록">
+      <div class="manual-running-head"><span>작업기록</span><span>농약·비료·자재</span></div>
+      <div class="cult-kicker">INPUT RECORD · 02</div>
+      <h2 class="cult-title">투입 자재는 봉지 사진과<br>실제 사용량을 함께</h2>
+      <div class="cult-check">
+        <div><b>농약</b>제품명·품목명·작용기작<br>작물·병해충·희석배수<br>물량·약량·면적·사용 횟수</div><div><b>농약 안전</b>살포일·날씨·작업자<br>수확 전 사용금지 기간<br>수확 가능일·보호구·약해</div>
+        <div><b>비료</b>제품명·N-P₂O₅-K₂O 성분<br>대상 작목·필지·면적<br>제품량·주는 위치·방법</div><div><b>비료 판단</b>왜 줬는지 근거<br>토양·잎·수세·착과 상태<br>7~14일 뒤 반응</div>
+        <div><b>기타 자재</b>퇴비·멀칭·유인끈·봉지<br>규격·수량·구매처·단가<br>설치 위치와 교체일</div><div><b>재고</b>구매·사용·남은 양<br>유효기간·용기 손상<br>보관함 위치</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>사용 전</b> · 제품 앞·뒤 라벨, 제조번호·유효기간, 계량한 양을 사진으로 남깁니다.</div></li><li><div><b>사용 중</b> · 실제 물통 수·살포 면적·남은 양을 적어 계산량과 차이를 확인합니다.</div></li><li><div><b>사용 후</b> · 재고를 바로 차감하고 같은 제품의 누적 사용 횟수와 다음 사용 가능 여부를 표시합니다.</div></li></ol>
+      <div class="cult-alert danger"><b>처방량과 실제 사용량을 따로 적습니다.</b> 계획대로 하지 못했거나 중간에 중단한 경우 그 이유와 남은 희석액·비료 처리도 기록합니다.</div>
+      <div class="manual-colophon">라벨 사진 + 계산량 + 실제량 + 반응 기록</div>
+    </article>
+
+    <article class="manual-page" data-page="79" data-label="관수·병해충·사진 기록">
+      <div class="manual-running-head"><span>작업기록</span><span>관찰·사진</span></div>
+      <div class="cult-kicker">OBSERVATION LOG · 03</div>
+      <h2 class="cult-title">문제가 생긴 위치와<br>번지는 속도를 남깁니다</h2>
+      <div class="cult-check">
+        <div><b>관수</b>구역·시간·물량·방법<br>관수 전 속흙·아침 잎<br>관수 후 젖은 깊이·회복</div><div><b>강우·배수</b>비 온 날짜와 대략 양<br>물고임 위치·지속시간<br>배수로 조치와 결과</div>
+        <div><b>병해충</b>첫 발견일·작물·부위<br>증상 포기 수·분포<br>벌레·알·배설물·반점 사진</div><div><b>진단 과정</b>후보 병해충·확인처<br>물·비료·약해와 구분한 근거<br>문의한 담당자·답변</div>
+        <div><b>사진 3장</b>농장 전체 위치<br>포기 전체와 정상 포기 비교<br>증상 가까이·잎 앞뒤</div><div><b>경과</b>2~3일·7일 뒤 같은 위치<br>늘어난 포기 수<br>조치·효과·새 증상</div>
+      </div>
+      <div class="cult-box" style="margin-top:11px"><h3>사진 파일명 예시</h3><p><b>2026-06-18_수국밭_3번두둑_잎반점_작업전.jpg</b><br>날짜·필지·위치·증상·작업 전후를 넣으면 나중에 검색하기 쉽습니다.</p></div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>지도 표시</b> · 필지 그림에 시작 지점과 번지는 방향을 표시합니다.</div></li><li><div><b>정상 비교</b> · 같은 품종·나이의 정상 포기를 함께 찍어 색과 크기를 비교합니다.</div></li><li><div><b>한 번에 한 조치</b> · 가능하면 물·비료·농약을 동시에 바꾸지 않아 어떤 조치가 효과였는지 남깁니다.</div></li></ol>
+      <div class="cult-alert danger"><b>과수화상병 등 신고 대상이 의심되면 임의로 이동·전정하지 않습니다.</b> 위치와 사진을 남기고 농업기술센터의 지시를 따릅니다.</div>
+      <div class="manual-colophon">위치 · 범위 · 정상 비교 · 같은 자리 재촬영</div>
+    </article>
+
+    <article class="manual-page" data-page="80" data-label="수확·비용·연말 결산">
+      <div class="manual-running-head"><span>작업기록</span><span>수확·결산</span></div>
+      <div class="cult-kicker">HARVEST &amp; REVIEW · 04</div>
+      <h2 class="cult-title">수확량·품질·노동시간을<br>한 해 관리와 연결합니다</h2>
+      <div class="cult-check">
+        <div><b>수확</b>작목·품종·필지·수확일<br>총중량·상/중/하 등급<br>가정용·판매·폐기</div><div><b>품질</b>크기·색·맛·상처·병반<br>저장 중 무름·감모<br>고객·가족 의견</div>
+        <div><b>판매</b>판매처·수량·단가·매출<br>포장·택배·수수료<br>미수금·반품</div><div><b>비용</b>묘목·비료·농약·자재<br>연료·수리·임차·포장<br>가족·고용 노동시간</div>
+        <div><b>연말 비교</b>전년 대비 수확·품질·비용<br>문제 필지·병해충·기상<br>가장 효과 있었던 작업</div><div><b>다음 해</b>유지할 것 3개<br>바꿀 것 3개<br>교육·시설·지원 필요 3개</div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>수확 당일</b> · 계량 사진과 등급별 수량을 남기고 마지막 농약일과 수확 가능일을 다시 확인합니다.</div></li><li><div><b>월말</b> · 작목별 작업시간·자재비·수확량을 합계해 많이 들고 효과가 적은 작업을 찾습니다.</div></li><li><div><b>연말</b> · 작업일지 파일을 백업하고 사진 폴더와 자재 재고표를 같은 날짜로 보관합니다.</div></li></ol>
+      <div class="cult-alert"><b>수확량이 늘어도 노동시간·불량·비용이 더 늘면 개선이 필요합니다.</b> 수량만이 아니라 품질과 투입을 함께 비교합니다.</div>
+      <div class="manual-colophon">MUNHUI FARM · YEAR-END REVIEW</div>
+    </article>
+
+    <article class="manual-page" data-page="81" data-label="부록 현장 참고표">
+      <div class="manual-running-head"><span>문희농원 농업 실무 매뉴얼</span><span>APPENDIX</span></div>
+      <div class="part-number">부록</div><h2 class="part-title">현장<br>참고표</h2>
+      <p class="part-topics">(농약 희석 · 면적·비료 환산 · 현장진단 · 연락처 · 용어)</p>
+      <p class="part-intro">작업 중 계산하거나 판단해야 할 때 본문을 다시 찾지 않고 바로 확인하도록 핵심표를 모았습니다.</p>
+      <p class="chapter-label">번호를 누르면 해당 페이지로 이동합니다</p><ol class="chapter-index"><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(82)"><span>농약 희석배수 빠른표</span><span class="chapter-jump-page">82쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(83)"><span>면적·비료량 환산표</span><span class="chapter-jump-page">83쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(84)"><span>현장 증상 빠른 진단표</span><span class="chapter-jump-page">84쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(85)"><span>긴급·공식 연락처</span><span class="chapter-jump-page">85쪽 ›</span></button></li><li class="chapter-link"><button type="button" class="chapter-jump" onclick="goToManualPrintedPage(86)"><span>초보 농업용어와 농장 메모</span><span class="chapter-jump-page">86쪽 ›</span></button></li></ol>
+      <div class="manual-colophon">MUNHUI FARM · QUICK REFERENCE</div>
+    </article>
+
+    <article class="manual-page" data-page="82" data-label="농약 희석배수 빠른표">
+      <div class="manual-running-head"><span>현장 참고표</span><span>희석배수</span></div>
+      <div class="cult-kicker">DILUTION TABLE · A1</div>
+      <h2 class="cult-title">물통 용량별<br>필요 약량 빠른표</h2>
+      <p class="cult-lead">라벨에 적힌 희석배수가 맞을 때만 사용합니다. 단위는 액제 mL, 수화제·입상수화제 g 등 제품 표시를 그대로 따릅니다.</p>
+      <section class="dilution-calculator" aria-labelledby="dilutionCalcTitle">
+        <div class="dilution-calc-head"><b id="dilutionCalcTitle">현장 희석 계산기</b><span>양방향 계산</span></div>
+        <div class="dilution-presets" aria-label="희석배수 빠른 선택">
+          <button type="button" class="dilution-preset" data-rate="500" onclick="setDilutionRate(500)">500배</button>
+          <button type="button" class="dilution-preset active" data-rate="1000" onclick="setDilutionRate(1000)">1,000배</button>
+          <button type="button" class="dilution-preset" data-rate="1500" onclick="setDilutionRate(1500)">1,500배</button>
+          <button type="button" class="dilution-preset" data-rate="2000" onclick="setDilutionRate(2000)">2,000배</button>
+        </div>
+        <div class="dilution-grid">
+          <label class="dilution-field"><span>① 희석배수</span><input id="dilutionRate" type="number" min="1" step="1" value="1000" inputmode="decimal" aria-describedby="dilutionHelp"></label>
+          <label class="dilution-field"><span>② 약제 단위</span><select id="dilutionUnit" aria-label="약제 단위"><option value="mL">mL · 액제</option><option value="g">g · 수화제</option></select></label>
+          <label class="dilution-field"><span>③ 물의 양 (L)</span><input id="dilutionWater" type="number" min="0" step="0.1" inputmode="decimal" placeholder="예: 20"></label>
+          <label class="dilution-field"><span>④ 약제량</span><input id="dilutionChemical" type="number" min="0" step="0.1" inputmode="decimal" placeholder="예: 20"></label>
+        </div>
+        <div class="dilution-actions">
+          <button type="button" class="dilution-calc-btn" onclick="calculateDilution('chemical')">약제량 구하기</button>
+          <button type="button" class="dilution-calc-btn secondary" onclick="calculateDilution('water')">물 양 구하기</button>
+          <button type="button" class="dilution-calc-btn reset" onclick="resetDilutionCalculator()">초기화</button>
+        </div>
+        <div id="dilutionResult" class="dilution-result" role="status" aria-live="polite">희석배수와 알고 있는 값 하나를 입력한 뒤 계산 버튼을 누르세요.</div>
+        <p id="dilutionHelp" class="dilution-help">약제량을 구할 때는 물의 양을, 물의 양을 구할 때는 가지고 있는 약제량을 입력합니다. 소수점 입력도 가능합니다.</p>
+      </section>
+      <div class="cult-check">
+        <div><b>물 1L</b>500배 2mL(g)<br>1,000배 1mL(g)<br>2,000배 0.5mL(g)</div><div><b>물 5L</b>500배 10mL(g)<br>1,000배 5mL(g)<br>2,000배 2.5mL(g)</div>
+        <div><b>물 10L</b>500배 20mL(g)<br>1,000배 10mL(g)<br>2,000배 5mL(g)</div><div><b>물 20L</b>500배 40mL(g)<br>1,000배 20mL(g)<br>2,000배 10mL(g)</div>
+      </div>
+      <div class="cult-box" style="margin-top:11px"><h3>계산식</h3><p><b>필요 약량 = 물의 양(L) × 1,000 ÷ 희석배수</b><br>예: 물 15L에 1,500배 → 15×1,000÷1,500 = 10mL 또는 10g.</p></div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>계량</b> · 뚜껑이 아니라 전용 주사기·계량컵·저울을 사용합니다.</div></li><li><div><b>혼용</b> · 각 제품을 자기 희석배수로 계산하며, 혼용표에 없는 조합은 섞지 않습니다.</div></li><li><div><b>기록</b> · 물통 수와 실제 사용량을 적어 남은 양·살포면적을 계산합니다.</div></li></ol>
+      <div class="cult-alert danger"><b>이 표보다 제품 라벨이 우선입니다.</b> 입제처럼 물에 희석하지 않는 제품, 10a당 사용량으로 표시된 제품에는 이 표를 적용하지 않습니다.</div>
+      <div class="cult-source">확인: <a href="https://psis.rda.go.kr/psis/agc/res/agchmRegistStusLst.ps" target="_blank" rel="noopener">농약안전정보시스템</a></div>
+    </article>
+
+    <article class="manual-page" data-page="83" data-label="면적·비료량 환산표">
+      <div class="manual-running-head"><span>현장 참고표</span><span>면적·비료</span></div>
+      <div class="cult-kicker">AREA &amp; FERTILIZER · A2</div>
+      <h2 class="cult-title">평·㎡·10a와<br>비료 제품량 환산</h2>
+      <div class="cult-check">
+        <div><b>1평</b>약 3.3058㎡</div><div><b>100평</b>약 330.6㎡</div>
+        <div><b>약 302.5평</b>1,000㎡ = 10a</div><div><b>약 3,025평</b>10,000㎡ = 1ha</div>
+      </div>
+      <div class="cult-box" style="margin-top:11px"><h3>면적에 맞춘 비료량</h3><p><b>내 밭 제품량 = 10a 기준 제품량 × 내 면적(㎡) ÷ 1,000</b><br>예: 10a당 20kg 제품을 250㎡에 사용 → 20×250÷1,000 = 5kg.</p></div>
+      <div class="cult-box" style="margin-top:10px"><h3>성분량을 제품량으로</h3><p><b>제품량 = 필요한 성분량 ÷ 제품 성분비</b><br>질소 2kg가 필요하고 제품 질소가 20%라면 2÷0.20 = 10kg.</p></div>
+      <div class="cult-check" style="margin-top:10px"><div><b>복합비료 표시</b>20-10-10이라면 제품 100kg 중<br>질소 20kg·인산 10kg·칼리 10kg</div><div><b>반드시 차감</b>이미 준 퇴비·밑거름·웃거름<br>같은 성분이 겹치지 않게 계산</div></div>
+      <div class="cult-alert danger"><b>kg/10a와 kg/필지, g/포기를 섞지 않습니다.</b> 면적·제품 보증성분·실제 사용량을 같은 줄에 적고 계산한 사람과 확인한 사람을 남깁니다.</div>
+      <div class="cult-source">비료 처방: <a href="https://soil.rda.go.kr/sibi/cropSibiPrescript.do" target="_blank" rel="noopener">농촌진흥청 흙토람</a></div>
+    </article>
+
+    <article class="manual-page" data-page="84" data-label="현장 증상 빠른 진단표">
+      <div class="manual-running-head"><span>현장 참고표</span><span>증상 진단</span></div>
+      <div class="cult-kicker">FIELD TRIAGE · A3</div>
+      <h2 class="cult-title">증상을 보면<br>첫 조치부터 고릅니다</h2>
+      <div class="cult-check">
+        <div><b>잎이 노랗다</b>아랫잎/새잎 구분 → 속흙·뿌리 → 포장 전체/일부<br><strong>물고임이면 비료 금지</strong></div><div><b>잎이 처진다</b>아침 회복 → 속흙 건조/과습 → 뿌리 냄새<br><strong>젖어 있으면 물 금지</strong></div>
+        <div><b>반점·곰팡이</b>잎 앞뒤·번지는지 → 정상 잎 비교 → 사진도감<br><strong>병명·등록 확인 전 농약 금지</strong></div><div><b>구멍·끈적임</b>벌레·알·배설물 → 잎 뒷면 → 피해 포기 수<br><strong>해충 이름에 맞는 약 선택</strong></div>
+        <div><b>잎끝이 탄다</b>최근 비료·농약 → 가뭄·강광 → 여러 잎 동시 발생<br><strong>추가 비료·농약 중단</strong></div><div><b>밑동이 무른다</b>관수·강우 → 악취·갈색 뿌리 → 주변 포기<br><strong>격리·배수·관수 중단</strong></div>
+        <div><b>꽃·열매가 적다</b>품종·전정·서리 → 수분·착과량 → 질소 과다<br><strong>비료부터 늘리지 않기</strong></div><div><b>나무가 한쪽만 약하다</b>경사·배수·뿌리 손상 → 줄기 상처 → 해충 구멍<br><strong>구역 원인 먼저 확인</strong></div>
+      </div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>정상과 비교</b> · 같은 품종·나이의 정상 포기를 함께 봅니다.</div></li><li><div><b>최근 14일 확인</b> · 비·관수·비료·농약·전정·이식 기록을 거슬러 봅니다.</div></li><li><div><b>한 가지 조치</b> · 응급상황이 아니면 한 번에 하나만 바꾸고 같은 위치를 다시 촬영합니다.</div></li></ol>
+      <div class="cult-alert danger"><b>사람 중독·과수화상병 의심·대규모 급성 피해는 관찰만 하지 않습니다.</b> 작업을 멈추고 85쪽 공식 연락처로 즉시 문의합니다.</div>
+      <div class="manual-colophon">증상 → 흙·뿌리 → 발생범위 → 최근 작업 → 한 가지 조치</div>
+    </article>
+
+    <article class="manual-page" data-page="85" data-label="긴급·공식 연락처">
+      <div class="manual-running-head"><span>현장 참고표</span><span>연락처</span></div>
+      <div class="cult-kicker">CONTACTS · A4</div>
+      <h2 class="cult-title">긴급할 때와<br>기술 문의를 구분합니다</h2>
+      <div class="cult-check">
+        <div><b>사람 응급·화재</b><strong>119</strong><br>농약 노출·호흡곤란·의식저하<br>제품 라벨·용기를 의료진에게 전달</div><div><b>농업기술 상담</b><strong>1544-8572</strong><br>농촌진흥청 농업기술상담<br>작목·증상·사진·최근 작업 준비</div>
+        <div><b>병해충 시스템</b><strong>063-238-1055</strong><br>국가농작물병해충관리시스템 문의<br>발생정보·도감·시스템 이용</div><div><b>농림사업</b><strong>1588-6830</strong><br>AgriX 시스템 문의<br>공고의 실제 담당부서는 별도 확인</div>
+        <div><b>농업교육</b><strong>1811-8656</strong><br>농업교육포털 상담<br>수강·수료·온라인 교육</div><div><b>농약 빈 용기</b><strong>1661-6620</strong><br>한국환경공단 수거 문의<br>지역 배출방법 재확인</div>
+      </div>
+      <div class="cult-box" style="margin-top:11px"><h3>문희농원용 연락처 · 다음 수정 때 입력</h3><p>문경시 농업기술센터 담당팀: ____________________<br>가은읍 농업인상담소/행정복지센터: ____________________<br>주 거래 농협·농약사: ____________________<br>가족 비상연락: ____________________</p></div>
+      <ol class="cult-flow" style="margin-top:10px"><li><div><b>문의 전</b> · 작목·필지·첫 발생일·범위·사진·최근 비료·농약·관수를 준비합니다.</div></li><li><div><b>문의 후</b> · 담당자 이름·날짜·권고 내용·다시 확인할 날을 작업일지에 남깁니다.</div></li></ol>
+      <div class="cult-alert danger"><b>인터넷 답변만 보고 신고 대상 병해충을 이동·폐기·전정하지 않습니다.</b> 현장을 보존하고 관할 기관의 지시를 따릅니다.</div>
+      <div class="manual-colophon">전화번호는 매년 초 공식 홈페이지에서 재확인</div>
+    </article>
+
+    <article class="manual-page" data-page="86" data-label="초보 농업용어와 농장 메모">
+      <div class="manual-running-head"><span>현장 참고표</span><span>용어·메모</span></div>
+      <div class="cult-kicker">GLOSSARY &amp; NOTES · A5</div>
+      <h2 class="cult-title">처음 보는 농업용어<br>짧게 정리</h2>
+      <div class="cult-check">
+        <div><b>밑거름(기비)</b>심기 전·봄 생육 전 토양에 미리 주는 비료</div><div><b>웃거름(추비)</b>생육 중 부족할 때 나누어 보충하는 비료</div>
+        <div><b>N-P₂O₅-K₂O</b>비료의 질소-인산-칼리 보증성분 표시</div><div><b>pH · EC</b>토양 산도 · 물속 염류 농도의 간접 지표</div>
+        <div><b>관수 · 배수</b>물을 공급함 · 남는 물을 빠지게 함</div><div><b>활착 · 수세</b>심은 뒤 뿌리가 자리잡음 · 나무가 자라는 힘</div>
+        <div><b>적과 · 도장지</b>열매를 솎음 · 지나치게 강하게 자란 가지</div><div><b>약해</b>농약·비료가 작물에 일으킨 피해</div>
+        <div><b>희석배수</b>농약을 물에 얼마나 묽게 타는지 나타낸 값</div><div><b>작용기작</b>약이 병해충에 작용하는 방식과 저항성 구분 표시</div>
+        <div><b>안전사용시기</b>수확 전 마지막으로 사용할 수 있는 제한 시점</div><div><b>등록 농약</b>해당 작물·병해충·방법에 사용이 허용된 농약</div>
+      </div>
+      <div class="cult-box" style="margin-top:11px"><h3>문희농원 맞춤 항목 · 다음 수정 때 채우기</h3><p>필지별 실제 면적·토질·경사 / 작물 품종·나이·포기 수 / 물 공급원·호스 용량 / 평소 사용 비료·농약 / 수확·판매 기준 / 가족별 작업 역할 / 오미자 등 추가 작목.</p></div>
+      <div class="cult-alert"><b>이 완성본은 기본 골격입니다.</b> 한 해 실제 기록이 쌓이면 월별 시기·비료량·관수 간격·병해충 우선순위·연락처를 문희농원 값으로 교체합니다.</div>
+      <div class="source-index"><b>주요 공식 자료</b><br><a href="https://www.nongsaro.go.kr/portal/portalMain.ps" target="_blank" rel="noopener">농사로</a> · <a href="https://soil.rda.go.kr/" target="_blank" rel="noopener">흙토람</a> · <a href="https://psis.rda.go.kr/" target="_blank" rel="noopener">농약안전정보</a> · <a href="https://ncpms.rda.go.kr/npms/MberInfoCM.np" target="_blank" rel="noopener">병해충관리시스템</a></div>
+      <div class="manual-colophon">MUNHUI FARM · COMPLETE BASIC MANUAL</div>
+    </article>
+  </div>
+
+  <div class="manual-book-controls" aria-label="매뉴얼 페이지 이동">
+    <button id="manualPrev" type="button" class="manual-turn" onclick="changeManualPage(-1)">‹ 이전</button>
+    <div id="manualProgress" class="manual-progress">1 / 86<small>표지</small></div>
+    <button id="manualNext" type="button" class="manual-turn" onclick="changeManualPage(1)">다음 ›</button>
+  </div>
+</section>
+
 </main>
 
 <nav>
@@ -132,23 +1711,11 @@
 <button data-screen="journal" onclick="showScreen('journal')"><span>📅</span>달력</button>
 <button data-screen="search" onclick="showScreen('search')"><span>🔎</span>검색</button>
 <button data-screen="stats" onclick="showScreen('stats')"><span>📊</span>통계</button>
+<button data-screen="manual" onclick="openManualContents()"><span>📘</span>매뉴얼</button>
 </nav>
 </div>
 
 <div id="photoModal" class="modal" onclick="closePhotoModal(event)"><div class="modal-card"><div class="modal-head"><h3>사진 보기</h3><button class="close" onclick="closePhotoModal()">×</button></div><img id="largePhoto" style="width:100%;border-radius:15px" alt="작업 사진"></div></div>
-<div id="statsGallery" class="stats-gallery">
-  <div class="stats-gallery-head">
-    <button type="button" onclick="closeStatsGallery()">닫기</button>
-    <div>
-      <h3 id="statsGalleryTitle">저장 사진</h3>
-      <small id="statsGalleryCount"></small>
-    </div>
-    <span></span>
-  </div>
-  <div class="stats-gallery-body">
-    <div id="statsGalleryGrid" class="stats-gallery-grid"></div>
-  </div>
-</div>
 <div id="galleryReview" class="gallery-review">
   <div class="gallery-review-head">
     <button type="button" onclick="cancelGallerySelection()">취소</button>
@@ -158,19 +1725,6 @@
   <div class="gallery-review-body">
     <div id="galleryReviewNote" class="gallery-review-note"></div>
     <div id="galleryReviewGrid" class="gallery-review-grid"></div>
-  </div>
-</div>
-<div id="exitBanner" class="exit-banner" role="dialog" aria-modal="true" aria-labelledby="exitBannerTitle">
-  <div class="exit-banner-card">
-    <div class="exit-banner-icon">🌳</div>
-    <div class="exit-banner-text">
-      <strong id="exitBannerTitle">앱을 종료하시겠습니까?</strong>
-      <span>저장하지 않은 내용이 있다면 먼저 저장해 주세요.</span>
-    </div>
-    <div class="exit-banner-actions">
-      <button type="button" class="exit-cancel" onclick="cancelAppExit()">취소</button>
-      <button type="button" class="exit-confirm" onclick="confirmAppExit()">종료</button>
-    </div>
   </div>
 </div>
 <div id="toast" class="toast"></div><div id="loading" class="loading">처리 중입니다…</div>
