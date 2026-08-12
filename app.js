@@ -12,6 +12,8 @@ function getDeviceId(){
 }
 function makeRecordUid(){return getDeviceId()+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)}
 const SHEETS_API='https://script.google.com/macros/s/AKfycbwD42304GtXO-iVt8vpnu7iztA6Y18_uzNdFkPnCrpVqHweQOWc0gs4eY9MDIx40j18sA/exec';
+let vietnameseTranslationTimer=null;
+let latestVietnameseTranslation='';
 function setSyncStatus(message,state='checking'){
  const el=document.getElementById('syncStatus');if(!el)return;
  el.textContent=message;el.dataset.state=state;
@@ -26,6 +28,41 @@ async function sheetSave(entry){
  let data;
  try{data=JSON.parse(body)}catch(error){return}
  if(data && data.ok===false)throw new Error(data.message||'시트 저장 실패');
+}
+async function translateToVietnamese(text){
+ const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'translateVietnamese',text})});
+ if(!r.ok)throw new Error('번역 요청 실패');
+ const body=await r.text();
+ let data;try{data=JSON.parse(body)}catch(e){throw new Error('번역 응답을 확인할 수 없습니다')}
+ if(!data.ok||!data.translation)throw new Error(data.message||'번역하지 못했습니다');
+ return data.translation;
+}
+function setVietnameseTranslation(message,state=''){
+ const result=document.getElementById('vietnameseTranslation');
+ if(!result)return;
+ result.textContent=message;result.className=`translation-result${state?` ${state}`:''}`;
+ document.getElementById('copyVietnameseButton').disabled=!latestVietnameseTranslation;
+}
+function queueVietnameseTranslation(){
+ const text=document.getElementById('koreanTaskText')?.value.trim()||'';
+ clearTimeout(vietnameseTranslationTimer);latestVietnameseTranslation='';
+ if(!text){setVietnameseTranslation('한국어로 오늘 할 일을 입력하세요.');return}
+ if(text.length<2){setVietnameseTranslation('두 글자 이상 입력하면 번역합니다.');return}
+ setVietnameseTranslation('베트남어로 번역하는 중…','loading');
+ vietnameseTranslationTimer=setTimeout(async()=>{
+  try{const translation=await translateToVietnamese(text);latestVietnameseTranslation=translation;setVietnameseTranslation(translation)}
+  catch(error){setVietnameseTranslation('번역 연결에 실패했습니다. 인터넷과 공용 시트 연결을 확인해 주세요.','error')}
+ },600);
+}
+function clearVietnameseTranslation(){
+ clearTimeout(vietnameseTranslationTimer);latestVietnameseTranslation='';
+ const input=document.getElementById('koreanTaskText');if(input)input.value='';
+ setVietnameseTranslation('한국어로 오늘 할 일을 입력하세요.');
+}
+async function copyVietnameseTranslation(){
+ if(!latestVietnameseTranslation)return;
+ try{await navigator.clipboard.writeText(latestVietnameseTranslation);showToast('베트남어를 복사했습니다')}
+ catch(error){showToast('복사하지 못했습니다. 번역문을 길게 눌러 복사해 주세요.')}
 }
 async function sheetDelete(recordUid){
  const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'delete',record:{recordUid}})});

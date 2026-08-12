@@ -20,6 +20,8 @@ function doPost(e) {
     else if (data.action === 'delete') deleteRecord_(data.record && data.record.recordUid);
     else if (data.action === 'uploadPhoto') {
       return response_({ ok: true, url: uploadPhoto_(data.photo || {}) });
+    } else if (data.action === 'translateVietnamese') {
+      return response_({ ok: true, translation: translateVietnamese_(data.text) });
     } else {
       throw new Error('알 수 없는 요청입니다.');
     }
@@ -27,6 +29,13 @@ function doPost(e) {
   } catch (error) {
     return response_({ ok: false, message: error.message });
   }
+}
+
+function translateVietnamese_(text) {
+  const source = String(text || '').trim();
+  if (!source) throw new Error('번역할 오늘 할 일을 입력해 주세요.');
+  if (source.length > 1500) throw new Error('한 번에 1,500자까지 번역할 수 있습니다.');
+  return LanguageApp.translate(source, 'ko', 'vi');
 }
 
 function response_(data) {
