@@ -19,7 +19,14 @@ function setSyncStatus(message,state='checking'){
 async function sheetSave(entry){
  const record={...entry,photos:[]};
  const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'save',record})});
- const data=await r.json();if(!data.ok)throw new Error(data.message||'시트 저장 실패');
+ // Apps Script는 저장을 끝낸 뒤 빈 응답 또는 JSON이 아닌 응답을 돌려줄 때가 있습니다.
+ // 이 경우 실제로는 시트에 저장됐는데도 r.json()이 실패해 '휴대폰에만 저장됨'으로 잘못 표시됐습니다.
+ if(!r.ok)throw new Error('시트 저장 요청 실패');
+ const body=await r.text();
+ if(!body.trim())return;
+ let data;
+ try{data=JSON.parse(body)}catch(error){return}
+ if(data && data.ok===false)throw new Error(data.message||'시트 저장 실패');
 }
 async function sheetDelete(recordUid){
  const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'delete',record:{recordUid}})});
@@ -376,128 +383,3 @@ async function init(){
  try{await openDB();await migrateOldData();await syncFromSheet()}catch(e){alert('기기 내부 데이터베이스를 열지 못했습니다. 일반 브라우저에서 다시 열어 주세요.')}
 }
 init();
-
-async function buildBackupPayload(){
- const entries=await getAllEntries();
- return {
-  app:'문희농원 작업일지',version:'2.6',exportedAt:new Date().toISOString(),deviceId:getDeviceId(),
-  entries:entries.map(x=>({...x,recordUid:x.recordUid||('LEGACY-'+(x.deviceId||getDeviceId())+'-'+x.id),deviceId:x.deviceId||getDeviceId()})),
-  favorites:getFavorites()
- };
-}
-function backupFilename(){
- const d=new Date(),pad=n=>String(n).padStart(2,'0');
- return `문희농원_가족데이터_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.json`;
-}
-function downloadDataFile(json,filename){
- const blob=new Blob([json],{type:'application/json;charset=utf-8'});
- const url=URL.createObjectURL(blob);
- const a=document.createElement('a');
- a.href=url;a.download=filename;a.style.display='none';
- document.body.appendChild(a);a.click();a.remove();
- setTimeout(()=>URL.revokeObjectURL(url),1500);
-}
-async function shareBackup(){
- let payload=null,json='',filename='';
- try{
-  setLoading(true);
-  payload=await buildBackupPayload();
-  json=JSON.stringify(payload);
-  filename=backupFilename();
-
-  if(window.AndroidShare&&typeof window.AndroidShare.shareJson==='function'){
-   window.AndroidShare.shareJson(json,filename);
-   showToast(`작업 ${payload.entries.length}건 공유 화면을 엽니다`);
-   return;
-  }
-
-  const file=new File([json],filename,{type:'application/json'});
-  const canShareFile=!!(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]}));
-  if(canShareFile){
-   try{
-    await navigator.share({title:'문희농원 작업일지 데이터',text:'가족 작업일지 취합용 데이터입니다.',files:[file]});
-    return;
-   }catch(shareErr){
-    if(shareErr&&shareErr.name==='AbortError')return;
-    console.warn('파일 직접 공유 실패, 다운로드로 전환',shareErr);
-   }
-  }
-
-  downloadDataFile(json,filename);
-  alert('카카오톡 직접 공유가 지원되지 않아 데이터 파일을 저장했습니다.\n\n카카오톡 → + 버튼 → 파일에서 방금 저장한 문희농원 파일을 선택해 보내주세요.');
- }catch(err){
-  console.error(err);
-  if(json&&filename){
-   try{downloadDataFile(json,filename);alert('직접 공유 대신 데이터 파일을 저장했습니다. 카카오톡에서 파일로 첨부해 주세요.');return}catch(e){}
-  }
-  alert('데이터 파일을 만드는 중 문제가 발생했습니다.');
- }finally{setLoading(false)}
-}
-
-async function exportBackup(){
- try{
-  setLoading(true);
-  const payload=await buildBackupPayload();
-  const entries=payload.entries;
-  const blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  const d=new Date();
-  const pad=n=>String(n).padStart(2,'0');
-  a.href=url;
-  a.download=`문희농원_작업일지_백업_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-  showToast(`작업 ${entries.length}건을 백업했습니다`);
- }catch(err){
-  console.error(err);
-  alert('백업 파일을 만드는 중 문제가 발생했습니다.');
- }finally{
-  setLoading(false);
- }
-}
-
-async function importBackup(event){
- const file=event.target.files&&event.target.files[0];
- if(!file)return;
- try{
-  const raw=await file.text();
-  const data=JSON.parse(raw);
-  if(!data||data.app!=='문희농원 작업일지'||!Array.isArray(data.entries)){
-   throw new Error('invalid backup');
-  }
-  const ok=confirm(`백업에 작업 ${data.entries.length}건이 있습니다.\n현재 데이터에 추가로 불러올까요?\n\n같은 작업은 중복될 수 있습니다.`);
-  if(!ok){event.target.value='';return}
-  setLoading(true);
-  const current=await getAllEntries();
-  const known=new Set(current.map(x=>x.recordUid||('LEGACY-'+(x.deviceId||'OLD')+'-'+x.id)));
-  let added=0,skipped=0;
-  for(const item of data.entries){
-   const uid=item.recordUid||('LEGACY-'+(item.deviceId||data.deviceId||'IMPORT')+'-'+item.id);
-   if(known.has(uid)){skipped++;continue}
-   const copy={...item,id:Date.now()+added,recordUid:uid,deviceId:item.deviceId||data.deviceId||'IMPORT'};
-   await putEntry(copy);known.add(uid);added++;
-  }
-  if(Array.isArray(data.favorites)){
-   const current=getFavorites();
-   const merged=[...current];
-   for(const fav of data.favorites){
-    if(!merged.some(x=>x.signature===fav.signature))merged.push(fav);
-   }
-   saveFavorites(merged);
-  }
-  event.target.value='';
-  await renderHome();
-  await renderJournal();
-  await renderRecentWorks();
-  showToast(`새 작업 ${added}건 추가 · 중복 ${skipped}건 제외`);
- }catch(err){
-  console.error(err);
-  alert('올바른 문희농원 백업 파일이 아닙니다.');
-  event.target.value='';
- }finally{
-  setLoading(false);
- }
-}

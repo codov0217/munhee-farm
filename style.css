@@ -71,13 +71,6 @@ nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(560px,
 .gallery-review-note{margin-bottom:12px;color:var(--muted);font-size:14px;line-height:1.5}
 
 
-.backup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.backup-btn{border:1px solid var(--line);border-radius:16px;padding:16px 10px;background:white;font-weight:850;line-height:1.45}
-.backup-btn.primary{background:var(--green);border-color:var(--green);color:white}
-.backup-btn.restore{background:#f7f1fb;border-color:#dfd1ea;color:#5f4379}
-.backup-info{margin-top:10px;font-size:13px;line-height:1.55;color:var(--muted)}
-
-
 #manual{margin:-15px;padding:18px 12px 28px;background:#ded8ca;min-height:calc(100vh - 142px)}
 .manual-book{position:relative;max-width:500px;margin:0 auto;perspective:1400px;font-family:"Noto Serif KR","Batang",serif}
 .manual-page{position:relative;display:none;flex-direction:column;width:100%;min-height:clamp(610px,139vw,710px);overflow:hidden;touch-action:pan-y;background:
