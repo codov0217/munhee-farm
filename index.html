@@ -39,6 +39,7 @@
     <div class="translation-head"><span class="translation-icon">🇰🇷</span><div><strong id="translationTitle">오늘 할 일 · 베트남어 전달</strong><small>한국어로 입력하면 베트남어로 바로 번역됩니다</small></div><span class="translation-arrow">🇻🇳</span></div>
     <label class="sr-only" for="koreanTaskText">오늘 할 일 한국어 입력</label>
     <textarea id="koreanTaskText" class="field translation-input" rows="3" placeholder="예: 오전에는 수국밭 잡초를 뽑고, 오후에는 개미취에 물을 주세요." oninput="queueVietnameseTranslation()"></textarea>
+    <div class="voice-input-row"><button id="koreanMicButton" class="btn small secondary mic-button" type="button" onclick="toggleKoreanSpeechInput()" aria-pressed="false">🎙 말하기</button><small id="koreanMicStatus" aria-live="polite">마이크를 누르고 한국어로 말하세요</small></div>
     <div id="vietnameseTranslation" class="translation-result" aria-live="polite">한국어로 오늘 할 일을 입력하세요.</div>
     <div class="back-translation-label">🇻🇳 베트남어를 다시 한국어로 확인</div>
     <div id="koreanBackTranslation" class="translation-result back-translation" aria-live="polite">베트남어 번역 후, 여기에서 전달 뜻을 다시 확인할 수 있습니다.</div>

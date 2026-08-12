@@ -14,6 +14,42 @@ function makeRecordUid(){return getDeviceId()+'-'+Date.now().toString(36)+'-'+Ma
 const SHEETS_API='https://script.google.com/macros/s/AKfycbwD42304GtXO-iVt8vpnu7iztA6Y18_uzNdFkPnCrpVqHweQOWc0gs4eY9MDIx40j18sA/exec';
 let vietnameseTranslationTimer=null;
 let latestVietnameseTranslation='';
+let koreanSpeechRecognition=null;
+let isKoreanSpeechListening=false;
+function updateKoreanMicState(listening,message){
+ isKoreanSpeechListening=listening;
+ const button=document.getElementById('koreanMicButton');
+ const status=document.getElementById('koreanMicStatus');
+ if(button){button.classList.toggle('listening',listening);button.setAttribute('aria-pressed',String(listening));button.textContent=listening?'■ 듣는 중 · 완료':'🎙 말하기'}
+ if(status)status.textContent=message||'마이크를 누르고 한국어로 말하세요';
+}
+function toggleKoreanSpeechInput(){
+ const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Recognition){showToast('이 휴대폰 브라우저는 음성입력을 지원하지 않습니다. 크롬에서 열어 주세요.');return}
+ if(isKoreanSpeechListening&&koreanSpeechRecognition){koreanSpeechRecognition.stop();return}
+ const input=document.getElementById('koreanTaskText');
+ if(!input)return;
+ const original=input.value.trim();
+ const recognition=new Recognition();
+ koreanSpeechRecognition=recognition;
+ recognition.lang='ko-KR';
+ recognition.continuous=false;
+ recognition.interimResults=true;
+ recognition.maxAlternatives=1;
+ recognition.onstart=()=>updateKoreanMicState(true,'듣는 중입니다. 말이 끝나면 자동으로 입력됩니다.');
+ recognition.onresult=event=>{
+  let spoken='';
+  for(let i=event.resultIndex;i<event.results.length;i++)spoken+=event.results[i][0].transcript;
+  input.value=[original,spoken.trim()].filter(Boolean).join(original&&spoken.trim()?' ':'');
+  queueVietnameseTranslation();
+ };
+ recognition.onerror=event=>{
+  const message={not_allowed:'마이크 권한을 허용해 주세요.',service_not_allowed:'음성인식 서비스를 사용할 수 없습니다.',no_speech:'말소리가 들리지 않았습니다. 다시 눌러 말해 주세요.',audio_capture:'마이크를 찾을 수 없습니다.'}[event.error]||'음성입력에 실패했습니다. 다시 눌러 주세요.';
+  updateKoreanMicState(false,message);showToast(message);
+ };
+ recognition.onend=()=>{if(isKoreanSpeechListening)updateKoreanMicState(false,'입력 완료 · 번역 중입니다.');koreanSpeechRecognition=null};
+ try{recognition.start()}catch(error){updateKoreanMicState(false,'잠시 후 다시 눌러 주세요.')}
+}
 function setSyncStatus(message,state='checking'){
  const el=document.getElementById('syncStatus');if(!el)return;
  el.textContent=message;el.dataset.state=state;
