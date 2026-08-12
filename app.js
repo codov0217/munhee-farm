@@ -43,6 +43,7 @@ async function syncFromSheet(showResult=false){
 
 
 let manualPageIndex=0;
+let returnHomeFromDilution=false;
 function getManualPages(){return [...document.querySelectorAll('#manualBook .manual-page')]}
 function updateManualControls(){
  const pages=getManualPages();
@@ -50,7 +51,10 @@ function updateManualControls(){
  manualPageIndex=Math.max(0,Math.min(manualPageIndex,pages.length-1));
  pages.forEach((page,index)=>page.classList.toggle('active',index===manualPageIndex));
  const current=pages[manualPageIndex];
- document.getElementById('manualPrev').disabled=manualPageIndex===0;
+ const previousButton=document.getElementById('manualPrev');
+ const returnToHome=returnHomeFromDilution&&String(current.dataset.page)==='82';
+ previousButton.disabled=manualPageIndex===0&&!returnToHome;
+ previousButton.textContent=returnToHome?'⌂ 홈으로':'‹ 이전';
  document.getElementById('manualNext').disabled=manualPageIndex===pages.length-1;
  document.getElementById('manualProgress').innerHTML=`${manualPageIndex+1} / ${pages.length}<small>${current.dataset.label||''}</small>`;
 }
@@ -65,9 +69,13 @@ function goToManualPrintedPage(pageNumber){
  if(index>=0)goToManualPage(index);
 }
 function goToManualContents(){goToManualPage(1)}
-function openManualContents(){showScreen('manual');goToManualPage(1)}
-function openDilutionCalculator(){showScreen('manual');goToManualPrintedPage(82)}
-function changeManualPage(direction){goToManualPage(manualPageIndex+direction)}
+function openManualContents(){returnHomeFromDilution=false;showScreen('manual');goToManualPage(1)}
+function openDilutionCalculator(){returnHomeFromDilution=true;showScreen('manual');goToManualPrintedPage(82)}
+function changeManualPage(direction){
+ if(returnHomeFromDilution&&direction<0){returnHomeFromDilution=false;showScreen('home');return}
+ returnHomeFromDilution=false;
+ goToManualPage(manualPageIndex+direction);
+}
 function formatDilutionNumber(value){
  const digits=value>=100?1:value>=1?2:4;
  return new Intl.NumberFormat('ko-KR',{maximumFractionDigits:digits}).format(value);
@@ -309,7 +317,7 @@ async function renderRecentWorks(){
   ...recent.filter(x=>!favs.some(f=>f.signature===entrySignature(x))).map(x=>({...x,favorite:false}))
  ];
  if(!merged.length){wrap.innerHTML='<div class="empty" style="padding:18px 6px">저장된 작업이 생기면 여기에 최근 작업이 표시됩니다.</div>';return}
- wrap.innerHTML=merged.slice(0,8).map(x=>`
+ wrap.innerHTML=merged.slice(0,2).map(x=>`
   <div class="recent-item">
    <div class="recent-main">
     <div>
