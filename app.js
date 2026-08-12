@@ -70,7 +70,9 @@ async function translateToVietnamese(text){
  if(!r.ok)throw new Error('번역 요청 실패');
  const body=await r.text();
  let data;try{data=JSON.parse(body)}catch(e){throw new Error('번역 응답을 확인할 수 없습니다')}
- if(!data.ok||!data.translation||!data.backTranslation)throw new Error(data.message||'번역하지 못했습니다');
+ // 이전 Apps Script는 translation만 반환합니다. 이 경우에도 베트남어 번역은
+ // 정상 결과이므로, 역번역만 안내 문구로 처리합니다.
+ if(!data.ok||!data.translation)throw new Error(data.message||'번역하지 못했습니다');
  return data;
 }
 function setVietnameseTranslation(message,state=''){
@@ -91,8 +93,8 @@ function queueVietnameseTranslation(){
  setVietnameseTranslation('베트남어로 번역하는 중…','loading');
  setKoreanBackTranslation('베트남어를 다시 한국어로 확인하는 중…','loading');
  vietnameseTranslationTimer=setTimeout(async()=>{
-  try{const result=await translateToVietnamese(text);if((document.getElementById('koreanTaskText')?.value.trim()||'')!==text)return;latestVietnameseTranslation=result.translation;setVietnameseTranslation(result.translation);setKoreanBackTranslation(result.backTranslation)}
-  catch(error){setVietnameseTranslation('번역 연결에 실패했습니다. 인터넷과 공용 시트 연결을 확인해 주세요.','error');setKoreanBackTranslation('역번역을 확인하지 못했습니다.','error')}
+  try{const result=await translateToVietnamese(text);if((document.getElementById('koreanTaskText')?.value.trim()||'')!==text)return;latestVietnameseTranslation=result.translation;setVietnameseTranslation(result.translation);setKoreanBackTranslation(result.backTranslation||'역번역 기능을 사용하려면 아래 Apps Script 코드로 한 번만 업데이트해 주세요. 베트남어 번역은 정상입니다.')}
+  catch(error){const reason=String(error?.message||'알 수 없는 오류');setVietnameseTranslation(`번역하지 못했습니다. ${reason}`,'error');setKoreanBackTranslation('인터넷 연결과 Apps Script 웹앱 배포 상태를 확인해 주세요.','error')}
  },600);
 }
 function clearVietnameseTranslation(){
