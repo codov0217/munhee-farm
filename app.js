@@ -45,6 +45,7 @@ let manualPageIndex=0;
 let dilutionPreviousScreen='home';
 let dilutionPreviousManualPage=0;
 let openedFromDilutionCalculator=false;
+let dilutionHistoryOpen=false;
 function getActiveScreenId(){return document.querySelector('.screen.active')?.id||'home'}
 function getManualPages(){return [...document.querySelectorAll('#manualBook .manual-page')]}
 function updateManualControls(){
@@ -76,14 +77,28 @@ function openDilutionCalculator(){
  dilutionPreviousScreen=getActiveScreenId();
  dilutionPreviousManualPage=manualPageIndex;
  openedFromDilutionCalculator=true;
+ dilutionHistoryOpen=true;
+ history.pushState({munhuiDilutionCalculator:true},'',location.href);
  showScreen('manual');
  goToManualPrintedPage(82);
 }
+function returnFromDilutionCalculator(){
+ if(!openedFromDilutionCalculator)return;
+ if(dilutionHistoryOpen){
+  history.back();
+  return;
+ }
+ finishDilutionReturn();
+}
+function finishDilutionReturn(){
+ openedFromDilutionCalculator=false;
+ dilutionHistoryOpen=false;
+ if(dilutionPreviousScreen==='manual'){showScreen('manual');goToManualPage(dilutionPreviousManualPage)}
+ else showScreen(dilutionPreviousScreen);
+}
 function changeManualPage(direction){
  if(openedFromDilutionCalculator&&direction<0){
-  openedFromDilutionCalculator=false;
-  if(dilutionPreviousScreen==='manual'){showScreen('manual');goToManualPage(dilutionPreviousManualPage)}
-  else showScreen(dilutionPreviousScreen);
+  returnFromDilutionCalculator();
   return;
  }
  openedFromDilutionCalculator=false;
@@ -114,6 +129,18 @@ function setDilutionRate(rate){
  else if(chemical>0)calculateDilution('water');
  else setDilutionMessage(`<strong>${formatDilutionNumber(rate)}배</strong>를 선택했습니다. 물의 양 또는 약제량을 입력하세요.`);
 }
+function autoCalculateDilution(source){
+ const rate=Number(document.getElementById('dilutionRate').value);
+ const water=Number(document.getElementById('dilutionWater').value);
+ const chemical=Number(document.getElementById('dilutionChemical').value);
+ if(!Number.isFinite(rate)||rate<=0)return;
+ if(source==='water'&&water>0)calculateDilution('chemical');
+ else if(source==='chemical'&&chemical>0)calculateDilution('water');
+ else if(source==='rate'){
+  if(water>0)calculateDilution('chemical');
+  else if(chemical>0)calculateDilution('water');
+ }
+}
 function calculateDilution(target){
  const rate=Number(document.getElementById('dilutionRate').value);
  const waterInput=document.getElementById('dilutionWater');
@@ -141,8 +168,16 @@ function resetDilutionCalculator(){
  document.getElementById('dilutionWater').value='';
  document.getElementById('dilutionChemical').value='';
  document.querySelectorAll('.dilution-preset').forEach(button=>button.classList.toggle('active',Number(button.dataset.rate)===1000));
- setDilutionMessage('희석배수와 알고 있는 값 하나를 입력한 뒤 계산 버튼을 누르세요.');
+ setDilutionMessage('희석배수와 물의 양 또는 약제량을 입력하면 자동으로 계산됩니다.');
 }
+window.addEventListener('popstate',()=>{
+ if(openedFromDilutionCalculator)finishDilutionReturn();
+});
+document.addEventListener('DOMContentLoaded',()=>{
+ document.getElementById('dilutionRate')?.addEventListener('input',()=>autoCalculateDilution('rate'));
+ document.getElementById('dilutionWater')?.addEventListener('input',()=>autoCalculateDilution('water'));
+ document.getElementById('dilutionChemical')?.addEventListener('input',()=>autoCalculateDilution('chemical'));
+});
 let manualTouchStart=null;
 document.addEventListener('touchstart',event=>{
  if(!document.getElementById('manual').classList.contains('active'))return;

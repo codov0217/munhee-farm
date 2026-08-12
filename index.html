@@ -1616,8 +1616,8 @@
           <button type="button" class="dilution-calc-btn secondary" onclick="calculateDilution('water')">물 양 구하기</button>
           <button type="button" class="dilution-calc-btn reset" onclick="resetDilutionCalculator()">초기화</button>
         </div>
-        <div id="dilutionResult" class="dilution-result" role="status" aria-live="polite">희석배수와 알고 있는 값 하나를 입력한 뒤 계산 버튼을 누르세요.</div>
-        <p id="dilutionHelp" class="dilution-help">약제량을 구할 때는 물의 양을, 물의 양을 구할 때는 가지고 있는 약제량을 입력합니다. 소수점 입력도 가능합니다.</p>
+        <div id="dilutionResult" class="dilution-result" role="status" aria-live="polite">희석배수와 물의 양 또는 약제량을 입력하면 자동으로 계산됩니다.</div>
+        <p id="dilutionHelp" class="dilution-help">희석배수와 물의 양을 입력하면 약제량이, 희석배수와 약제량을 입력하면 물의 양이 자동으로 계산됩니다. 소수점 입력도 가능합니다.</p>
       </section>
       <div class="cult-box" style="margin-top:11px"><h3>계산식</h3><p><b>필요 약량 = 물의 양(L) × 1,000 ÷ 희석배수</b><br>예: 물 15L에 1,500배 → 15×1,000÷1,500 = 10mL 또는 10g.</p></div>
       <ol class="cult-flow" style="margin-top:10px"><li><div><b>계량</b> · 뚜껑이 아니라 전용 주사기·계량컵·저울을 사용합니다.</div></li><li><div><b>혼용</b> · 각 제품을 자기 희석배수로 계산하며, 혼용표에 없는 조합은 섞지 않습니다.</div></li><li><div><b>기록</b> · 물통 수와 실제 사용량을 적어 남은 양·살포면적을 계산합니다.</div></li></ol>
