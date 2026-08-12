@@ -232,14 +232,27 @@ function resetForm(){
 }
 
 async function resizeImage(file){
- return new Promise((resolve,reject)=>{
-  const reader=new FileReader();reader.onerror=()=>reject(reader.error);reader.onload=()=>{
-   const img=new Image();img.onerror=()=>reject(new Error('이미지를 읽을 수 없습니다'));img.onload=()=>{
-    const max=960,scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);
-    c.getContext('2d').drawImage(img,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.72))
-   };img.src=reader.result
-  };reader.readAsDataURL(file)
- })
+ // 원본을 data URL로 읽지 않는다. 고화질 사진을 통째로 메모리에 올리면
+ // 휴대폰 브라우저가 재시작될 수 있어서, 먼저 작은 비트맵으로 줄인다.
+ const max=640;
+ let bitmap;
+ if('createImageBitmap' in window){
+  bitmap=await createImageBitmap(file,{resizeWidth:max,resizeHeight:max,resizeQuality:'medium'});
+ }else{
+  bitmap=await new Promise((resolve,reject)=>{
+   const url=URL.createObjectURL(file),img=new Image();
+   img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};
+   img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('이미지를 읽을 수 없습니다'))};img.src=url;
+  });
+ }
+ const scale=Math.min(1,max/Math.max(bitmap.width,bitmap.height));
+ const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+ canvas.getContext('2d',{alpha:false}).drawImage(bitmap,0,0,canvas.width,canvas.height);
+ if(bitmap.close)bitmap.close();
+ const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.6));
+ canvas.width=canvas.height=1;
+ if(!blob)throw new Error('사진을 줄이지 못했습니다');
+ return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(reader.error);reader.onload=()=>resolve(reader.result);reader.readAsDataURL(blob)});
 }
 function isRemotePhoto(photo){return typeof photo==='string'&&/^https:\/\//.test(photo)}
 async function uploadPhotoToDrive(dataUrl,workDate,index){
@@ -257,17 +270,20 @@ async function processPhotoFiles(files, mode){
   let added=0;
   for(const f of files){
    if(pendingPhotos.length>=3)break;
-   pendingPhotos.push(await resizeImage(f));
+   const dataUrl=await resizeImage(f);
+   const workDate=document.getElementById('workDate').value||localDateString(new Date());
+   const photoUrl=await uploadPhotoToDrive(dataUrl,workDate,pendingPhotos.length+1);
+   pendingPhotos.push(photoUrl);
    added++;
   }
   renderPhotoPreview();
   const note=document.getElementById('photoSavedNote');
-  note.textContent=mode==='camera'?'촬영한 사진이 선택되었습니다. 저장하면 공용 사진함에 올라갑니다.':`${added}장의 사진이 선택되었습니다. 저장하면 공용 사진함에 올라갑니다.`;
+  note.textContent=mode==='camera'?'사진을 공용 사진함에 올렸습니다. 이제 작업을 저장하세요.':`${added}장의 사진을 공용 사진함에 올렸습니다. 이제 작업을 저장하세요.`;
   note.classList.add('show');
   setTimeout(()=>note.classList.remove('show'),2200);
   if(files.length>added)showToast('사진은 최대 3장까지 저장됩니다');
  }catch(err){
-  alert('사진 처리 중 문제가 발생했습니다.');
+  alert('사진을 올리지 못했습니다. 인터넷 연결을 확인한 뒤 한 장씩 다시 찍어 주세요.');
  }finally{
   document.getElementById('cameraInput').value='';
   document.getElementById('galleryInput').value='';
@@ -291,13 +307,15 @@ async function prepareGalleryPhotos(e){
  try{
   const available=Math.max(0,3-pendingPhotos.length);
   for(const f of files.slice(0,available)){
-   galleryTempPhotos.push(await resizeImage(f));
+   const dataUrl=await resizeImage(f);
+   const workDate=document.getElementById('workDate').value||localDateString(new Date());
+   galleryTempPhotos.push(await uploadPhotoToDrive(dataUrl,workDate,pendingPhotos.length+galleryTempPhotos.length+1));
   }
   renderGalleryReview();
   document.getElementById('galleryReview').classList.add('open');
   if(files.length>available)showToast('사진은 작업당 최대 3장입니다');
  }catch(err){
-  alert('사진 처리 중 문제가 발생했습니다.');
+  alert('사진을 올리지 못했습니다. 인터넷 연결을 확인한 뒤 한 장씩 다시 선택해 주세요.');
  }finally{
   e.target.value='';
   setLoading(false);
@@ -331,7 +349,7 @@ function completeGallerySelection(){
  renderPhotoPreview();
  document.getElementById('galleryReview').classList.remove('open');
  const note=document.getElementById('photoSavedNote');
-  note.textContent='사진이 선택되었습니다. 저장하면 공용 사진함에 올라갑니다.';
+ note.textContent='사진을 공용 사진함에 올렸습니다. 이제 작업을 저장하세요.';
  note.classList.add('show');
  setTimeout(()=>note.classList.remove('show'),2200);
 }
@@ -398,10 +416,7 @@ async function saveEntry(){
  setLoading(true);
  try{
   let old=editId?await getEntry(editId):null;
-  const localPhotos=[...pendingPhotos];
-  const uploadedPhotos=[];
-  for(let i=0;i<localPhotos.length;i++)uploadedPhotos.push(isRemotePhoto(localPhotos[i])?localPhotos[i]:await uploadPhotoToDrive(localPhotos[i],workDate,i+1));
-  const entry={id:editId?Number(editId):Date.now(),recordUid:old?.recordUid||makeRecordUid(),deviceId:old?.deviceId||getDeviceId(),workDate,field:selectedField,crop,work:selectedWork,worker:selectedWorker,amount,memo,photos:uploadedPhotos,createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+  const entry={id:editId?Number(editId):Date.now(),recordUid:old?.recordUid||makeRecordUid(),deviceId:old?.deviceId||getDeviceId(),workDate,field:selectedField,crop,work:selectedWork,worker:selectedWorker,amount,memo,photos:pendingPhotos.filter(isRemotePhoto),createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
   await putEntry(entry);try{await sheetSave(entry);setSyncStatus('연결됨 · 방금 저장 완료','connected')}catch(e){setSyncStatus('연결 실패 · 휴대폰에만 저장됨','error');showToast('휴대폰에는 저장됨 · 공용 시트 연결 확인 필요')};lastSavedEntry={...entry,photos:[]};selectedCalendarDate=workDate;const [y,m]=workDate.split('-').map(Number);calendarMonth=new Date(y,m-1,1);showToast(editId?'수정되었습니다':'저장되었습니다');resetForm();showScreen('register');document.getElementById('copyPanel').classList.add('show');renderRecentWorks()
  }catch(err){alert('저장하지 못했습니다. 휴대폰 저장공간을 확인해 주세요.')}finally{setLoading(false)}
 }
@@ -448,6 +463,6 @@ async function renderStats(){
 async function init(){
  makeChoices('fieldChoices',fields,'field');makeChoices('workChoices',works,'work');makeChoices('workerChoices',workers,'worker');fillSelect('searchField',fields,'필지');fillSelect('searchWork',works,'작업');fillSelect('searchWorker',workers,'작업자');
  document.getElementById('statsMonth').value=monthString(new Date());resetForm();updateManualControls();
- try{await openDB();await migrateOldData();await syncFromSheet()}catch(e){alert('기기 내부 데이터베이스를 열지 못했습니다. 일반 브라우저에서 다시 열어 주세요.')}
+ try{await openDB();const cleared=await purgeLocalPhotoData();await migrateOldData();await syncFromSheet();if(cleared)showToast('휴대폰에 남아 있던 큰 사진 데이터를 정리했습니다.')}catch(e){alert('기기 내부 데이터베이스를 열지 못했습니다. 일반 브라우저에서 다시 열어 주세요.')}
 }
 init();
