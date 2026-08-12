@@ -19,7 +19,7 @@
 <div id="updateBanner" class="update-banner"><span><strong>새 버전이 있습니다</strong><br>버튼을 누르면 바로 적용됩니다.</span><button type="button" id="updateButton" onclick="applyUpdate()">지금 업데이트</button></div>
 <div id="installBanner" class="install-banner"><div class="text"><strong>휴대폰에 설치하기</strong><br>홈 화면에서 일반 앱처럼 사용할 수 있습니다.</div><button type="button" id="installButton">설치</button></div>
 <div class="app">
-<header><div class="brand"><div class="logo">🌳</div><div><h1>문희농원 작업일지</h1><div class="sub">버전 2.7 시안 · 책자형 농업 매뉴얼</div></div></div></header>
+<header><div class="brand"><div class="logo">🌳</div><div><h1>문희농원 작업일지</h1><div class="sub">버전 2.8 · 공용 작업기록 연동</div></div></div></header>
 <main>
 <section id="home" class="screen active">
   <div class="hero"><h2>안녕하세요 👋</h2><p>농장 작업을 날짜별로 기록하고 사진, 검색, 통계까지 한곳에서 확인하세요.</p></div>
@@ -28,6 +28,12 @@
     <button class="tile" onclick="showScreen('journal')"><span class="ico">📅</span><strong>달력 일지</strong><small>날짜별 작업 확인</small></button>
     <button class="tile" onclick="showScreen('search')"><span class="ico">🔎</span><strong>검색</strong><small>필지·작물·작업 찾기</small></button>
     <button class="tile" onclick="showScreen('stats')"><span class="ico">📊</span><strong>통계</strong><small>월별 작업 현황</small></button>
+  </div>
+
+  <div class="card sync-card">
+    <div class="sync-head"><div><strong>☁️ 공용 작업기록</strong><small id="syncStatus" class="sync-status">연결 확인 중…</small></div><button class="btn small secondary" type="button" onclick="syncFromSheet(true)">새로고침</button></div>
+    <p>작업 등록·수정·삭제 내용이 이 계정의 구글 스프레드시트에 함께 저장됩니다.</p>
+    <button class="btn primary" type="button" style="width:100%" onclick="openNewEntry()">➕ 오늘 작업 기록하기</button>
   </div>
 
   <div class="card">

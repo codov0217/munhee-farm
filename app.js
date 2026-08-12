@@ -11,6 +11,28 @@ function getDeviceId(){
  return id;
 }
 function makeRecordUid(){return getDeviceId()+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)}
+const SHEETS_API='https://script.google.com/macros/s/AKfycbwD42304GtXO-iVt8vpnu7iztA6Y18_uzNdFkPnCrpVqHweQOWc0gs4eY9MDIx40j18sA/exec';
+function setSyncStatus(message,state='checking'){
+ const el=document.getElementById('syncStatus');if(!el)return;
+ el.textContent=message;el.dataset.state=state;
+}
+async function sheetSave(entry){
+ const record={...entry,photos:[]};
+ const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'save',record})});
+ const data=await r.json();if(!data.ok)throw new Error(data.message||'시트 저장 실패');
+}
+async function sheetDelete(recordUid){
+ const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'delete',record:{recordUid}})});
+ const data=await r.json();if(!data.ok)throw new Error(data.message||'시트 삭제 실패');
+}
+async function syncFromSheet(showResult=false){
+ setSyncStatus('공용 시트 불러오는 중…','checking');
+ setLoading(true);try{const r=await fetch(SHEETS_API);const data=await r.json();if(!data.ok)throw new Error(data.message);
+  const local=await getAllEntries(), byUid=new Map(local.map(x=>[x.recordUid,x]));
+  for(const row of data.records){const old=byUid.get(row.recordUid);if(!old||String(row.updatedAt)>String(old.updatedAt))await putEntry({...old,...row,id:old?.id||Date.now()+Math.floor(Math.random()*999),deviceId:old?.deviceId||'SHEET',photos:old?.photos||[]});}
+  await renderJournal();setSyncStatus(`연결됨 · 공용 기록 ${data.records.length}건`,'connected');if(showResult)showToast('공용 작업기록을 불러왔습니다');
+ }catch(e){setSyncStatus('연결 실패 · 새로고침 후 다시 확인','error');if(showResult)showToast('공용 시트 연결을 확인해 주세요')}finally{setLoading(false)}
+}
 
 
 let manualPageIndex=0;
@@ -305,7 +327,7 @@ async function saveEntry(){
  try{
   let old=editId?await getEntry(editId):null;
   const entry={id:editId?Number(editId):Date.now(),recordUid:old?.recordUid||makeRecordUid(),deviceId:old?.deviceId||getDeviceId(),workDate,field:selectedField,crop,work:selectedWork,worker:selectedWorker,amount,memo,photos:[...pendingPhotos],createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
-  await putEntry(entry);lastSavedEntry={...entry,photos:[]};selectedCalendarDate=workDate;const [y,m]=workDate.split('-').map(Number);calendarMonth=new Date(y,m-1,1);showToast(editId?'수정되었습니다':'저장되었습니다');resetForm();showScreen('register');document.getElementById('copyPanel').classList.add('show');renderRecentWorks()
+  await putEntry(entry);try{await sheetSave(entry);setSyncStatus('연결됨 · 방금 저장 완료','connected')}catch(e){setSyncStatus('연결 실패 · 휴대폰에만 저장됨','error');showToast('휴대폰에는 저장됨 · 공용 시트 연결 확인 필요')};lastSavedEntry={...entry,photos:[]};selectedCalendarDate=workDate;const [y,m]=workDate.split('-').map(Number);calendarMonth=new Date(y,m-1,1);showToast(editId?'수정되었습니다':'저장되었습니다');resetForm();showScreen('register');document.getElementById('copyPanel').classList.add('show');renderRecentWorks()
  }catch(err){alert('저장하지 못했습니다. 휴대폰 저장공간을 확인해 주세요.')}finally{setLoading(false)}
 }
 async function editEntry(id){
@@ -313,7 +335,7 @@ async function editEntry(id){
  document.getElementById('crop').value=x.crop;document.getElementById('amount').value=x.amount||'';document.getElementById('memo').value=x.memo||'';selectedField=x.field;selectedWork=x.work;selectedWorker=x.worker;pendingPhotos=[...(x.photos||[])];
  selectChoice('fieldChoices',x.field);selectChoice('workChoices',x.work);selectChoice('workerChoices',x.worker);renderPhotoPreview();showScreen('register')
 }
-async function removeEntry(id){if(!confirm('이 작업기록을 삭제할까요?'))return;await deleteEntryDB(id);showToast('삭제되었습니다');await renderJournal();if(document.getElementById('search').classList.contains('active'))runSearch();if(document.getElementById('stats').classList.contains('active'))renderStats()}
+async function removeEntry(id){if(!confirm('이 작업기록을 삭제할까요?'))return;const entry=await getEntry(id);await deleteEntryDB(id);try{if(entry?.recordUid)await sheetDelete(entry.recordUid);setSyncStatus('연결됨 · 삭제 내용 반영 완료','connected')}catch(e){setSyncStatus('연결 실패 · 이 기기에서만 삭제됨','error')}showToast('삭제되었습니다');await renderJournal();if(document.getElementById('search').classList.contains('active'))runSearch();if(document.getElementById('stats').classList.contains('active'))renderStats()}
 
 function entryCard(x){
  const photos=(x.photos||[]).map(p=>`<div class="photo-box" onclick="openPhoto('${p}')"><img src="${p}" alt="작업 사진"></div>`).join('');
@@ -351,7 +373,7 @@ async function renderStats(){
 async function init(){
  makeChoices('fieldChoices',fields,'field');makeChoices('workChoices',works,'work');makeChoices('workerChoices',workers,'worker');fillSelect('searchField',fields,'필지');fillSelect('searchWork',works,'작업');fillSelect('searchWorker',workers,'작업자');
  document.getElementById('statsMonth').value=monthString(new Date());resetForm();updateManualControls();
- try{await openDB();await migrateOldData()}catch(e){alert('기기 내부 데이터베이스를 열지 못했습니다. 일반 브라우저에서 다시 열어 주세요.')}
+ try{await openDB();await migrateOldData();await syncFromSheet()}catch(e){alert('기기 내부 데이터베이스를 열지 못했습니다. 일반 브라우저에서 다시 열어 주세요.')}
 }
 init();
 
