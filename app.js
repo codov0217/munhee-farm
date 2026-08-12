@@ -34,8 +34,8 @@ async function translateToVietnamese(text){
  if(!r.ok)throw new Error('번역 요청 실패');
  const body=await r.text();
  let data;try{data=JSON.parse(body)}catch(e){throw new Error('번역 응답을 확인할 수 없습니다')}
- if(!data.ok||!data.translation)throw new Error(data.message||'번역하지 못했습니다');
- return data.translation;
+ if(!data.ok||!data.translation||!data.backTranslation)throw new Error(data.message||'번역하지 못했습니다');
+ return data;
 }
 function setVietnameseTranslation(message,state=''){
  const result=document.getElementById('vietnameseTranslation');
@@ -43,21 +43,27 @@ function setVietnameseTranslation(message,state=''){
  result.textContent=message;result.className=`translation-result${state?` ${state}`:''}`;
  document.getElementById('copyVietnameseButton').disabled=!latestVietnameseTranslation;
 }
+function setKoreanBackTranslation(message,state=''){
+ const result=document.getElementById('koreanBackTranslation');if(!result)return;
+ result.textContent=message;result.className=`translation-result back-translation${state?` ${state}`:''}`;
+}
 function queueVietnameseTranslation(){
  const text=document.getElementById('koreanTaskText')?.value.trim()||'';
  clearTimeout(vietnameseTranslationTimer);latestVietnameseTranslation='';
- if(!text){setVietnameseTranslation('한국어로 오늘 할 일을 입력하세요.');return}
- if(text.length<2){setVietnameseTranslation('두 글자 이상 입력하면 번역합니다.');return}
+ if(!text){setVietnameseTranslation('한국어로 오늘 할 일을 입력하세요.');setKoreanBackTranslation('베트남어 번역 후, 여기에서 전달 뜻을 다시 확인할 수 있습니다.');return}
+ if(text.length<2){setVietnameseTranslation('두 글자 이상 입력하면 번역합니다.');setKoreanBackTranslation('베트남어 번역 후, 여기에서 전달 뜻을 다시 확인할 수 있습니다.');return}
  setVietnameseTranslation('베트남어로 번역하는 중…','loading');
+ setKoreanBackTranslation('베트남어를 다시 한국어로 확인하는 중…','loading');
  vietnameseTranslationTimer=setTimeout(async()=>{
-  try{const translation=await translateToVietnamese(text);latestVietnameseTranslation=translation;setVietnameseTranslation(translation)}
-  catch(error){setVietnameseTranslation('번역 연결에 실패했습니다. 인터넷과 공용 시트 연결을 확인해 주세요.','error')}
+  try{const result=await translateToVietnamese(text);if((document.getElementById('koreanTaskText')?.value.trim()||'')!==text)return;latestVietnameseTranslation=result.translation;setVietnameseTranslation(result.translation);setKoreanBackTranslation(result.backTranslation)}
+  catch(error){setVietnameseTranslation('번역 연결에 실패했습니다. 인터넷과 공용 시트 연결을 확인해 주세요.','error');setKoreanBackTranslation('역번역을 확인하지 못했습니다.','error')}
  },600);
 }
 function clearVietnameseTranslation(){
  clearTimeout(vietnameseTranslationTimer);latestVietnameseTranslation='';
  const input=document.getElementById('koreanTaskText');if(input)input.value='';
  setVietnameseTranslation('한국어로 오늘 할 일을 입력하세요.');
+ setKoreanBackTranslation('베트남어 번역 후, 여기에서 전달 뜻을 다시 확인할 수 있습니다.');
 }
 async function copyVietnameseTranslation(){
  if(!latestVietnameseTranslation)return;
