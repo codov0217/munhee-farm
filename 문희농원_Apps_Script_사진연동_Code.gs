@@ -17,6 +17,9 @@ function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents || '{}');
     if (data.action === 'save') saveRecord_(data.record || {});
+    else if (data.action === 'saveWithPhotos') {
+      return response_({ ok: true, record: saveRecordWithPhotos_(data.record || {}, data.photoDataUrls || []) });
+    }
     else if (data.action === 'delete') deleteRecord_(data.record && data.record.recordUid);
     else if (data.action === 'uploadPhoto') {
       return response_({ ok: true, url: uploadPhoto_(data.photo || {}) });
@@ -98,6 +101,25 @@ function saveRecord_(record) {
   }
 }
 
+// 작업기록과 새 사진을 같은 요청으로 처리합니다. 둘 중 하나라도 실패하면 앱에는
+// 성공으로 표시되지 않으므로, "기록만 저장되고 사진은 누락"되는 일을 막습니다.
+function saveRecordWithPhotos_(record, photoDataUrls) {
+  if (!record.recordUid) throw new Error('기록ID가 없습니다.');
+  const existing = Array.isArray(record.photos) ? record.photos.filter(String) : [];
+  const uploads = Array.isArray(photoDataUrls) ? photoDataUrls : [];
+  if (uploads.length > 3) throw new Error('사진은 작업당 최대 3장입니다.');
+  const newUrls = uploads.map((dataUrl, index) => uploadPhoto_({
+    dataUrl: dataUrl,
+    workDate: record.workDate,
+    index: existing.length + index + 1,
+    recordUid: record.recordUid
+  }));
+  const saved = Object.assign({}, record, { photos: existing.concat(newUrls) });
+  saveRecord_(saved);
+  saved.updatedAt = new Date().toISOString();
+  return saved;
+}
+
 function deleteRecord_(recordUid) {
   if (!recordUid) throw new Error('기록ID가 없습니다.');
   const sheet = getSheet_();
@@ -118,7 +140,8 @@ function uploadPhoto_(photo) {
   const extension = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
   const date = String(photo.workDate || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd'));
   const index = Number(photo.index || 1);
-  const filename = `${date}_작업사진_${index}_${Date.now()}.${extension}`;
+  const recordUid = String(photo.recordUid || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(-20);
+  const filename = `${date}_${recordUid || '작업'}_사진${index}_${Date.now()}.${extension}`;
   const file = getPhotoFolder_().createFile(Utilities.newBlob(bytes, mimeType, filename));
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   return `https://drive.google.com/uc?export=view&id=${file.getId()}`;

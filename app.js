@@ -54,16 +54,13 @@ function setSyncStatus(message,state='checking'){
  const el=document.getElementById('syncStatus');if(!el)return;
  el.textContent=message;el.dataset.state=state;
 }
-async function sheetSave(entry){
- const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'save',record:entry})});
- // Apps Script는 저장을 끝낸 뒤 빈 응답 또는 JSON이 아닌 응답을 돌려줄 때가 있습니다.
- // 이 경우 실제로는 시트에 저장됐는데도 r.json()이 실패해 '휴대폰에만 저장됨'으로 잘못 표시됐습니다.
- if(!r.ok)throw new Error('시트 저장 요청 실패');
- const body=await r.text();
- if(!body.trim())return;
- let data;
- try{data=JSON.parse(body)}catch(error){return}
- if(data && data.ok===false)throw new Error(data.message||'시트 저장 실패');
+async function sheetSave(entry,photoDataUrls=[]){
+ const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'saveWithPhotos',record:entry,photoDataUrls})});
+ if(!r.ok)throw new Error('공용 저장 요청 실패');
+ const body=await r.text();let data;
+ try{data=JSON.parse(body)}catch(error){throw new Error('사진 저장 응답을 확인할 수 없습니다. Apps Script를 새 버전으로 배포해 주세요.')}
+ if(!data?.ok||!data.record)throw new Error(data?.message||'작업과 사진을 함께 저장하지 못했습니다.');
+ return data.record;
 }
 async function translateToVietnamese(text){
  const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'translateVietnamese',text})});
@@ -335,14 +332,8 @@ async function resizeImage(file){
  if(!blob)throw new Error('사진을 줄이지 못했습니다');
  return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(reader.error);reader.onload=()=>resolve(reader.result);reader.readAsDataURL(blob)});
 }
-function isRemotePhoto(photo){return typeof photo==='string'&&/^https:\/\//.test(photo)}
-async function uploadPhotoToDrive(dataUrl,workDate,index){
- const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'uploadPhoto',photo:{dataUrl,workDate,index}})});
- if(!r.ok)throw new Error('사진 업로드 요청 실패');
- const body=await r.text();let data={};try{data=JSON.parse(body)}catch(e){throw new Error('사진 업로드 응답을 확인할 수 없습니다')}
- if(!data.ok||!data.url)throw new Error(data.message||'사진을 드라이브에 저장하지 못했습니다');
- return data.url;
-}
+function photoSrc(photo){return typeof photo==='string'?photo:(photo?.url||photo?.dataUrl||'')}
+function remotePhotoUrl(photo){const src=photoSrc(photo);return /^https:\/\//.test(src)?src:''}
 async function processPhotoFiles(files, mode){
  if(!files.length)return;
  if(pendingPhotos.length>=3){showToast('사진은 최대 3장까지 저장됩니다');return}
@@ -352,14 +343,12 @@ async function processPhotoFiles(files, mode){
   for(const f of files){
    if(pendingPhotos.length>=3)break;
    const dataUrl=await resizeImage(f);
-   const workDate=document.getElementById('workDate').value||localDateString(new Date());
-   const photoUrl=await uploadPhotoToDrive(dataUrl,workDate,pendingPhotos.length+1);
-   pendingPhotos.push(photoUrl);
+   pendingPhotos.push({dataUrl});
    added++;
   }
   renderPhotoPreview();
   const note=document.getElementById('photoSavedNote');
-  note.textContent=mode==='camera'?'사진을 공용 사진함에 올렸습니다. 이제 작업을 저장하세요.':`${added}장의 사진을 공용 사진함에 올렸습니다. 이제 작업을 저장하세요.`;
+  note.textContent=mode==='camera'?'사진이 준비되었습니다. 작업을 저장하면 공용 사진함에 함께 저장됩니다.':`${added}장의 사진이 준비되었습니다. 작업을 저장하면 공용 사진함에 함께 저장됩니다.`;
   note.classList.add('show');
   setTimeout(()=>note.classList.remove('show'),2200);
   if(files.length>added)showToast('사진은 최대 3장까지 저장됩니다');
@@ -389,8 +378,7 @@ async function prepareGalleryPhotos(e){
   const available=Math.max(0,3-pendingPhotos.length);
   for(const f of files.slice(0,available)){
    const dataUrl=await resizeImage(f);
-   const workDate=document.getElementById('workDate').value||localDateString(new Date());
-   galleryTempPhotos.push(await uploadPhotoToDrive(dataUrl,workDate,pendingPhotos.length+galleryTempPhotos.length+1));
+   galleryTempPhotos.push({dataUrl});
   }
   renderGalleryReview();
   document.getElementById('galleryReview').classList.add('open');
@@ -408,7 +396,7 @@ function renderGalleryReview(){
    `${galleryTempPhotos.length}장 선택됨 · 작업당 최대 3장`;
  grid.innerHTML=galleryTempPhotos.map((p,i)=>`
    <div class="gallery-review-item">
-     <img src="${p}" alt="선택한 사진">
+     <img src="${photoSrc(p)}" alt="선택한 사진">
      <button type="button" onclick="removeGalleryTemp(${i})">×</button>
    </div>`).join('');
 }
@@ -430,11 +418,11 @@ function completeGallerySelection(){
  renderPhotoPreview();
  document.getElementById('galleryReview').classList.remove('open');
  const note=document.getElementById('photoSavedNote');
- note.textContent='사진을 공용 사진함에 올렸습니다. 이제 작업을 저장하세요.';
+ note.textContent='사진이 준비되었습니다. 작업을 저장하면 공용 사진함에 함께 저장됩니다.';
  note.classList.add('show');
  setTimeout(()=>note.classList.remove('show'),2200);
 }
-function renderPhotoPreview(){document.getElementById('photoPreview').innerHTML=pendingPhotos.map((p,i)=>`<div class="photo-box"><img src="${p}" alt="선택한 사진"><button class="photo-remove" type="button" onclick="removePhoto(${i})">×</button></div>`).join('')}
+function renderPhotoPreview(){document.getElementById('photoPreview').innerHTML=pendingPhotos.map((p,i)=>`<div class="photo-box"><img src="${photoSrc(p)}" alt="선택한 사진"><button class="photo-remove" type="button" onclick="removePhoto(${i})">×</button></div>`).join('')}
 function removePhoto(i){pendingPhotos.splice(i,1);renderPhotoPreview()}
 
 
@@ -497,13 +485,16 @@ async function saveEntry(){
  setLoading(true);
  try{
   let old=editId?await getEntry(editId):null;
-  const entry={id:editId?Number(editId):Date.now(),recordUid:old?.recordUid||makeRecordUid(),deviceId:old?.deviceId||getDeviceId(),workDate,field:selectedField,crop,work:selectedWork,worker:selectedWorker,amount,memo,photos:pendingPhotos.filter(isRemotePhoto),createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
-  await putEntry(entry);try{await sheetSave(entry);setSyncStatus('연결됨 · 방금 저장 완료','connected')}catch(e){setSyncStatus('연결 실패 · 휴대폰에만 저장됨','error');showToast('휴대폰에는 저장됨 · 공용 시트 연결 확인 필요')};lastSavedEntry={...entry,photos:[]};selectedCalendarDate=workDate;const [y,m]=workDate.split('-').map(Number);calendarMonth=new Date(y,m-1,1);showToast(editId?'수정되었습니다':'저장되었습니다');resetForm();showScreen('register');document.getElementById('copyPanel').classList.add('show');renderRecentWorks()
- }catch(err){alert('저장하지 못했습니다. 휴대폰 저장공간을 확인해 주세요.')}finally{setLoading(false)}
+  const entry={id:editId?Number(editId):Date.now(),recordUid:old?.recordUid||makeRecordUid(),deviceId:old?.deviceId||getDeviceId(),workDate,field:selectedField,crop,work:selectedWork,worker:selectedWorker,amount,memo,photos:pendingPhotos.map(remotePhotoUrl).filter(Boolean),createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+  const photoDataUrls=pendingPhotos.map(x=>x?.dataUrl).filter(Boolean);
+  const saved=await sheetSave(entry,photoDataUrls);
+  Object.assign(entry,{photos:Array.isArray(saved.photos)?saved.photos:entry.photos,updatedAt:saved.updatedAt||entry.updatedAt});
+  await putEntry(entry);setSyncStatus('연결됨 · 작업과 사진 저장 완료','connected');lastSavedEntry={...entry,photos:[]};selectedCalendarDate=workDate;const [y,m]=workDate.split('-').map(Number);calendarMonth=new Date(y,m-1,1);showToast(editId?'작업과 사진을 수정했습니다':'작업과 사진을 저장했습니다');resetForm();showScreen('register');document.getElementById('copyPanel').classList.add('show');renderRecentWorks()
+ }catch(err){setSyncStatus('연결 실패 · 작업과 사진을 저장하지 못함','error');alert(`저장하지 못했습니다. ${err?.message||'인터넷과 공용 시트 연결을 확인해 주세요.'}`)}finally{setLoading(false)}
 }
 async function editEntry(id){
  const x=await getEntry(id);if(!x)return;document.getElementById('editId').value=x.id;document.getElementById('formTitle').textContent='작업 수정';document.getElementById('workDate').value=x.workDate;
- document.getElementById('crop').value=x.crop;document.getElementById('amount').value=x.amount||'';document.getElementById('memo').value=x.memo||'';selectedField=x.field;selectedWork=x.work;selectedWorker=x.worker;pendingPhotos=[...(x.photos||[])];
+ document.getElementById('crop').value=x.crop;document.getElementById('amount').value=x.amount||'';document.getElementById('memo').value=x.memo||'';selectedField=x.field;selectedWork=x.work;selectedWorker=x.worker;pendingPhotos=(x.photos||[]).map(url=>({url}));
  selectChoice('fieldChoices',x.field);selectChoice('workChoices',x.work);selectChoice('workerChoices',x.worker);renderPhotoPreview();showScreen('register')
 }
 async function removeEntry(id){if(!confirm('이 작업기록을 삭제할까요?'))return;const entry=await getEntry(id);await deleteEntryDB(id);try{if(entry?.recordUid)await sheetDelete(entry.recordUid);setSyncStatus('연결됨 · 삭제 내용 반영 완료','connected')}catch(e){setSyncStatus('연결 실패 · 이 기기에서만 삭제됨','error')}showToast('삭제되었습니다');await renderJournal();if(document.getElementById('search').classList.contains('active'))runSearch();if(document.getElementById('stats').classList.contains('active'))renderStats()}
