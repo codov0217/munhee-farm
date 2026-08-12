@@ -24,11 +24,16 @@
 <section id="home" class="screen active">
   <div class="hero"><h2>안녕하세요 👋</h2><p>농장 작업을 날짜별로 기록하고 사진, 검색, 통계까지 한곳에서 확인하세요.</p></div>
   <div class="grid">
-    <button class="tile primary" onclick="openNewEntry()"><span class="ico">➕</span><strong>작업 등록</strong><small>오늘 한 일을 바로 기록</small></button>
     <button class="tile" onclick="showScreen('journal')"><span class="ico">📅</span><strong>달력 일지</strong><small>날짜별 작업 확인</small></button>
     <button class="tile" onclick="showScreen('search')"><span class="ico">🔎</span><strong>검색</strong><small>필지·작물·작업 찾기</small></button>
     <button class="tile" onclick="showScreen('stats')"><span class="ico">📊</span><strong>통계</strong><small>월별 작업 현황</small></button>
   </div>
+
+  <button class="dilution-shortcut" type="button" onclick="openDilutionCalculator()">
+    <span class="dilution-shortcut-icon">🧪</span>
+    <span><strong>농약 희석배수 계산</strong><small>물의 양과 희석배수를 넣어 필요한 약제량을 바로 계산</small></span>
+    <b>계산하기 ›</b>
+  </button>
 
   <div class="card sync-card">
     <div class="sync-head"><div><strong>☁️ 공용 작업기록</strong><small id="syncStatus" class="sync-status">연결 확인 중…</small></div><button class="btn small secondary" type="button" onclick="syncFromSheet(true)">새로고침</button></div>
@@ -1699,7 +1704,6 @@
 
 <nav>
 <button data-screen="home" class="active" onclick="showScreen('home')"><span>🏠</span>홈</button>
-<button data-screen="register" onclick="openNewEntry()"><span>➕</span>등록</button>
 <button data-screen="journal" onclick="showScreen('journal')"><span>📅</span>달력</button>
 <button data-screen="search" onclick="showScreen('search')"><span>🔎</span>검색</button>
 <button data-screen="stats" onclick="showScreen('stats')"><span>📊</span>통계</button>

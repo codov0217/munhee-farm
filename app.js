@@ -66,6 +66,7 @@ function goToManualPrintedPage(pageNumber){
 }
 function goToManualContents(){goToManualPage(1)}
 function openManualContents(){showScreen('manual');goToManualPage(1)}
+function openDilutionCalculator(){showScreen('manual');goToManualPrintedPage(82)}
 function changeManualPage(direction){goToManualPage(manualPageIndex+direction)}
 function formatDilutionNumber(value){
  const digits=value>=100?1:value>=1?2:4;
