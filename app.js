@@ -17,8 +17,7 @@ function setSyncStatus(message,state='checking'){
  el.textContent=message;el.dataset.state=state;
 }
 async function sheetSave(entry){
- const record={...entry,photos:[]};
- const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'save',record})});
+ const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'save',record:entry})});
  // Apps Script는 저장을 끝낸 뒤 빈 응답 또는 JSON이 아닌 응답을 돌려줄 때가 있습니다.
  // 이 경우 실제로는 시트에 저장됐는데도 r.json()이 실패해 '휴대폰에만 저장됨'으로 잘못 표시됐습니다.
  if(!r.ok)throw new Error('시트 저장 요청 실패');
@@ -36,7 +35,7 @@ async function syncFromSheet(showResult=false){
  setSyncStatus('공용 시트 불러오는 중…','checking');
  setLoading(true);try{const r=await fetch(SHEETS_API);const data=await r.json();if(!data.ok)throw new Error(data.message);
   const local=await getAllEntries(), byUid=new Map(local.map(x=>[x.recordUid,x]));
-  for(const row of data.records){const old=byUid.get(row.recordUid);if(!old||String(row.updatedAt)>String(old.updatedAt))await putEntry({...old,...row,id:old?.id||Date.now()+Math.floor(Math.random()*999),deviceId:old?.deviceId||'SHEET',photos:old?.photos||[]});}
+  for(const row of data.records){const old=byUid.get(row.recordUid);if(!old||String(row.updatedAt)>String(old.updatedAt))await putEntry({...old,...row,id:old?.id||Date.now()+Math.floor(Math.random()*999),deviceId:old?.deviceId||'SHEET',photos:Array.isArray(row.photos)?row.photos:(old?.photos||[])});}
   await renderJournal();setSyncStatus(`연결됨 · 공용 기록 ${data.records.length}건`,'connected');if(showResult)showToast('공용 작업기록을 불러왔습니다');
  }catch(e){setSyncStatus('연결 실패 · 새로고침 후 다시 확인','error');if(showResult)showToast('공용 시트 연결을 확인해 주세요')}finally{setLoading(false)}
 }
@@ -187,11 +186,19 @@ async function resizeImage(file){
  return new Promise((resolve,reject)=>{
   const reader=new FileReader();reader.onerror=()=>reject(reader.error);reader.onload=()=>{
    const img=new Image();img.onerror=()=>reject(new Error('이미지를 읽을 수 없습니다'));img.onload=()=>{
-    const max=1280,scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);
-    c.getContext('2d').drawImage(img,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.78))
+    const max=960,scale=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.72))
    };img.src=reader.result
   };reader.readAsDataURL(file)
  })
+}
+function isRemotePhoto(photo){return typeof photo==='string'&&/^https:\/\//.test(photo)}
+async function uploadPhotoToDrive(dataUrl,workDate,index){
+ const r=await fetch(SHEETS_API,{method:'POST',body:JSON.stringify({action:'uploadPhoto',photo:{dataUrl,workDate,index}})});
+ if(!r.ok)throw new Error('사진 업로드 요청 실패');
+ const body=await r.text();let data={};try{data=JSON.parse(body)}catch(e){throw new Error('사진 업로드 응답을 확인할 수 없습니다')}
+ if(!data.ok||!data.url)throw new Error(data.message||'사진을 드라이브에 저장하지 못했습니다');
+ return data.url;
 }
 async function processPhotoFiles(files, mode){
  if(!files.length)return;
@@ -206,7 +213,7 @@ async function processPhotoFiles(files, mode){
   }
   renderPhotoPreview();
   const note=document.getElementById('photoSavedNote');
-  note.textContent=mode==='camera'?'촬영한 사진이 작업에 바로 추가되었습니다.':`${added}장의 사진이 작업에 추가되었습니다.`;
+  note.textContent=mode==='camera'?'촬영한 사진이 선택되었습니다. 저장하면 공용 사진함에 올라갑니다.':`${added}장의 사진이 선택되었습니다. 저장하면 공용 사진함에 올라갑니다.`;
   note.classList.add('show');
   setTimeout(()=>note.classList.remove('show'),2200);
   if(files.length>added)showToast('사진은 최대 3장까지 저장됩니다');
@@ -275,7 +282,7 @@ function completeGallerySelection(){
  renderPhotoPreview();
  document.getElementById('galleryReview').classList.remove('open');
  const note=document.getElementById('photoSavedNote');
- note.textContent='선택한 사진이 작업에 추가되었습니다.';
+  note.textContent='사진이 선택되었습니다. 저장하면 공용 사진함에 올라갑니다.';
  note.classList.add('show');
  setTimeout(()=>note.classList.remove('show'),2200);
 }
@@ -342,7 +349,10 @@ async function saveEntry(){
  setLoading(true);
  try{
   let old=editId?await getEntry(editId):null;
-  const entry={id:editId?Number(editId):Date.now(),recordUid:old?.recordUid||makeRecordUid(),deviceId:old?.deviceId||getDeviceId(),workDate,field:selectedField,crop,work:selectedWork,worker:selectedWorker,amount,memo,photos:[...pendingPhotos],createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+  const localPhotos=[...pendingPhotos];
+  const uploadedPhotos=[];
+  for(let i=0;i<localPhotos.length;i++)uploadedPhotos.push(isRemotePhoto(localPhotos[i])?localPhotos[i]:await uploadPhotoToDrive(localPhotos[i],workDate,i+1));
+  const entry={id:editId?Number(editId):Date.now(),recordUid:old?.recordUid||makeRecordUid(),deviceId:old?.deviceId||getDeviceId(),workDate,field:selectedField,crop,work:selectedWork,worker:selectedWorker,amount,memo,photos:uploadedPhotos,createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
   await putEntry(entry);try{await sheetSave(entry);setSyncStatus('연결됨 · 방금 저장 완료','connected')}catch(e){setSyncStatus('연결 실패 · 휴대폰에만 저장됨','error');showToast('휴대폰에는 저장됨 · 공용 시트 연결 확인 필요')};lastSavedEntry={...entry,photos:[]};selectedCalendarDate=workDate;const [y,m]=workDate.split('-').map(Number);calendarMonth=new Date(y,m-1,1);showToast(editId?'수정되었습니다':'저장되었습니다');resetForm();showScreen('register');document.getElementById('copyPanel').classList.add('show');renderRecentWorks()
  }catch(err){alert('저장하지 못했습니다. 휴대폰 저장공간을 확인해 주세요.')}finally{setLoading(false)}
 }
@@ -354,7 +364,7 @@ async function editEntry(id){
 async function removeEntry(id){if(!confirm('이 작업기록을 삭제할까요?'))return;const entry=await getEntry(id);await deleteEntryDB(id);try{if(entry?.recordUid)await sheetDelete(entry.recordUid);setSyncStatus('연결됨 · 삭제 내용 반영 완료','connected')}catch(e){setSyncStatus('연결 실패 · 이 기기에서만 삭제됨','error')}showToast('삭제되었습니다');await renderJournal();if(document.getElementById('search').classList.contains('active'))runSearch();if(document.getElementById('stats').classList.contains('active'))renderStats()}
 
 function entryCard(x){
- const photos=(x.photos||[]).map(p=>`<div class="photo-box" onclick="openPhoto('${p}')"><img src="${p}" alt="작업 사진"></div>`).join('');
+ const photos=(x.photos||[]).map(p=>`<div class="photo-box" onclick='openPhoto(${JSON.stringify(p)})'><img src="${esc(p)}" alt="작업 사진"></div>`).join('');
  return `<article class="entry"><div class="entry-top"><strong>${esc(x.field)} · ${esc(x.crop)}</strong><time>${esc(x.workDate)}</time></div><div class="meta">작업: ${esc(x.work)}<br>작업자: ${esc(x.worker)}${x.amount?`<br>작업량: ${esc(x.amount)}`:''}${x.memo?`<br>메모: ${esc(x.memo)}`:''}</div>${photos?`<div class="entry-photos">${photos}</div>`:''}<div class="entry-actions"><button class="btn small secondary" onclick="editEntry(${x.id})">수정</button><button class="btn small danger" onclick="removeEntry(${x.id})">삭제</button></div></article>`
 }
 function openPhoto(src){document.getElementById('largePhoto').src=src;document.getElementById('photoModal').classList.add('open')}
