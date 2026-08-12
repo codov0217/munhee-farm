@@ -42,7 +42,10 @@ async function syncFromSheet(showResult=false){
 
 
 let manualPageIndex=0;
-let returnHomeFromDilution=false;
+let dilutionPreviousScreen='home';
+let dilutionPreviousManualPage=0;
+let openedFromDilutionCalculator=false;
+function getActiveScreenId(){return document.querySelector('.screen.active')?.id||'home'}
 function getManualPages(){return [...document.querySelectorAll('#manualBook .manual-page')]}
 function updateManualControls(){
  const pages=getManualPages();
@@ -51,9 +54,9 @@ function updateManualControls(){
  pages.forEach((page,index)=>page.classList.toggle('active',index===manualPageIndex));
  const current=pages[manualPageIndex];
  const previousButton=document.getElementById('manualPrev');
- const returnToHome=returnHomeFromDilution&&String(current.dataset.page)==='82';
- previousButton.disabled=manualPageIndex===0&&!returnToHome;
- previousButton.textContent=returnToHome?'⌂ 홈으로':'‹ 이전';
+ const returnToPrevious=openedFromDilutionCalculator&&String(current.dataset.page)==='82';
+ previousButton.disabled=manualPageIndex===0&&!returnToPrevious;
+ previousButton.textContent='‹ 이전';
  document.getElementById('manualNext').disabled=manualPageIndex===pages.length-1;
  document.getElementById('manualProgress').innerHTML=`${manualPageIndex+1} / ${pages.length}<small>${current.dataset.label||''}</small>`;
 }
@@ -68,11 +71,22 @@ function goToManualPrintedPage(pageNumber){
  if(index>=0)goToManualPage(index);
 }
 function goToManualContents(){goToManualPage(1)}
-function openManualContents(){returnHomeFromDilution=false;showScreen('manual');goToManualPage(1)}
-function openDilutionCalculator(){returnHomeFromDilution=true;showScreen('manual');goToManualPrintedPage(82)}
+function openManualContents(){openedFromDilutionCalculator=false;showScreen('manual');goToManualPage(1)}
+function openDilutionCalculator(){
+ dilutionPreviousScreen=getActiveScreenId();
+ dilutionPreviousManualPage=manualPageIndex;
+ openedFromDilutionCalculator=true;
+ showScreen('manual');
+ goToManualPrintedPage(82);
+}
 function changeManualPage(direction){
- if(returnHomeFromDilution&&direction<0){returnHomeFromDilution=false;showScreen('home');return}
- returnHomeFromDilution=false;
+ if(openedFromDilutionCalculator&&direction<0){
+  openedFromDilutionCalculator=false;
+  if(dilutionPreviousScreen==='manual'){showScreen('manual');goToManualPage(dilutionPreviousManualPage)}
+  else showScreen(dilutionPreviousScreen);
+  return;
+ }
+ openedFromDilutionCalculator=false;
  goToManualPage(manualPageIndex+direction);
 }
 function formatDilutionNumber(value){
