@@ -312,7 +312,9 @@ function resetForm(){
 async function resizeImage(file){
  // 원본을 data URL로 읽지 않는다. 고화질 사진을 통째로 메모리에 올리면
  // 휴대폰 브라우저가 재시작될 수 있어서, 먼저 작은 비트맵으로 줄인다.
- const max=640;
+ // 사진 선택 직후에도 한 번에 잡는 메모리를 더 줄입니다.
+ // 원본 파일은 저장하지 않고, 최대 480px · JPEG 품질 0.48만 남깁니다.
+ const max=480;
  let bitmap;
  if('createImageBitmap' in window){
   bitmap=await createImageBitmap(file,{resizeWidth:max,resizeHeight:max,resizeQuality:'medium'});
@@ -327,7 +329,7 @@ async function resizeImage(file){
  const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
  canvas.getContext('2d',{alpha:false}).drawImage(bitmap,0,0,canvas.width,canvas.height);
  if(bitmap.close)bitmap.close();
- const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.6));
+ const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.48));
  canvas.width=canvas.height=1;
  if(!blob)throw new Error('사진을 줄이지 못했습니다');
  return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(reader.error);reader.onload=()=>resolve(reader.result);reader.readAsDataURL(blob)});
@@ -340,7 +342,9 @@ async function processPhotoFiles(files, mode){
  setLoading(true);
  try{
   let added=0;
-  for(const f of files){
+  // 촬영은 항상 1장, 갤러리는 한 번에 1장만 처리합니다. 여러 장의 고화질
+  // 사진을 동시에 해제하는 과정에서 휴대폰의 사진 선택기가 멈추는 것을 막습니다.
+  for(const f of files.slice(0,1)){
    if(pendingPhotos.length>=3)break;
    const dataUrl=await resizeImage(f);
    pendingPhotos.push({dataUrl});
@@ -351,7 +355,7 @@ async function processPhotoFiles(files, mode){
   note.textContent=mode==='camera'?'사진이 준비되었습니다. 작업을 저장하면 공용 사진함에 함께 저장됩니다.':`${added}장의 사진이 준비되었습니다. 작업을 저장하면 공용 사진함에 함께 저장됩니다.`;
   note.classList.add('show');
   setTimeout(()=>note.classList.remove('show'),2200);
-  if(files.length>added)showToast('사진은 최대 3장까지 저장됩니다');
+  if(files.length>added)showToast('사진은 한 장씩 추가해 주세요. 작업당 최대 3장입니다');
  }catch(err){
   alert('사진을 올리지 못했습니다. 인터넷 연결을 확인한 뒤 한 장씩 다시 찍어 주세요.');
  }finally{
@@ -370,19 +374,19 @@ function openGalleryPicker(){
  else input.click();
 }
 async function prepareGalleryPhotos(e){
- const files=[...e.target.files];
+ const files=[...e.target.files].slice(0,1);
  if(!files.length)return;
  setLoading(true);
  galleryTempPhotos=[];
  try{
-  const available=Math.max(0,3-pendingPhotos.length);
+  const available=Math.min(1,Math.max(0,3-pendingPhotos.length));
   for(const f of files.slice(0,available)){
    const dataUrl=await resizeImage(f);
    galleryTempPhotos.push({dataUrl});
   }
   renderGalleryReview();
   document.getElementById('galleryReview').classList.add('open');
-  if(files.length>available)showToast('사진은 작업당 최대 3장입니다');
+  if(files.length>available)showToast('사진은 한 장씩 추가해 주세요. 작업당 최대 3장입니다');
  }catch(err){
   alert('사진을 올리지 못했습니다. 인터넷 연결을 확인한 뒤 한 장씩 다시 선택해 주세요.');
  }finally{
@@ -535,6 +539,13 @@ async function renderStats(){
 async function init(){
  makeChoices('fieldChoices',fields,'field');makeChoices('workChoices',works,'work');makeChoices('workerChoices',workers,'worker');fillSelect('searchField',fields,'필지');fillSelect('searchWork',works,'작업');fillSelect('searchWorker',workers,'작업자');
  document.getElementById('statsMonth').value=monthString(new Date());resetForm();updateManualControls();
- try{await openDB();const cleared=await purgeLocalPhotoData();await migrateOldData();await syncFromSheet();if(cleared)showToast('휴대폰에 남아 있던 큰 사진 데이터를 정리했습니다.')}catch(e){alert('기기 내부 데이터베이스를 열지 못했습니다. 일반 브라우저에서 다시 열어 주세요.')}
+ try{
+  await openDB();
+  const cleared=await purgeLocalPhotoData();
+  await migrateOldData();
+  const removedLegacy=removeLegacyEntryCache();
+  await syncFromSheet();
+  if(cleared||removedLegacy)showToast('휴대폰에 남아 있던 사진 임시 데이터를 정리했습니다.');
+ }catch(e){alert('기기 내부 데이터베이스를 열지 못했습니다. 일반 브라우저에서 다시 열어 주세요.')}
 }
 init();

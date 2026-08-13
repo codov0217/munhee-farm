@@ -34,3 +34,14 @@ function purgeLocalPhotoData(){
   tx.onerror=()=>reject(tx.error);
  });
 }
+// v2.8 이전에는 localStorage에도 작업기록 전체(사진 data: URL 포함)를
+// 남겼습니다. IndexedDB로 옮긴 뒤에도 이 복사본이 남아 있으면 휴대폰의
+// 사이트 저장공간을 계속 차지하므로, 기록을 옮긴 다음 반드시 제거합니다.
+function removeLegacyEntryCache(){
+ try{
+  const raw=localStorage.getItem('munhuiEntries');
+  if(!raw)return false;
+  localStorage.removeItem('munhuiEntries');
+  return true;
+ }catch(error){return false}
+}
