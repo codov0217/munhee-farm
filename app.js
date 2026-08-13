@@ -300,7 +300,7 @@ function setCrop(v){document.getElementById('crop').value=v}
 function showScreen(id){
  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));
- if(id==='journal')renderJournal();if(id==='search')runSearch();if(id==='stats')renderStats();if(id==='register')renderRecentWorks();if(id==='manual')updateManualControls();window.scrollTo({top:0,behavior:'smooth'})
+ if(id==='journal')renderJournal();if(id==='stats')renderStats();if(id==='register')renderRecentWorks();if(id==='manual')updateManualControls();window.scrollTo({top:0,behavior:'smooth'})
 }
 function openNewEntry(){resetForm();showScreen('register');renderRecentWorks()}
 function resetForm(){
@@ -512,7 +512,7 @@ async function editEntry(id){
  document.getElementById('crop').value=x.crop;document.getElementById('amount').value=x.amount||'';document.getElementById('memo').value=x.memo||'';selectedField=x.field;selectedWork=x.work;selectedWorker=x.worker;pendingPhotos=(x.photos||[]).map(url=>({url}));
  selectChoice('fieldChoices',x.field);selectChoice('workChoices',x.work);selectChoice('workerChoices',x.worker);renderPhotoPreview();showScreen('register')
 }
-async function removeEntry(id){if(!confirm('이 작업기록을 삭제할까요?'))return;const entry=await getEntry(id);await deleteEntryDB(id);try{if(entry?.recordUid)await sheetDelete(entry.recordUid);setSyncStatus('연결됨 · 삭제 내용 반영 완료','connected')}catch(e){setSyncStatus('연결 실패 · 이 기기에서만 삭제됨','error')}showToast('삭제되었습니다');await renderJournal();if(document.getElementById('search').classList.contains('active'))runSearch();if(document.getElementById('stats').classList.contains('active'))renderStats()}
+async function removeEntry(id){if(!confirm('이 작업기록을 삭제할까요?'))return;const entry=await getEntry(id);await deleteEntryDB(id);try{if(entry?.recordUid)await sheetDelete(entry.recordUid);setSyncStatus('연결됨 · 삭제 내용 반영 완료','connected')}catch(e){setSyncStatus('연결 실패 · 이 기기에서만 삭제됨','error')}showToast('삭제되었습니다');await renderJournal();if(document.getElementById('stats').classList.contains('active'))renderStats()}
 
 function entryCard(x){
  const photos=(x.photos||[]).map(p=>`<div class="photo-box" onclick='openPhoto(${JSON.stringify(p)})'><img src="${esc(previewPhotoUrl(p))}" alt="작업 사진" onerror="this.parentElement.classList.add('photo-error')"></div>`).join('');
@@ -531,14 +531,6 @@ function renderEntriesForDate(list){const rows=list.filter(x=>x.workDate===selec
 function changeMonth(n){calendarMonth=new Date(calendarMonth.getFullYear(),calendarMonth.getMonth()+n,1);selectedCalendarDate=localDateString(new Date(calendarMonth.getFullYear(),calendarMonth.getMonth(),1));renderJournal()}
 function goToday(){const d=new Date();calendarMonth=new Date(d.getFullYear(),d.getMonth(),1);selectedCalendarDate=localDateString(d);renderJournal()}
 
-function fillSelect(id,items,label){document.getElementById(id).innerHTML=`<option value="">${label} 전체</option>`+items.map(x=>`<option>${esc(x)}</option>`).join('')}
-async function runSearch(){
- const all=await getAllEntries(),from=document.getElementById('searchFrom').value,to=document.getElementById('searchTo').value,field=document.getElementById('searchField').value,work=document.getElementById('searchWork').value,worker=document.getElementById('searchWorker').value,crop=document.getElementById('searchCrop').value.trim().toLowerCase(),key=document.getElementById('searchKeyword').value.trim().toLowerCase();
- const rows=all.filter(x=>(!from||x.workDate>=from)&&(!to||x.workDate<=to)&&(!field||x.field===field)&&(!work||x.work===work)&&(!worker||x.worker===worker)&&(!crop||x.crop.toLowerCase().includes(crop))&&(!key||`${x.memo||''} ${x.amount||''}`.toLowerCase().includes(key)));
- document.getElementById('searchSummary').innerHTML=`검색 결과 <span class="entry-count">${rows.length}건</span>`;document.getElementById('searchResults').innerHTML=rows.length?rows.map(entryCard).join(''):'<div class="empty">조건에 맞는 작업기록이 없습니다.</div>'
-}
-function clearSearch(){['searchFrom','searchTo','searchCrop','searchKeyword'].forEach(id=>document.getElementById(id).value='');['searchField','searchWork','searchWorker'].forEach(id=>document.getElementById(id).value='');runSearch()}
-
 function countBy(list,key){const c={};list.forEach(x=>{const v=x[key]||'미입력';c[v]=(c[v]||0)+1});return c}
 function renderBars(id,obj){const el=document.getElementById(id),arr=Object.entries(obj).sort((a,b)=>b[1]-a[1]),max=Math.max(1,...arr.map(x=>x[1]));el.innerHTML=arr.length?arr.map(([k,v])=>`<div class="stat-row"><div class="stat-label"><span>${esc(k)}</span><strong>${v}건</strong></div><div class="bar-bg"><div class="bar" style="width:${v/max*100}%"></div></div></div>`).join(''):'<div class="empty">이 달에는 기록이 없습니다.</div>'}
 async function renderStats(){
@@ -548,7 +540,7 @@ async function renderStats(){
 }
 
 async function init(){
- makeChoices('fieldChoices',fields,'field');makeChoices('workChoices',works,'work');makeChoices('workerChoices',workers,'worker');fillSelect('searchField',fields,'필지');fillSelect('searchWork',works,'작업');fillSelect('searchWorker',workers,'작업자');
+ makeChoices('fieldChoices',fields,'field');makeChoices('workChoices',works,'work');makeChoices('workerChoices',workers,'worker');
  document.getElementById('statsMonth').value=monthString(new Date());resetForm();updateManualControls();
  try{
   await openDB();

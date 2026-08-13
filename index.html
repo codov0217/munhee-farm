@@ -19,13 +19,17 @@
 <div id="updateBanner" class="update-banner"><span><strong>새 버전이 있습니다</strong><br>버튼을 누르면 바로 적용됩니다.</span><button type="button" id="updateButton" onclick="applyUpdate()">지금 업데이트</button></div>
 <div id="installBanner" class="install-banner"><div class="text"><strong>휴대폰에 설치하기</strong><br>홈 화면에서 일반 앱처럼 사용할 수 있습니다.</div><button type="button" id="installButton">설치</button></div>
 <div class="app">
-<header><div class="brand"><div class="logo">🌳</div><div><h1>문희농원 작업일지</h1><div class="sub">버전 2.8 · 공용 작업기록 연동</div></div></div></header>
+<header><div class="brand"><div class="logo">🌱</div><div><h1>문희농원</h1><div class="sub">오늘의 농장 기록과 현장 관리</div></div></div></header>
 <main>
 <section id="home" class="screen active">
-  <div class="hero"><h2>안녕하세요 👋</h2><p>농장 작업을 날짜별로 기록하고 사진, 검색, 통계까지 한곳에서 확인하세요.</p></div>
+  <div class="card sync-card farm-record-card">
+    <div class="sync-head"><div><strong>📝 작업일지 작성</strong><small id="syncStatus" class="sync-status">연결 확인 중…</small></div><button class="btn small secondary" type="button" onclick="syncFromSheet(true)">새로고침</button></div>
+    <p>작업 내용과 사진을 공용 작업기록에 안전하게 저장합니다.</p>
+    <button class="btn primary farm-record-button" type="button" onclick="openNewEntry()">오늘 작업 기록하기 <span>›</span></button>
+  </div>
+  <div class="hero"><span class="hero-kicker">MUNHUI FARM · TODAY</span><h2>오늘도 밭에서<br>기록을 남겨요.</h2><p>작업 내용과 사진을 가족이 함께 확인할 수 있습니다.</p></div>
   <div class="grid">
     <button class="tile" onclick="showScreen('journal')"><span class="ico">📅</span><strong>달력 일지</strong><small>날짜별 작업 확인</small></button>
-    <button class="tile" onclick="showScreen('search')"><span class="ico">🔎</span><strong>검색</strong><small>필지·작물·작업 찾기</small></button>
     <button class="tile" onclick="showScreen('stats')"><span class="ico">📊</span><strong>통계</strong><small>월별 작업 현황</small></button>
   </div>
 
@@ -45,12 +49,6 @@
     <div id="koreanBackTranslation" class="translation-result back-translation" aria-live="polite">베트남어 번역 후, 여기에서 전달 뜻을 다시 확인할 수 있습니다.</div>
     <div class="translation-actions"><button class="btn small secondary" type="button" onclick="clearVietnameseTranslation()">지우기</button><button id="copyVietnameseButton" class="btn small primary" type="button" onclick="copyVietnameseTranslation()" disabled>베트남어 복사</button></div>
   </section>
-
-  <div class="card sync-card">
-    <div class="sync-head"><div><strong>☁️ 공용 작업기록</strong><small id="syncStatus" class="sync-status">연결 확인 중…</small></div><button class="btn small secondary" type="button" onclick="syncFromSheet(true)">새로고침</button></div>
-    <p>작업 등록·수정·삭제 내용이 이 계정의 구글 스프레드시트에 함께 저장됩니다.</p>
-    <button class="btn primary" type="button" style="width:100%" onclick="openNewEntry()">➕ 오늘 작업 기록하기</button>
-  </div>
 
 </section>
 
@@ -94,18 +92,6 @@
   <div class="section-title"><h2>작업일지 달력</h2><button class="chip" onclick="goToday()">오늘</button></div>
   <div class="card"><div class="calendar-head"><button class="calendar-nav" onclick="changeMonth(-1)">‹</button><h3 id="calendarTitle"></h3><button class="calendar-nav" onclick="changeMonth(1)">›</button></div><div class="weekdays"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div><div id="calendarGrid" class="calendar-grid"></div></div>
   <div id="selectedDateTitle" class="calendar-summary"></div><div id="entries"></div>
-</section>
-
-<section id="search" class="screen">
-  <div class="section-title"><h2>작업 검색</h2><button class="chip" onclick="clearSearch()">초기화</button></div>
-  <div class="card filters">
-    <div class="row"><div><label for="searchFrom">시작일</label><input id="searchFrom" class="field" type="date"></div><div><label for="searchTo">종료일</label><input id="searchTo" class="field" type="date"></div></div>
-    <div class="row"><div><label for="searchField">필지</label><select id="searchField" class="field"></select></div><div><label for="searchWork">작업</label><select id="searchWork" class="field"></select></div></div>
-    <div class="row"><div><label for="searchWorker">작업자</label><select id="searchWorker" class="field"></select></div><div><label for="searchCrop">작물</label><input id="searchCrop" class="field" placeholder="작물명"></div></div>
-    <div><label for="searchKeyword">메모·작업량 검색</label><input id="searchKeyword" class="field" placeholder="검색어 입력"></div>
-    <div class="filter-actions"><button class="btn secondary" onclick="clearSearch()">지우기</button><button class="btn primary" onclick="runSearch()">검색하기</button></div>
-  </div>
-  <div id="searchSummary" class="calendar-summary"></div><div id="searchResults"></div>
 </section>
 
 <section id="stats" class="screen">
@@ -1712,7 +1698,6 @@
 <nav>
 <button data-screen="home" class="active" onclick="showScreen('home')"><span>🏠</span>홈</button>
 <button data-screen="journal" onclick="showScreen('journal')"><span>📅</span>달력</button>
-<button data-screen="search" onclick="showScreen('search')"><span>🔎</span>검색</button>
 <button data-screen="stats" onclick="showScreen('stats')"><span>📊</span>통계</button>
 <button data-screen="manual" onclick="openManualContents()"><span>📘</span>매뉴얼</button>
 </nav>
