@@ -1,4 +1,4 @@
-const fields=['중앙밭','계곡옆밭','과실수밭','오미자밭','수국밭','하우스밭','장독밭'];
+const fields=['문희계곡','윤슬지','노을풍경','달빛풍경','계곡풍격','바람에 언덕','이끼정원','솔밭길','연못옆','하우스옆'];
 const works=['파종','심기·정식','관수','비료','농약 방제','제초','예초','전정','수확','선별','포장','출하','장비 정비','기타'];
 const workers=['아버지','어머니','본인','함께 작업'];
 let selectedField='',selectedWork='',selectedWorker='',pendingPhotos=[],galleryTempPhotos=[],lastSavedEntry=null;
