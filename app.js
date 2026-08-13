@@ -77,6 +77,7 @@ function setVietnameseTranslation(message,state=''){
  if(!result)return;
  result.textContent=message;result.className=`translation-result${state?` ${state}`:''}`;
  document.getElementById('copyVietnameseButton').disabled=!latestVietnameseTranslation;
+ document.getElementById('speakVietnameseButton').disabled=!latestVietnameseTranslation||!('speechSynthesis' in window);
 }
 function setKoreanBackTranslation(message,state=''){
  const result=document.getElementById('koreanBackTranslation');if(!result)return;
@@ -95,10 +96,24 @@ function queueVietnameseTranslation(){
  },600);
 }
 function clearVietnameseTranslation(){
- clearTimeout(vietnameseTranslationTimer);latestVietnameseTranslation='';
+ clearTimeout(vietnameseTranslationTimer);latestVietnameseTranslation='';if('speechSynthesis' in window)window.speechSynthesis.cancel();
  const input=document.getElementById('koreanTaskText');if(input)input.value='';
  setVietnameseTranslation('한국어로 오늘 할 일을 입력하세요.');
  setKoreanBackTranslation('베트남어 번역 후, 여기에서 전달 뜻을 다시 확인할 수 있습니다.');
+}
+function speakVietnameseTranslation(){
+ if(!latestVietnameseTranslation)return;
+ if(!('speechSynthesis' in window)){showToast('이 휴대폰 브라우저는 음성 재생을 지원하지 않습니다.');return}
+ const button=document.getElementById('speakVietnameseButton');
+ if(button.dataset.speaking==='true'){window.speechSynthesis.cancel();return}
+ window.speechSynthesis.cancel();
+ const utterance=new SpeechSynthesisUtterance(latestVietnameseTranslation);
+ utterance.lang='vi-VN';utterance.rate=.86;utterance.pitch=1;
+ const vietnameseVoice=window.speechSynthesis.getVoices().find(v=>/^vi([_-]|$)/i.test(v.lang));
+ if(vietnameseVoice)utterance.voice=vietnameseVoice;
+ utterance.onstart=()=>{button.dataset.speaking='true';button.textContent='■ 재생 중지';button.disabled=false};
+ utterance.onend=utterance.onerror=()=>{button.dataset.speaking='';button.textContent='🔊 베트남어로 듣기';button.disabled=!latestVietnameseTranslation};
+ window.speechSynthesis.speak(utterance);
 }
 async function copyVietnameseTranslation(){
  if(!latestVietnameseTranslation)return;
