@@ -144,7 +144,8 @@ function uploadPhoto_(photo) {
   const filename = `${date}_${recordUid || '작업'}_사진${index}_${Date.now()}.${extension}`;
   const file = getPhotoFolder_().createFile(Utilities.newBlob(bytes, mimeType, filename));
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  return `https://drive.google.com/uc?export=view&id=${file.getId()}`;
+  // 앱 목록에서는 파일 응답 주소보다 썸네일 전용 주소가 휴대폰에서 안정적으로 표시됩니다.
+  return `https://drive.google.com/thumbnail?id=${file.getId()}&sz=w1000`;
 }
 
 function getPhotoFolder_() {

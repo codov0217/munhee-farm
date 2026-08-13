@@ -1,4 +1,4 @@
-const CACHE_NAME='munhui-farm-pwa-v2.9.9';
+const CACHE_NAME='munhui-farm-pwa-v2.9.10';
 const APP_SHELL=['./','./index.html','./manifest.webmanifest','./style.css','./database.js','./app.js','./pwa.js','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});

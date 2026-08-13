@@ -335,6 +335,17 @@ async function resizeImage(file){
  return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(reader.error);reader.onload=()=>resolve(reader.result);reader.readAsDataURL(blob)});
 }
 function photoSrc(photo){return typeof photo==='string'?photo:(photo?.url||photo?.dataUrl||'')}
+function driveFileId(photo){
+ const src=photoSrc(photo);
+ const match=src.match(/[?&]id=([-\w]{10,})/)||src.match(/\/d\/([-\w]{10,})/);
+ return match?match[1]:'';
+}
+// Google Drive의 uc 주소는 휴대폰에서 사진 대신 다운로드/권한 화면을 돌려주는 경우가 있습니다.
+// 목록에서는 Drive 썸네일 전용 주소를 쓰면 같은 공유 사진을 안정적으로 표시할 수 있습니다.
+function previewPhotoUrl(photo){
+ const id=driveFileId(photo);
+ return id?`https://drive.google.com/thumbnail?id=${id}&sz=w1000`:photoSrc(photo);
+}
 function remotePhotoUrl(photo){const src=photoSrc(photo);return /^https:\/\//.test(src)?src:''}
 async function processPhotoFiles(files, mode){
  if(!files.length)return;
@@ -426,7 +437,7 @@ function completeGallerySelection(){
  note.classList.add('show');
  setTimeout(()=>note.classList.remove('show'),2200);
 }
-function renderPhotoPreview(){document.getElementById('photoPreview').innerHTML=pendingPhotos.map((p,i)=>`<div class="photo-box"><img src="${photoSrc(p)}" alt="선택한 사진"><button class="photo-remove" type="button" onclick="removePhoto(${i})">×</button></div>`).join('')}
+function renderPhotoPreview(){document.getElementById('photoPreview').innerHTML=pendingPhotos.map((p,i)=>`<div class="photo-box"><img src="${esc(previewPhotoUrl(p))}" alt="선택한 사진"><button class="photo-remove" type="button" onclick="removePhoto(${i})">×</button></div>`).join('')}
 function removePhoto(i){pendingPhotos.splice(i,1);renderPhotoPreview()}
 
 
@@ -504,10 +515,10 @@ async function editEntry(id){
 async function removeEntry(id){if(!confirm('이 작업기록을 삭제할까요?'))return;const entry=await getEntry(id);await deleteEntryDB(id);try{if(entry?.recordUid)await sheetDelete(entry.recordUid);setSyncStatus('연결됨 · 삭제 내용 반영 완료','connected')}catch(e){setSyncStatus('연결 실패 · 이 기기에서만 삭제됨','error')}showToast('삭제되었습니다');await renderJournal();if(document.getElementById('search').classList.contains('active'))runSearch();if(document.getElementById('stats').classList.contains('active'))renderStats()}
 
 function entryCard(x){
- const photos=(x.photos||[]).map(p=>`<div class="photo-box" onclick='openPhoto(${JSON.stringify(p)})'><img src="${esc(p)}" alt="작업 사진"></div>`).join('');
+ const photos=(x.photos||[]).map(p=>`<div class="photo-box" onclick='openPhoto(${JSON.stringify(p)})'><img src="${esc(previewPhotoUrl(p))}" alt="작업 사진" onerror="this.parentElement.classList.add('photo-error')"></div>`).join('');
  return `<article class="entry"><div class="entry-top"><strong>${esc(x.field)} · ${esc(x.crop)}</strong><time>${esc(x.workDate)}</time></div><div class="meta">작업: ${esc(x.work)}<br>작업자: ${esc(x.worker)}${x.amount?`<br>작업량: ${esc(x.amount)}`:''}${x.memo?`<br>메모: ${esc(x.memo)}`:''}</div>${photos?`<div class="entry-photos">${photos}</div>`:''}<div class="entry-actions"><button class="btn small secondary" onclick="editEntry(${x.id})">수정</button><button class="btn small danger" onclick="removeEntry(${x.id})">삭제</button></div></article>`
 }
-function openPhoto(src){document.getElementById('largePhoto').src=src;document.getElementById('photoModal').classList.add('open')}
+function openPhoto(src){document.getElementById('largePhoto').src=previewPhotoUrl(src);document.getElementById('photoModal').classList.add('open')}
 function closePhotoModal(e){if(e&&e.target!==document.getElementById('photoModal'))return;document.getElementById('photoModal').classList.remove('open')}
 
 async function renderJournal(){const list=await getAllEntries();renderCalendar(list);renderEntriesForDate(list)}
