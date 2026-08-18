@@ -1,4 +1,4 @@
-const fields=['문희계곡','윤슬지','노을풍경','달빛풍경','계곡풍격','바람에 언덕','이끼정원','솔밭길','연못옆','하우스옆'];
+const fields=['문희계곡','윤슬지','노을풍경','달빛풍경','계곡풍경','바람에 언덕','이끼정원','솔밭길','연못옆','달빛밭','하우스내부'];
 const works=['파종','심기·정식','관수','비료','농약 방제','제초','예초','전정','수확','선별','포장','출하','장비 정비','기타'];
 const workers=['아버지','어머니','본인','함께 작업'];
 let selectedField='',selectedWork='',selectedWorker='',pendingPhotos=[],galleryTempPhotos=[],lastSavedEntry=null;
@@ -320,7 +320,7 @@ function showScreen(id){
 function openNewEntry(){resetForm();showScreen('register');renderRecentWorks()}
 function resetForm(){
  document.getElementById('editId').value='';document.getElementById('formTitle').textContent='작업 등록';document.getElementById('workDate').value=localDateString(new Date());
- document.getElementById('crop').value='';document.getElementById('amount').value='';document.getElementById('memo').value='';
+ document.getElementById('crop').value='';document.getElementById('amount').value='';document.getElementById('memo').value='';document.getElementById('weather').value='';document.getElementById('temperature').value='';document.getElementById('humidity').value='';
  selectedField=selectedWork=selectedWorker='';pendingPhotos=[];document.querySelectorAll('.choice').forEach(x=>x.classList.remove('selected'));renderPhotoPreview();const note=document.getElementById('photoSavedNote');if(note)note.classList.remove('show');const cp=document.getElementById('copyPanel');if(cp)cp.classList.remove('show')
 }
 
@@ -458,14 +458,14 @@ function removePhoto(i){pendingPhotos.splice(i,1);renderPhotoPreview()}
 
 function getFavorites(){return JSON.parse(localStorage.getItem('munhuiFavorites')||'[]')}
 function saveFavorites(list){localStorage.setItem('munhuiFavorites',JSON.stringify(list))}
-function entrySignature(x){return [x.field,x.crop,x.work,x.worker,x.amount||'',x.memo||''].join('||')}
+function entrySignature(x){return [x.field,x.crop,x.work,x.worker,x.amount||'',x.memo||'',x.weather||'',x.temperature||'',x.humidity||''].join('||')}
 function isFavorite(x){return getFavorites().some(f=>f.signature===entrySignature(x))}
 function toggleFavorite(id){
  getEntry(id).then(x=>{
   if(!x)return;
   let list=getFavorites();const sig=entrySignature(x);const idx=list.findIndex(f=>f.signature===sig);
   if(idx>=0){list.splice(idx,1);showToast('즐겨찾기에서 해제했습니다')}
-  else{list.unshift({signature:sig,field:x.field,crop:x.crop,work:x.work,worker:x.worker,amount:x.amount||'',memo:x.memo||''});showToast('즐겨찾기에 추가했습니다')}
+  else{list.unshift({signature:sig,field:x.field,crop:x.crop,work:x.work,worker:x.worker,amount:x.amount||'',memo:x.memo||'',weather:x.weather||'',temperature:x.temperature||'',humidity:x.humidity||''});showToast('즐겨찾기에 추가했습니다')}
   saveFavorites(list);renderRecentWorks();
  })
 }
@@ -475,6 +475,7 @@ function loadTemplate(x){
  document.getElementById('crop').value=x.crop||'';
  document.getElementById('amount').value=x.amount||'';
  document.getElementById('memo').value=x.memo||'';
+ document.getElementById('weather').value=x.weather||'';document.getElementById('temperature').value=x.temperature||'';document.getElementById('humidity').value=x.humidity||'';
  selectedField=x.field||'';selectedWork=x.work||'';selectedWorker=x.worker||'';
  selectChoice('fieldChoices',selectedField);selectChoice('workChoices',selectedWork);selectChoice('workerChoices',selectedWorker);
  pendingPhotos=[];renderPhotoPreview();showToast('이전 작업을 불러왔습니다');
@@ -499,7 +500,7 @@ async function renderRecentWorks(){
     </div>
    </div>
    <div class="recent-actions">
-    <button class="btn small primary" onclick='loadTemplate(${JSON.stringify({field:x.field,crop:x.crop,work:x.work,worker:x.worker,amount:x.amount||"",memo:x.memo||""})})'>불러오기</button>
+    <button class="btn small primary" onclick='loadTemplate(${JSON.stringify({field:x.field,crop:x.crop,work:x.work,worker:x.worker,amount:x.amount||"",memo:x.memo||"",weather:x.weather||"",temperature:x.temperature||"",humidity:x.humidity||""})})'>불러오기</button>
     ${typeof x.id==='number'?`<button class="star-btn ${isFavorite(x)?'active':''}" onclick="toggleFavorite(${x.id})">${isFavorite(x)?'★':'☆'}</button>`:''}
    </div>
   </div>`).join('');
@@ -510,12 +511,12 @@ function copyLastSaved(){
  document.getElementById('copyPanel').classList.remove('show');
 }
 async function saveEntry(){
- const editId=document.getElementById('editId').value,workDate=document.getElementById('workDate').value,crop=document.getElementById('crop').value.trim(),amount=document.getElementById('amount').value.trim(),memo=document.getElementById('memo').value.trim();
+ const editId=document.getElementById('editId').value,workDate=document.getElementById('workDate').value,crop=document.getElementById('crop').value.trim(),amount=document.getElementById('amount').value.trim(),memo=document.getElementById('memo').value.trim(),weather=document.getElementById('weather').value,temperature=document.getElementById('temperature').value.trim(),humidity=document.getElementById('humidity').value.trim();
  if(!workDate)return alert('작업 날짜를 선택해 주세요.');if(!selectedField)return alert('필지를 선택해 주세요.');if(!crop)return alert('작물 이름을 입력해 주세요.');if(!selectedWork)return alert('작업 종류를 선택해 주세요.');if(!selectedWorker)return alert('작업자를 선택해 주세요.');
  setLoading(true);
  try{
   let old=editId?await getEntry(editId):null;
-  const entry={id:editId?Number(editId):Date.now(),recordUid:old?.recordUid||makeRecordUid(),deviceId:old?.deviceId||getDeviceId(),workDate,field:selectedField,crop,work:selectedWork,worker:selectedWorker,amount,memo,photos:pendingPhotos.map(remotePhotoUrl).filter(Boolean),createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
+  const entry={id:editId?Number(editId):Date.now(),recordUid:old?.recordUid||makeRecordUid(),deviceId:old?.deviceId||getDeviceId(),workDate,field:selectedField,crop,work:selectedWork,worker:selectedWorker,amount,memo,weather,temperature,humidity,photos:pendingPhotos.map(remotePhotoUrl).filter(Boolean),createdAt:old?.createdAt||new Date().toISOString(),updatedAt:new Date().toISOString()};
   const photoDataUrls=pendingPhotos.map(x=>x?.dataUrl).filter(Boolean);
   const saved=await sheetSave(entry,photoDataUrls);
   Object.assign(entry,{photos:Array.isArray(saved.photos)?saved.photos:entry.photos,updatedAt:saved.updatedAt||entry.updatedAt});
@@ -524,14 +525,15 @@ async function saveEntry(){
 }
 async function editEntry(id){
  const x=await getEntry(id);if(!x)return;document.getElementById('editId').value=x.id;document.getElementById('formTitle').textContent='작업 수정';document.getElementById('workDate').value=x.workDate;
- document.getElementById('crop').value=x.crop;document.getElementById('amount').value=x.amount||'';document.getElementById('memo').value=x.memo||'';selectedField=x.field;selectedWork=x.work;selectedWorker=x.worker;pendingPhotos=(x.photos||[]).map(url=>({url}));
+ document.getElementById('crop').value=x.crop;document.getElementById('amount').value=x.amount||'';document.getElementById('memo').value=x.memo||'';document.getElementById('weather').value=x.weather||'';document.getElementById('temperature').value=x.temperature||'';document.getElementById('humidity').value=x.humidity||'';selectedField=x.field;selectedWork=x.work;selectedWorker=x.worker;pendingPhotos=(x.photos||[]).map(url=>({url}));
  selectChoice('fieldChoices',x.field);selectChoice('workChoices',x.work);selectChoice('workerChoices',x.worker);renderPhotoPreview();showScreen('register')
 }
 async function removeEntry(id){if(!confirm('이 작업기록을 삭제할까요?'))return;const entry=await getEntry(id);await deleteEntryDB(id);try{if(entry?.recordUid)await sheetDelete(entry.recordUid);setSyncStatus('연결됨 · 삭제 내용 반영 완료','connected')}catch(e){setSyncStatus('연결 실패 · 이 기기에서만 삭제됨','error')}showToast('삭제되었습니다');await renderJournal();if(document.getElementById('stats').classList.contains('active'))renderStats()}
 
 function entryCard(x){
  const photos=(x.photos||[]).map(p=>`<div class="photo-box" onclick='openPhoto(${JSON.stringify(p)})'><img src="${esc(previewPhotoUrl(p))}" alt="작업 사진" onerror="this.parentElement.classList.add('photo-error')"></div>`).join('');
- return `<article class="entry"><div class="entry-top"><strong>${esc(x.field)} · ${esc(x.crop)}</strong><time>${esc(x.workDate)}</time></div><div class="meta">작업: ${esc(x.work)}<br>작업자: ${esc(x.worker)}${x.amount?`<br>작업량: ${esc(x.amount)}`:''}${x.memo?`<br>메모: ${esc(x.memo)}`:''}</div>${photos?`<div class="entry-photos">${photos}</div>`:''}<div class="entry-actions"><button class="btn small secondary" onclick="editEntry(${x.id})">수정</button><button class="btn small danger" onclick="removeEntry(${x.id})">삭제</button></div></article>`
+ const weatherInfo=[x.weather,x.temperature!==undefined&&x.temperature!==''?`${x.temperature}℃`:'',x.humidity!==undefined&&x.humidity!==''?`습도 ${x.humidity}%`:''].filter(Boolean).join(' · ');
+ return `<article class="entry"><div class="entry-top"><strong>${esc(x.field)} · ${esc(x.crop)}</strong><time>${esc(x.workDate)}</time></div><div class="meta">작업: ${esc(x.work)}<br>작업자: ${esc(x.worker)}${x.amount?`<br>작업량: ${esc(x.amount)}`:''}${weatherInfo?`<br>날씨: ${esc(weatherInfo)}`:''}${x.memo?`<br>메모: ${esc(x.memo)}`:''}</div>${photos?`<div class="entry-photos">${photos}</div>`:''}<div class="entry-actions"><button class="btn small secondary" onclick="editEntry(${x.id})">수정</button><button class="btn small danger" onclick="removeEntry(${x.id})">삭제</button></div></article>`
 }
 function openPhoto(src){document.getElementById('largePhoto').src=previewPhotoUrl(src);document.getElementById('photoModal').classList.add('open')}
 function closePhotoModal(e){if(e&&e.target!==document.getElementById('photoModal'))return;document.getElementById('photoModal').classList.remove('open')}

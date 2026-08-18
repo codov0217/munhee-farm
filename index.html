@@ -67,12 +67,13 @@
   <input id="editId" type="hidden">
   <div class="card"><label for="workDate">1. 작업 날짜</label><input id="workDate" class="field" type="date"></div>
   <div class="card"><label>2. 필지 선택</label><div id="fieldChoices" class="choice-grid"></div></div>
-  <div class="card"><label for="crop">3. 작물 이름</label><input id="crop" class="field" placeholder="예: 개미취, 오미자, 사과"><div class="chips"><button class="chip" onclick="setCrop('개미취')">개미취</button><button class="chip" onclick="setCrop('오미자')">오미자</button><button class="chip" onclick="setCrop('수국')">수국</button><button class="chip" onclick="setCrop('사과')">사과</button></div></div>
+  <div class="card"><label for="crop">3. 작물 이름</label><input id="crop" class="field" placeholder="예: 개미취, 수국, 바위솔, 과일나무"><div class="chips"><button class="chip" onclick="setCrop('개미취')">개미취</button><button class="chip" onclick="setCrop('수국')">수국</button><button class="chip" onclick="setCrop('바위솔')">바위솔</button><button class="chip" onclick="setCrop('과일나무')">과일나무</button></div></div>
   <div class="card"><label>4. 작업 종류</label><div id="workChoices" class="choice-grid"></div></div>
   <div class="card"><label>5. 작업자</label><div id="workerChoices" class="choice-grid"></div></div>
   <div class="card"><label for="amount">6. 작업량</label><input id="amount" class="field" placeholder="예: 3시간, 2동, 20kg"></div>
+  <div class="card"><label>7. 작업 당시 날씨 <small class="hint">선택</small></label><select id="weather" class="field"><option value="">선택 안 함</option><option>맑음</option><option>구름 조금</option><option>흐림</option><option>비</option><option>눈</option><option>안개</option><option>바람</option><option>기타</option></select><div class="weather-inputs"><label>온도<input id="temperature" class="field" type="number" step="0.1" inputmode="decimal" placeholder="예: 22.5"><small>℃</small></label><label>습도<input id="humidity" class="field" type="number" min="0" max="100" step="1" inputmode="numeric" placeholder="예: 65"><small>%</small></label></div></div>
   <div class="card">
-    <label>7. 사진</label>
+    <label>8. 사진</label>
     <div class="hint">사진은 한 장씩 작게 줄여 작업 저장 때 공용 사진함에 함께 올립니다. 휴대폰에는 링크만 남기며, 작업당 최대 3장까지 저장할 수 있습니다.</div>
     <div class="photo-actions">
       <label class="photo-action camera" for="cameraInput">📷 촬영하기
@@ -84,7 +85,7 @@
     <div id="photoSavedNote" class="photo-saved-note">사진이 작업에 바로 추가되었습니다.</div>
     <div id="photoPreview" class="photo-preview"></div>
   </div>
-  <div class="card"><label for="memo">8. 메모</label><textarea id="memo" class="field" rows="3" placeholder="작업 내용을 입력하세요"></textarea></div>
+  <div class="card"><label for="memo">9. 메모</label><textarea id="memo" class="field" rows="3" placeholder="작업 내용을 입력하세요"></textarea></div>
   <div class="actions"><button class="btn secondary" onclick="showScreen('home')">취소</button><button class="btn primary" onclick="saveEntry()">저장하기</button></div>
 </section>
 

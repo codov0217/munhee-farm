@@ -1,8 +1,13 @@
 const SHEET_NAME = '작업기록';
 const PHOTO_FOLDER_NAME = '문희농원 작업사진';
+const WEATHER_SHEET_NAME = '괴산 청천면 날씨';
+// 청천면 중심 부근 좌표입니다. Open-Meteo 공개 날씨 자료를 사용하며 별도 API 키가 필요 없습니다.
+const CHEONGCHEON_LATITUDE = 36.6535;
+const CHEONGCHEON_LONGITUDE = 127.6500;
 const HEADERS = [
   '기록ID', '작업일', '필지', '작목', '작업종류', '작업자',
-  '작업량', '메모', '사진링크', '등록일', '최종수정일', '삭제여부'
+  '작업량', '메모', '사진링크', '등록일', '최종수정일', '삭제여부',
+  '날씨', '기온(℃)', '습도(%)'
 ];
 
 function doGet() {
@@ -59,6 +64,13 @@ function getSheet_() {
     sheet.getRange(1, 1, 1, HEADERS.length)
       .setBackground('#2f6f4e').setFontColor('#ffffff').setFontWeight('bold');
     sheet.autoResizeColumns(1, HEADERS.length);
+  } else {
+    // 기존 작업일지는 보존한 채, 새 날씨·기온·습도 열만 뒤에 추가합니다.
+    const currentHeaders = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), HEADERS.length)).getValues()[0];
+    if (currentHeaders.length < HEADERS.length || currentHeaders[12] !== HEADERS[12]) {
+      sheet.getRange(1, 13, 1, 3).setValues([HEADERS.slice(12)]);
+      sheet.getRange(1, 13, 1, 3).setBackground('#2f6f4e').setFontColor('#ffffff').setFontWeight('bold');
+    }
   }
   return sheet;
 }
@@ -75,7 +87,8 @@ function getRecords_() {
       work: String(row[4] || ''), worker: String(row[5] || ''),
       amount: String(row[6] || ''), memo: String(row[7] || ''),
       photos: parsePhotos_(row[8]), createdAt: dateTimeText_(row[9]),
-      updatedAt: dateTimeText_(row[10])
+      updatedAt: dateTimeText_(row[10]), weather: String(row[12] || ''),
+      temperature: String(row[13] || ''), humidity: String(row[14] || '')
     }))
     .sort((a, b) => (b.workDate + b.createdAt).localeCompare(a.workDate + a.createdAt));
 }
@@ -90,7 +103,8 @@ function saveRecord_(record) {
   const row = [[
     record.recordUid, record.workDate || '', record.field || '', record.crop || '',
     record.work || '', record.worker || '', record.amount || '', record.memo || '',
-    JSON.stringify(record.photos || []), record.createdAt || now, now, ''
+    JSON.stringify(record.photos || []), record.createdAt || now, now, '',
+    record.weather || '', record.temperature || '', record.humidity || ''
   ]];
   if (index >= 0) {
     const sheetRow = index + 2;
@@ -151,6 +165,58 @@ function uploadPhoto_(photo) {
 function getPhotoFolder_() {
   const folders = DriveApp.getFoldersByName(PHOTO_FOLDER_NAME);
   return folders.hasNext() ? folders.next() : DriveApp.createFolder(PHOTO_FOLDER_NAME);
+}
+
+// 처음 한 번 수동 실행하면 이후에는 매일 오전 7시 전후 자동으로 기록합니다.
+function 자동날씨기록시작() {
+  ScriptApp.getProjectTriggers()
+    .filter(trigger => trigger.getHandlerFunction() === '기록괴산청천면날씨')
+    .forEach(trigger => ScriptApp.deleteTrigger(trigger));
+  ScriptApp.newTrigger('기록괴산청천면날씨').timeBased().everyDays(1).atHour(7).create();
+  기록괴산청천면날씨();
+}
+
+function 기록괴산청천면날씨() {
+  const timezone = Session.getScriptTimeZone() || 'Asia/Seoul';
+  const today = Utilities.formatDate(new Date(), timezone, 'yyyy-MM-dd');
+  const sheet = getWeatherSheet_();
+  const lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    const recordedDates = sheet.getRange(2, 1, lastRow - 1, 1).getDisplayValues().flat();
+    if (recordedDates.includes(today)) return;
+  }
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + CHEONGCHEON_LATITUDE +
+    '&longitude=' + CHEONGCHEON_LONGITUDE +
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean,precipitation_sum' +
+    '&timezone=Asia%2FSeoul&forecast_days=1';
+  const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  if (response.getResponseCode() !== 200) throw new Error('날씨 정보를 가져오지 못했습니다.');
+  const daily = JSON.parse(response.getContentText()).daily;
+  sheet.appendRow([
+    today, weatherText_(daily.weather_code[0]), daily.temperature_2m_min[0], daily.temperature_2m_max[0],
+    daily.relative_humidity_2m_mean[0], daily.precipitation_sum[0], new Date()
+  ]);
+}
+
+function getWeatherSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(WEATHER_SHEET_NAME) || ss.insertSheet(WEATHER_SHEET_NAME);
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['날짜', '날씨', '최저기온(℃)', '최고기온(℃)', '평균습도(%)', '강수량(mm)', '기록시각']);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, 7).setBackground('#2f6f4e').setFontColor('#ffffff').setFontWeight('bold');
+    sheet.autoResizeColumns(1, 7);
+  }
+  return sheet;
+}
+
+function weatherText_(code) {
+  const labels = { 0: '맑음', 1: '대체로 맑음', 2: '구름 조금', 3: '흐림', 45: '안개', 48: '안개',
+    51: '이슬비', 53: '이슬비', 55: '이슬비', 56: '어는 이슬비', 57: '어는 이슬비',
+    61: '비', 63: '비', 65: '강한 비', 66: '어는 비', 67: '어는 비', 71: '눈', 73: '눈', 75: '강한 눈',
+    77: '싸락눈', 80: '소나기', 81: '소나기', 82: '강한 소나기', 85: '눈 소나기', 86: '강한 눈 소나기',
+    95: '뇌우', 96: '우박 동반 뇌우', 99: '강한 우박 동반 뇌우' };
+  return labels[Number(code)] || '기타';
 }
 
 function parsePhotos_(value) {
