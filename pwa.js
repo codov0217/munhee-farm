@@ -1,5 +1,16 @@
 'use strict';
 
+function loadCalendarWeatherModule(){
+  if(document.querySelector('script[data-munhui-calendar-weather]'))return;
+  const script=document.createElement('script');
+  script.src='./calendar-weather.js?v=20260818';
+  script.dataset.munhuiCalendarWeather='true';
+  script.onload=()=>console.log('완장리 달력 날씨 모듈 연결됨');
+  script.onerror=()=>console.warn('calendar-weather.js를 불러오지 못했습니다.');
+  document.head.appendChild(script);
+}
+loadCalendarWeatherModule();
+
 let deferredInstallPrompt=null;
 let waitingWorker=null;
 const installBanner=document.getElementById('installBanner');
